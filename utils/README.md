@@ -210,3 +210,4 @@ srtm files which can then be processed by srtm2sdf-hd.
 
 	aw3d30_2_srtmhgt.sh -s <srcdir> -d <destdir>
 
+More information on the aw3d30 can be found at https://www.eorc.jaxa.jp/ALOS/en/aw3d30/index.htm 
