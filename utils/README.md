@@ -202,3 +202,12 @@ can be provided in kilometers rather than statute miles.  SPLAT! provides
 similar distance and bearing information between two specific site locations.
 The bearing utility, however, provides the information quickly and easily
 over great distances without having to run SPLAT!
+
+## aw3d30_2_srtmhgt.sh
+aw3d30_2_srtmhgt.sh is a support utility used to convert AW3D30 
+(ALOS Global Digital Surface Model 'ALOS World 3D - 30m) into 30m (1arc second)
+srtm files which can then be processed by srtm2sdf-hd.
+
+	aw3d30_2_srtmhgt.sh -s <srcdir> -d <destdir>
+
+More information on the aw3d30 can be found at https://www.eorc.jaxa.jp/ALOS/en/aw3d30/index.htm 
