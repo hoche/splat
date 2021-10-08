@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.11)
+include(FetchContent)
 
 project(splat VERSION 2.0)
 
@@ -26,6 +27,21 @@ elseif(UNIX) # Linux, BSD etc
   set(MANDIR "share/man")
 endif()
 
+FetchContent_Declare(cli11
+  GIT_REPOSITORY https://github.com/CLIUtils/CLI11.git
+  GIT_TAG v2.1.1
+)
+
+FetchContent_GetProperties(cli11)
+if(NOT cli11_POPULATED)
+  FetchContent_Populate(cli11)
+
+  # Set any custom variables, etc. here, then
+  # populate the content as part of this build
+
+  add_subdirectory(${cli11_SOURCE_DIR} ${cli11_BINARY_DIR} EXCLUDE_FROM_ALL)
+  # include_directories(${cli11_SOURCE_DIR}/include)
+endif()
 
 add_subdirectory(src)
 add_subdirectory(utils)

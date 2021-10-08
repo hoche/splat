@@ -31,6 +31,8 @@ add_executable(splat
     udt.cpp
     utilities.cpp
     workqueue.cpp)
-    
+
+target_include_directories(splat PRIVATE ${cli11_SOURCE_DIR}/include)    
 target_link_libraries(splat bz2 ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${GDAL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+
 install(TARGETS splat DESTINATION bin)
