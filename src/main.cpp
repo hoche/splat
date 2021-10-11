@@ -131,8 +131,8 @@ int main(int argc, const char** argv) {
         app.add_option("-m",  sr.er_mult,         "earth radius multiplier")->check(CLI::Bound(0.1,1.0e6));
         sr.earthradius *= sr.er_mult;
         app.add_option("-v",  sr.verbose,         "N verbosity level. Default is 1. Set to 0 to quiet everything.");
-        app.add_option("-gc", sr.clutter,         "ground clutter height (feet/meters)")->check(CLI::Bound(0.0,100.0e6));
-        app.add_option("-fz", sr.fzone_clearance, "Fresnel zone clearance percentage (default = 60)");
+        app.add_option("--gc", sr.clutter,         "ground clutter height (feet/meters)")->check(CLI::Bound(0.0,100.0e6));
+        app.add_option("--fz", sr.fzone_clearance, "Fresnel zone clearance percentage (default = 60)");
         if (sr.fzone_clearance < 0.0 || sr.fzone_clearance > 100.0)
         {
           sr.fzone_clearance = 60.0;
@@ -143,12 +143,12 @@ int main(int argc, const char** argv) {
         {
           sr.map = true;
         }
-        app.add_option("-log",logfile, "copy command line string to this output file");
+        app.add_option("--log",logfile, "copy command line string to this output file");
         if (logfile.length() > 0)
         {
           sr.command_line_log = true;
         }
-        app.add_option("-udt", udt_file , "name of user defined terrain input file");
+        app.add_option("--udt", udt_file , "name of user defined terrain input file");
         app.add_option("-c", sr.altitude, "lot LOS coverage of TX(s) with an RX antenna at X meters/feet");
         if (sr.altitude >0)
         {
@@ -156,7 +156,7 @@ int main(int argc, const char** argv) {
           sr.coverage = true;
           sr.area_mode = true;
         }
-        app.add_option("-db,-dB", sr.contour_threshold, "threshold beyond which contours will not be displayed")->check(CLI::NonNegativeNumber);
+        app.add_option("--db,--dB", sr.contour_threshold, "threshold beyond which contours will not be displayed")->check(CLI::NonNegativeNumber);
         app.add_option("-p", terrain_file, "filename of terrain profile graph to plot");
         if (terrain_file.length() >0)
         {
@@ -169,7 +169,7 @@ int main(int argc, const char** argv) {
           sr.elevation_plot = true;
           sr.pt2pt_mode = true;
         }
-        app.add_option("-h,-H", height_file, "filename of terrain profile graph to plot");
+        app.add_option("--height", height_file, "filename of terrain profile graph to plot");
         if (height_file.length() >0)
         {
           sr.height_plot = true;
@@ -179,21 +179,21 @@ int main(int argc, const char** argv) {
 
         bool imagetype_set = false;
 #ifdef HAVE_LIBPNG
-        app.add_option("-ppm", sr.imagetype = IMAGETYPE_PPM, "when generating maps, create ppms instead of pngs or jpegs")->excludes("-jpg");        
+        app.add_option("--ppm", sr.imagetype = IMAGETYPE_PPM, "when generating maps, create ppms instead of pngs or jpegs");        
         if ( sr.imagetype )
         {  
           imagetype_set = true;
         }
 #endif
 #ifdef HAVE_LIBGDAL
-        app.add_option("-tif", sr.imagetype = IMAGETYPE_GEOTIFF, "create geotiff instead of png or jpeg")->excludes("-ppm");
+        app.add_option("--tif", sr.imagetype = IMAGETYPE_GEOTIFF, "create geotiff instead of png or jpeg");
         if ( sr.imagetype )
         {
           imagetype_set = true;
         }
 #endif
 #ifdef HAVE_LIBJPEG
-        app.add_option("-jpg", sr.imagetype = IMAGETYPE_JPG, "when generating maps, create jpgs instead of pngs or ppms")->excludes("-ppm,-png");
+        app.add_option("--jpg", sr.imagetype = IMAGETYPE_JPG, "when generating maps, create jpgs instead of pngs or ppms");
         if ( sr.imagetype )
         {
           imagetype_set = true;
@@ -202,22 +202,22 @@ int main(int argc, const char** argv) {
 
 #ifdef HAVE_LIBGDAL
         /* needs a validator (or call back) to convert espg:xxxx to the correct enum type */
-        app.add_option("-proj", sr.projection,"projection in proj (espg:xxxx) format")->needs("-tiff,-png,-jpg");
+        app.add_option("--proj", sr.projection,"projection in proj (espg:xxxx) format")->needs("--tiff,--png,--jpg");
 #endif
-        app.add_flag("-imperial", sr.metric, "employ imperial rather than metric units for all user I/O");
-        app.add_flag("-gpsav",    sr.gpsav,  "preserve gnuplot temporary working files after SPLAT! execution");
-        app.add_flag("-geo",      sr.geo,    "generate an Xastir .geo georeference file (with image output)");
-        app.add_flag("-kml",      sr.kml,    "generate Google Earth (.kml) compatible output");
-        app.add_flag("-json",     sr.json,   "create JSON file containing configuration");
-        app.add_flag("-nf",       sr.fresnel_plot, "do not plot Fresnel zones in height plots");
-        app.add_flag("-ngs",      sr.ngs,    "display greyscale topography as white in images");
+        app.add_flag("--imperial", sr.metric, "employ imperial rather than metric units for all user I/O");
+        app.add_flag("--gpsav",    sr.gpsav,  "preserve gnuplot temporary working files after SPLAT! execution");
+        app.add_flag("--geo",      sr.geo,    "generate an Xastir .geo georeference file (with image output)");
+        app.add_flag("--kml",      sr.kml,    "generate Google Earth (.kml) compatible output");
+        app.add_flag("--json",     sr.json,   "create JSON file containing configuration");
+        app.add_flag("--nf",       sr.fresnel_plot, "do not plot Fresnel zones in height plots");
+        app.add_flag("--ngs",      sr.ngs,    "display greyscale topography as white in images");
         app.add_flag("-n",        sr.nolospath,    "do not plot LOS paths in maps");
-        app.add_flag("-dbm,-dBm", sr.dbm,    "plot signal power level contours rather than field strength");
-        app.add_flag("-sc",       sr.smooth_contours, "display smooth rather than quantized contour levels");
-        app.add_flag("-st",       sr.multithread=false, "use a single CPU thread (classic mode)");
-        app.add_flag("-itwom",    sr.propagation_model = PROP_ITWOM, "invoke the ITWOM model instead of using Longley-Rice"); 
+        app.add_flag("--dbm,--dBm", sr.dbm,    "plot signal power level contours rather than field strength");
+        app.add_flag("--sc",       sr.smooth_contours, "display smooth rather than quantized contour levels");
+        app.add_flag("--st",       sr.multithread=false, "use a single CPU thread (classic mode)");
+        app.add_flag("--itwom",    sr.propagation_model = PROP_ITWOM, "invoke the ITWOM model instead of using Longley-Rice"); 
         app.add_flag("-N",        sr.nolospath,     "do not produce unnecessary site or obstruction reports");
-        app.add_flag("-N",        sr.nositereports, "do not produce unnecessary site or obstruction reports");
+//        app.add_flag("-N",        sr.nositereports, "do not produce unnecessary site or obstruction reports");
         app.add_option("-d", sr.sdf_path, "sdf file directory path (overrides path in ~/.splat_path file)");
         string txfile;
         app.add_option("-t", txfile, "txsite(s).qth (max of 4 with -c, max of 30 with -L)");
@@ -252,16 +252,16 @@ int main(int argc, const char** argv) {
           sr.forced_freq = 0.0;
         }
 
-        app.add_option("-erp", sr.forced_erp, "override ERP in .lrp file (Watts)");
+        app.add_option("--erp", sr.forced_erp, "override ERP in .lrp file (Watts)");
         if (sr.forced_erp < 0.0)
         {
           sr.forced_erp = -1.0;
         }
-        app.add_option("-ano", ano_filename, "name of alphanumeric output file");
-        app.add_option("-ani", ani_filename, "name of alphanumeric input file");
-        app.add_option("-maxpges", sr.maxpages, "Maximum Analysis Region capability: 1, 4, 9, 16, 25, 36, 49, 64");
-        app.add_option("-sdelim", sr.sdf_delimiter, "Lat and lon delimeter in SDF filenames");
-        app.add_flag("-hd",sr.hd_mode, "Use High Definition mode. Requires 1-deg SDF files.");
+        app.add_option("--ano", ano_filename, "name of alphanumeric output file");
+        app.add_option("--ani", ani_filename, "name of alphanumeric input file");
+        app.add_option("--maxpges", sr.maxpages, "Maximum Analysis Region capability: 1, 4, 9, 16, 25, 36, 49, 64");
+        app.add_option("--sdelim", sr.sdf_delimiter, "Lat and lon delimeter in SDF filenames");
+        app.add_flag("--hd",sr.hd_mode, "Use High Definition mode. Requires 1-deg SDF files.");
 
         CLI11_PARSE(app, argc, argv);
 
