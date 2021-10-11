@@ -68,22 +68,14 @@ typedef uint32_t Pixel;
 
 typedef enum ImageType {
     IMAGETYPE_PPM = 0,
-#ifdef HAVE_LIBPNG
     IMAGETYPE_PNG,
-#endif
-#ifdef HAVE_LIBJPEG
     IMAGETYPE_JPG,
-#endif
-#ifdef HAVE_LIBGDAL
     IMAGETYPE_GEOTIFF,
-#endif
 } ImageType;
 
 typedef enum ProjectionType {
     PROJ_EPSG_4326 = 0,
-#ifdef HAVE_LIBGDAL
     PROJ_EPSG_3857
-#endif
 } ProjectionType;
 
 
@@ -129,7 +121,7 @@ class ImageWriter {
 	#define PNG_NTEXT 4
     png_structp m_png_ptr = NULL;
     png_infop m_info_ptr = NULL;
-    png_text m_text_ptr[PNG_NTEXT] = {0};
+    png_text m_text_ptr[PNG_NTEXT] = {{0}};
     std::string bounds_str;
     char bounds[80];
 #endif

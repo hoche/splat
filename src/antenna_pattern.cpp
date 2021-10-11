@@ -27,7 +27,7 @@ void AntennaPattern::LoadAntennaPattern(const string &filename) {
 
     int a, b, w, x, y, z, last_index, next_index, span;
     char string[255], azfile[255], elfile[255], *pointer = NULL;
-    float az, xx, elevation, amplitude, valid1, valid2, delta,
+    float az, elevation, amplitude, valid1, valid2, delta,
         azimuth[361], azimuth_pattern[361], el_pattern[10001],
         elevation_pattern[361][1001], slant_angle[361], tilt, sum;
     FILE *fd = NULL;
@@ -319,7 +319,6 @@ void AntennaPattern::LoadAntennaPattern(const string &filename) {
         got_elevation_pattern = true;
     }
     
-    char antenna_name[60];
     
     /* DEBUG: output 2D antenna pattern as csv file */
     //sprintf(antenna_name, "antennafile.csv");
