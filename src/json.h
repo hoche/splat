@@ -14,6 +14,7 @@
 #include "elevation_map.h"
 #include "path.h"
 #include "splat_run.h"
+#include <map>
 
 typedef std::map<std::string,std::string> arg_t;
 

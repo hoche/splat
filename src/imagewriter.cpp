@@ -36,6 +36,7 @@
  */
 
 #include "imagewriter.h"
+#include <string.h>
 #include <exception>
 #include <iostream>
 #include <string>
