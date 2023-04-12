@@ -6,6 +6,8 @@ A Terrestrial RF Path and Terrain Analysis Tool for Unix/Linux
 
 This version is based off SPLAT! 1.4.2 and does exactly the same calculations but uses CPU threading to speed things up. It also incorporates large number of bugfixes, as well as new antenna-height code.
 
+_NOTE: We recommend the 2.0 Alpha branch. It contains a number of bugfixes, and leverages multithreading to speed up the calculations considerably._
+
 ## Getting Started
 
 Build instructions are in the file README.
