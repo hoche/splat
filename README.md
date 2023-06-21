@@ -4,16 +4,11 @@ A Terrestrial RF Path and Terrain Analysis Tool for Unix/Linux
 
 ## About
 
-This version is a work in progress. It does exactly the same calculations as the basic
-Splat! system, but uses CPU threading to speed things up.
+This version is a work in progress. It consists of a refactoring of the code in 1.5, 
+along with some enhancements to support GDAL. It otherwise does exactly the same calculations,
+and has the bugfixed and enhancements of 1.5, including multithreading and GDAL support.
 
-Future version may either use OpenCL or Vulkan to hand computation off to a graphics
-card in the hopes of even more speed improvements. In preparation for this, itwom3.0 was
-made fully C99-compliant, as all the current implementations of OpenCL drivers require
-that. (Later versions of OpenCL allow C++, but none of the common GPU drivers support that).
-
-The "classic" SPLAT version 1.5 is also available as a separate branch. It is based off John Magliacane's 1.4.2 release, but with a few bugfixes.
-However, we recommend the 2.0-alpha branch. It contains a number of bugfixes, and leverages multithreading to speed up the calculations considerably.
+Future enhancements will appear on this branch.
 
 ## Building
 
