@@ -1198,11 +1198,15 @@ int main(int argc, const char *argv[]) {
 		}
 	}
 	// end argv[] reading
-    */
+
+	// disabled for now - the parser hasn't been tested.
+	// hoche 21 Jun 2023
     if (sr.json) {
         Json json(*em_p, sr);
         json.WriteJSON(args, tx_site[0], lrp, mapfile);
     }
+    */
+
     //=====================
 
     /* That's all, folks! */
