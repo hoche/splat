@@ -43,7 +43,7 @@ You can generally get these via system packages. For instance:
 #### MacPorts
 `port install cmake jpeg libpng libgdal gnuplot`
 
-### Example Build on Ubuntu 18.04 LTS
+### Example Build on Ubuntu 18.04 LTS and 22.04 LTS
 As an example, a build on Ubuntu 18.04 LTS might look like this:
 
 ```
