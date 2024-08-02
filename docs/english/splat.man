@@ -71,6 +71,8 @@ splat
 [-imperial]
 .br
 [-olditm]
+.br
+[-oldlon]
 .SH DESCRIPTION
 \fBSPLAT!\fP is a powerful terrestrial RF propagation and terrain
 analysis tool for the spectrum between 20 MHz and 20 GHz.
@@ -200,7 +202,7 @@ Trenton, NJ (\fIwnjt-dt.qth\fP) might read as follows:
 .br
         40.2828
 .br
-        74.6864
+        -74.6864
 .br
         990.00
 \fR
@@ -463,6 +465,8 @@ line will return a summary of \fBSPLAT!\fP's command line options:
 -imperial employ imperial rather than metric units for all user I/O
 .br
 -olditm invoke older ITM propagation model rather than the newer ITWOM
+.br
+-oldlon use old-style longitude (west is negative) for TX and RX sites
 .br
 \fR
 The command-line options for \fCsplat\fR and \fCsplat-hd\fR are identical.

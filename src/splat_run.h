@@ -95,6 +95,7 @@ class SplatRun {
     bool rxsite;
 
     bool metric;
+    bool old_longitude;
     bool dbm;
     bool smooth_contours;
     bool bottom_legend;

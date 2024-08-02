@@ -88,6 +88,7 @@ int main(int argc, const char *argv[]) {
     sr.command_line_log = false;
     sr.rxsite = false;
     sr.metric = true;
+    sr.old_longitude = false;
     sr.dbm = false;
     sr.bottom_legend = true;
     sr.smooth_contours = false;
@@ -181,6 +182,8 @@ int main(int argc, const char *argv[]) {
                "SPLAT! execution\n"
                "   -itwom invoke the ITWOM model instead of using "
                "Longley-Rice\n"
+               "  -oldlon use old-style longitude (west is negative) instead "
+               "of the default GPS-compatible longitude for TX and RX sites\n"
                "  -imperial employ imperial rather than metric units for all "
                "user I/O\n"
                "-maxpages ["
@@ -402,6 +405,9 @@ int main(int argc, const char *argv[]) {
 
         if (strcmp(argv[x], "-geo") == 0)
             sr.geo = true;
+
+        if (strcmp(argv[x], "-oldlon") == 0)
+            sr.old_longitude = true;
 
         if (strcmp(argv[x], "-kml") == 0)
             sr.kml = true;
@@ -628,6 +634,14 @@ int main(int argc, const char *argv[]) {
 		sr.bottom_legend = true;
 	}
 
+    /* Flip longitude if needed - internally we use flipped longitude */
+    if (!sr.old_longitude) {
+        for (x = 0; x < tx_site.size(); x++) {
+	    tx_site[x].lon = -tx_site[x].lon;
+        }
+	rx_site.lon = -rx_site.lon;
+    }
+    
     switch (sr.maxpages) {
     case 1:
         if (!sr.hd_mode) {
