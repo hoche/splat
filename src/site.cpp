@@ -16,7 +16,7 @@
 
 using namespace std;
 
-Site::Site() {}
+Site::Site() { amsl_flag = false; }
 
 Site::Site(const string &filename) { LoadQTH(filename); }
 
@@ -143,7 +143,6 @@ void Site::LoadQTH(const string &filename) {
 
     /* Antenna Height */
     fgets(string, 49, fd);
-    fclose(fd);
 
     /* Remove <CR> and/or <LF> from antenna height string */
     for (x = 0; string[x] != 13 && string[x] != 10 && string[x] != 0; x++)
@@ -172,5 +171,16 @@ void Site::LoadQTH(const string &filename) {
         sscanf(string, "%f", &alt);
     }
 
+    /* Whether height is MSL or AGL */
+    amsl_flag = false;
+    if (!feof(fd)) {
+        fgets(string, 49, fd);
+	if (string[0] == 'M' || string[0] == 'm') {
+	    amsl_flag = true;
+	}
+    }
+
+    fclose(fd);
+    
     this->filename = qthfile;
 }

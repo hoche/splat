@@ -88,6 +88,7 @@ int main(int argc, const char *argv[]) {
     sr.command_line_log = false;
     sr.rxsite = false;
     sr.metric = true;
+    sr.msl = false;
     sr.dbm = false;
     sr.bottom_legend = true;
     sr.smooth_contours = false;
@@ -183,6 +184,7 @@ int main(int argc, const char *argv[]) {
                "Longley-Rice\n"
                "  -imperial employ imperial rather than metric units for all "
                "user I/O\n"
+               "  -msl use MSL for TX/RX altitudes instead of AGL\n"
                "-maxpages ["
             << sr.maxpages
             << "] Maximum Analysis Region capability: 1, 4, 9, 16, 25, 36, 49, "
@@ -396,6 +398,9 @@ int main(int argc, const char *argv[]) {
 
         if (strcmp(argv[x], "-imperial") == 0)
             sr.metric = false;
+
+        if (strcmp(argv[x], "-msl") == 0)
+            sr.msl = true;
 
         if (strcmp(argv[x], "-gpsav") == 0)
             sr.gpsav = true;
@@ -618,6 +623,14 @@ int main(int argc, const char *argv[]) {
             fprintf(stderr, "\n%c*** ERROR: No receiver site found or specified!\n\n", 7);
             exit(-1);
         }
+    }
+
+    /* Adjust TX/RX for MSL */
+    if (sr.msl) {
+        for (x = 0; x < tx_site.size(); x++) {
+            tx_site[x].amsl_flag = true;
+        }
+        rx_site.amsl_flag = true;
     }
     
     /* check if the output map should have a bottom legend */

@@ -21,7 +21,7 @@ class Site {
     double lat;
     double lon;
     float alt;
-    unsigned char amsl_flag;
+    bool amsl_flag;
     std::string name;
     std::string filename;
 

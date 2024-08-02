@@ -168,8 +168,8 @@ double ElevationMap::ElevationAngle(Path &path, const Site &source,
 
     double a, b, dx;
 
-    a = GetElevation(destination) + destination.alt + sr.earthradius;
-    b = GetElevation(source) + source.alt + sr.earthradius;
+    a = (destination.amsl_flag ? 0.0 : GetElevation(destination)) + destination.alt + sr.earthradius;
+    b = (source.amsl_flag ? 0.0 : GetElevation(source)) + source.alt + sr.earthradius;
 
     dx = 5280.0 * source.Distance(destination);
 
@@ -200,8 +200,8 @@ double ElevationMap::ElevationAngle2(Path &path, const Site &source,
     path.ReadPath(source, destination, *this);
 
     distance = 5280.0 * source.Distance(destination);
-    source_alt = er + source.alt + GetElevation(source);
-    destination_alt = er + destination.alt + GetElevation(destination);
+    source_alt = er + source.alt + (source.amsl_flag ? 0.0 : GetElevation(source));
+    destination_alt = er + destination.alt + (destination.amsl_flag ? 0.0 : GetElevation(destination));
     source_alt2 = source_alt * source_alt;
 
     /* Calculate the cosine of the elevation angle of the
@@ -378,7 +378,7 @@ double ElevationMap::haat(Path &path, const Site &antenna) const {
         return -5000.0;
     else {
         avg_terrain = (sum / (double)c);
-        haat = (antenna.alt + GetElevation(antenna)) - avg_terrain;
+        haat = (antenna.alt + (antenna.amsl_flag ? 0.0 : GetElevation(antenna))) - avg_terrain;
         return haat;
     }
 }
@@ -621,12 +621,10 @@ void ElevationMap::PlotPath(const Site &source, const Site &destination,
             else
                 tx_alt = sr.earthradius + source.alt + path.elevation[0];
 
-            /***
-              if (destination.amsl_flag)
-              rx_alt=earthradius+destination.alt;
-              else
-             ***/
-            rx_alt = sr.earthradius + destination.alt + path.elevation[y];
+            if (destination.amsl_flag)
+                rx_alt = sr.earthradius + destination.alt;
+            else
+                rx_alt = sr.earthradius + destination.alt + path.elevation[y];
 
             /* Calculate the cosine of the elevation of the
                transmitter as seen at the temp rx point. */
@@ -684,9 +682,13 @@ void ElevationMap::PlotLOSMap(const Site &source, double altitude) {
     count = 0;
 
     fprintf(stdout,
-            "\nComputing line-of-sight coverage of \"%s\" with an RX "
+            "\nComputing line-of-sight coverage of \"%s\" with a TX "
+	    "antenna\nat %.2f %s %s and an RX "
             "antenna\nat %.2f %s AGL",
             source.name.c_str(),
+	    sr.metric ? source.alt * METERS_PER_FOOT : source.alt,
+	    sr.metric ? "meters" : "feet",
+	    source.amsl_flag ? "MSL" : "AGL",
             sr.metric ? altitude * METERS_PER_FOOT : altitude,
             sr.metric ? "meters" : "feet");
 
@@ -1181,18 +1183,14 @@ void ElevationMap::PlotLRPath(const Site &source, const Site &destination,
         if ((GetMask(path.lat[y], path.lon[y]) & 248) != (mask_value << 3)) {
             distance = 5280.0 * path.distance[y];
 
-            /***
-              if (source.amsl_flag)
-              xmtr_alt=four_thirds_earth+source.alt;
-              else
-             ***/
-            xmtr_alt = four_thirds_earth + source.alt + path.elevation[0];
+            if (source.amsl_flag)
+                xmtr_alt = four_thirds_earth + source.alt;
+            else
+                xmtr_alt = four_thirds_earth + source.alt + path.elevation[0];
 
-            /***/
             if (destination.amsl_flag)
                 dest_alt = four_thirds_earth + destination.alt;
             else
-                /***/
                 dest_alt =
                     four_thirds_earth + destination.alt + path.elevation[y];
 
@@ -1271,15 +1269,17 @@ void ElevationMap::PlotLRPath(const Site &source, const Site &destination,
                                (path.distance[y] - path.distance[y - 1]));
 
             if (sr.propagation_model == PROP_ITWOM)
-                point_to_point(elev, source.alt * METERS_PER_FOOT,
-                               destination.alt * METERS_PER_FOOT,
+	        /* Convert MSL to AGL if needed, since that's what point_to_point expects */
+                point_to_point(elev, (source.alt - (source.amsl_flag ? path.elevation[0] : 0.0)) * METERS_PER_FOOT,
+                               (destination.alt - (destination.amsl_flag ? path.elevation[y] : 0.0)) * METERS_PER_FOOT,
                                lrp.eps_dielect, lrp.sgm_conductivity,
                                lrp.eno_ns_surfref, lrp.frq_mhz,
                                lrp.radio_climate, lrp.pol, lrp.conf, lrp.rel,
                                loss, strmode, errnum);
             else
-                point_to_point_ITM(elev, source.alt * METERS_PER_FOOT,
-                                   destination.alt * METERS_PER_FOOT,
+	        /* Convert MSL to AGL if needed, since that's what point_to_point expects */
+                point_to_point_ITM(elev, (source.alt - (source.amsl_flag ? path.elevation[0] : 0.0)) * METERS_PER_FOOT,
+                                   (destination.alt - (destination.amsl_flag ? path.elevation[y] : 0.0)) * METERS_PER_FOOT,
                                    lrp.eps_dielect, lrp.sgm_conductivity,
                                    lrp.eno_ns_surfref, lrp.frq_mhz,
                                    lrp.radio_climate, lrp.pol, lrp.conf,
