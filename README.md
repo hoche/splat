@@ -37,7 +37,12 @@ You can generally get these via system packages. For instance:
 
 `yum install cmake bzip2-devel zlib-devel libpng-devel libjpeg-turbo-devel libgdal-devel gnuplot`
 
-### Debian (Buster) and Ubuntu (18.04 LTS):
+### Debian and Ubuntu
+
+Debian Trixie and Ubuntu 24.04 LTS
+Debian Bookworm and Ubuntu 22.04 LTS
+Debian Bullseye and Ubuntu 20.04 LTS
+Debian Buster and Ubuntu 18.04 LTS
 
 `apt-get install cmake libbz2-dev zlib1g-dev libjpeg-dev libpng-dev libgdal-dev gnuplot`
 
@@ -50,13 +55,11 @@ You can generally get these via system packages. For instance:
 #### MacPorts
 `port install cmake jpeg libpng libgdal gnuplot`
 
-### Example Build on Ubuntu 18.04 LTS
-As an example, a build on Ubuntu 18.04 LTS might look like this:
+### Example Build on Ubuntu 24.04 LTS
+As an example, a build on Ubuntu 24.04 LTS might look like this after installing packages as indicated above:
 
 ```
-sudo apt install git cmake
 git clone https://github.com/hoche/splat.git
-sudo apt install libbz2-dev zlib1g-dev libjpeg-dev libpng-dev libgdal-dev gnuplot
 cd splat/build
 cmake ..
 make
