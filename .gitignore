@@ -4,6 +4,7 @@
 *.vcxproj.filters
 *.vcxproj.user
 .gdbinit
+build/
 cscope.out
 hd-parms.h
 splat

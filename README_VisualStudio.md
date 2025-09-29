@@ -107,5 +107,5 @@ Visual Studio 2017 and above have support for CMake built in:
         Make sure that when you compiled libpng, the Solution Platform matches Splat's (x64).
   
   
-Last updated on 14 Jan 2019. hoche@grok.com
+Last updated on 14 Jan 2019.
      

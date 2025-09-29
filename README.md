@@ -60,6 +60,7 @@ As an example, a build on Ubuntu 24.04 LTS might look like this after installing
 
 ```
 git clone https://github.com/hoche/splat.git
+mkdir splat/build
 cd splat/build
 cmake ..
 make

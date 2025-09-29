@@ -4,7 +4,6 @@
  * @brief Miscellanous operating system utilities
  *
  * @author Michel Hoche-Mong
- * Contact: hoche@grok.com
  *
  */
 
