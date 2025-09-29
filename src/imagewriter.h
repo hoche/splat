@@ -32,7 +32,6 @@
  *
  *
  * @author Michel Hoche-Mong
- * Contact: hoche@grok.com
  *
  */
 
@@ -40,6 +39,7 @@
 #define imagewriter_h
 
 #include <string>
+#include <cstdint>
 
 
 #ifdef HAVE_LIBPNG
