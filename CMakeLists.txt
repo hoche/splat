@@ -16,7 +16,7 @@ find_package(BZip2 REQUIRED)
 include_directories(${PNG_INCLUDE_DIRS} ${JPEG_INCLUDE_DIRS} ${GDAL_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS} ${BZIP2_INCLUDE_DIRS})
 
 # Source files (example, adjust based on actual project structure)
-file(GLOB_RECURSIVE SOURCES src/*.cpp src/*.c)
+file(GLOB_RECURSE SOURCES src/*.cpp src/*.c)
 
 # Create main executable
 add_executable(splat ${SOURCES})
@@ -40,7 +40,7 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 # Test source files (example, adjust paths as needed)
-file(GLOB_RECURSIVE TEST_SOURCES tests/*.cpp)
+file(GLOB_RECURSE TEST_SOURCES tests/*.cpp)
 
 # Create test executable
 add_executable(splat_tests ${TEST_SOURCES})

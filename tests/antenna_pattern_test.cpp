@@ -3,8 +3,6 @@
 #include <string>
 #include <vector>
 
-#include "splat.h"
-
 // Mock class for file I/O dependencies
 class MockFileIO {
 public:

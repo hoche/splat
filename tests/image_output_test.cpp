@@ -1,8 +1,6 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
-#include "splat.h"
-
 // Mock class for libpng/libjpeg dependencies
 class MockImageWriter {
 public:
