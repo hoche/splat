@@ -1,34 +1,57 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
+project(splat VERSION 2.0 LANGUAGES C CXX)
 
-project(splat VERSION 2.0)
-
-# specify the C++ standard
+# Set C++ standard
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
-set(CMAKE_CXX_FLAGS "-O3 -Wall -ffast-math")
-set(CMAKE_C_FLAGS "-O3 -Wall -ffast-math")	# required for optimization of itwom3.c until it is ported to C++
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-if(WIN32)
-  add_definitions(-DHAVE_LIBPNG)
-  set(SHAREDIR ".")
-  set(DOCDIR "docs")
-elseif(APPLE)
-  add_definitions(-DHAVE_LIBPNG -DHAVE_LIBJPEG -DHAVE_LIBGDAL)
-  set(SHAREDIR "${CMAKE_INSTALL_PREFIX}/share/${PROJECT_NAME}")
-  set(DOCDIR "share/docs/${PROJECT_NAME}")
-  set(MANDIR "share/man")
-  # See https://stackoverflow.com/questions/36523911/osx-homebrew-cmake-libpng-version-mismatch-issue
-  set(CMAKE_FIND_FRAMEWORK LAST)
-elseif(UNIX) # Linux, BSD etc
-  add_definitions(-DHAVE_LIBPNG -DHAVE_LIBJPEG -DHAVE_LIBGDAL)
-  set(SHAREDIR "share/${PROJECT_NAME}")
-  set(DOCDIR "share/docs/${PROJECT_NAME}")
-  set(MANDIR "share/man")
-endif()
+# Find required libraries
+find_package(PNG REQUIRED)
+find_package(JPEG REQUIRED)
+find_package(GDAL REQUIRED)
+find_package(ZLIB REQUIRED)
+find_package(BZip2 REQUIRED)
 
+# Include directories
+include_directories(${PNG_INCLUDE_DIRS} ${JPEG_INCLUDE_DIRS} ${GDAL_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS} ${BZIP2_INCLUDE_DIRS})
 
-add_subdirectory(src)
-add_subdirectory(utils)
-add_subdirectory(docs)
+# Source files (example, adjust based on actual project structure)
+file(GLOB_RECURSIVE SOURCES src/*.cpp src/*.c)
 
-install(DIRECTORY sample_data DESTINATION "${SHAREDIR}")
+# Create main executable
+add_executable(splat ${SOURCES})
+target_link_libraries(splat ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${GDAL_LIBRARIES} ${ZLIB_LIBRARIES} ${BZIP2_LIBRARIES})
+
+# Installation
+install(TARGETS splat DESTINATION bin)
+
+# Enable testing
+enable_testing()
+
+# Find or fetch GoogleTest and GoogleMock. Stick to 1.12 as long as we're C++11 compatible.
+include(FetchContent)
+FetchContent_Declare(
+  googletest
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG release-1.12.1
+)
+# For Windows: Prevent overriding the parent project's compiler/linker settings
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
+
+# Test source files (example, adjust paths as needed)
+file(GLOB_RECURSIVE TEST_SOURCES tests/*.cpp)
+
+# Create test executable
+add_executable(splat_tests ${TEST_SOURCES})
+target_link_libraries(splat_tests GTest::gtest_main GTest::gmock_main ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${GDAL_LIBRARIES} ${ZLIB_LIBRARIES} ${BZIP2_LIBRARIES})
+
+# Include project source directories for tests
+target_include_directories(splat_tests PRIVATE src)
+
+# Add tests to CTest
+include(GoogleTest)
+gtest_discover_tests(splat_tests)
+
+# Installation of test executable (optional)
+install(TARGETS splat_tests DESTINATION bin)
