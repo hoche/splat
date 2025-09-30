@@ -1,54 +1,58 @@
+// clang-format off
 /********************************************************************************
  * Irregular Terrain With Obstructions Model (ITWOM) *
  *                                                                               *
- * Version 3.0b, January 2, 2019  File: itwom3.0.c *
+ * Version 3.0c, January 2, 2019  File: itwom3.0.c *
  *                                                                               *
  * Provenance:   Further test version of itwom2.0m re adj to Hrzn range factors
- **
+ *
  * 1. This file is based on a thorough debugging, completion, and update of the
- ** ITM, based on an original, public domain version of this file obtained from:
- ** ftp://flattop.its.bldrdoc.gov/itm/ITMDLL.cpp prior to May, 2007. C++
- *routines * for this program are taken from a translation of the FORTRAN code
- *written by  * U.S. Department of Commerce NTIA/ITS Institute for
- *Telecommunication Sciences    * Irregular Terrain Model (ITM) (Longley-Rice).
- **
- * 2. The Linux version of this file incorporates improvements suggested by a *
- * study of changes made to file itm.cpp by J. D. McDonald to remove Microsoft *
- * Windows dll-isms and to debug an ambguity in overloaded calls. *
+ * ITM, based on an original, public domain version of this file obtained from:
+ * ftp://flattop.its.bldrdoc.gov/itm/ITMDLL.cpp prior to May, 2007. C++
+ * routines for this program are taken from a translation of the FORTRAN code
+ * written by U.S. Department of Commerce NTIA/ITS Institute for
+ * Telecommunication Sciences Irregular Terrain Model (ITM) (Longley-Rice).
+ *
+ * 2. The Linux version of this file incorporates improvements suggested by a
+ * study of changes made to file itm.cpp by J. D. McDonald to remove Microsoft
+ * Windows dll-isms and to debug an ambguity in overloaded calls.
+ *
  * 3. The Linux version of this file also incorporates improvements suggested by
- ** a study of further modifications made to itm.cpp by John A. Magliacane to *
+ * a study of further modifications made to itm.cpp by John A. Magliacane to
  * remove unused variables, unneeded #includes, and to replace pow() statements
- ** with explicit multiplications to improve execution speed and accuracy. *
+ * with explicit multiplications to improve execution speed and accuracy.
+ *
  * 4. On August 19, 2007 this file was modified by Sid Shumate to include *
  * changes and updates included in version 7.0 of ITMDLL.cpp, which was released
- ** by the NTIA/ITS on June 26, 2007. With correction set SS1 and SS2:
- *itm71.cpp.    *
+ * by the NTIA/ITS on June 26, 2007. With correction set SS1 and SS2:
+ * itm71.cpp.
+ *
  * 5. On Feb. 5, 2008 this file became v.1.0 of the ITWOM with the addition, by
- ** Sid Shumate, of multiple corrections, the replacement of subroutines lrprop
- ** and alos with lrprop2 and alos2, and the addition of subroutine saalos to *
+ * Sid Shumate, of multiple corrections, the replacement of subroutines lrprop
+ * and alos with lrprop2 and alos2, and the addition of subroutine saalos to
  * incorporate Radiative Transfer Engine (RTE) computations in the line of sight
- ** range. * Update 8 Jun 2010 to modify alos to match 2010 series of IEEE-BTS *
- * newsletter articles * Update June 12, 2010 to z version to change test
- *outputs                      * Offshoot start date June 23, 2010 to start
- *itwom2.0 dual version for FCC.     * Update to 2.0b July 25 to correct if
- *statement errors in adiff2 re two peak   * calculations starting at line 525 *
- * Development to 2.0c 8 Aug 2010 after modifying saalos and adiff for full *
+ * range.
+ *
+ * Update 8 Jun 2010 to modify alos to match 2010 series of IEEE-BTS 
+ * newsletter articles
+ * Update June 12, 2010 to z version to change test outputs
+ * Offshoot start date June 23, 2010 to start itwom2.0 dual version for FCC.
+ * Update to 2.0b July 25 to correct if statement errors in adiff2 re two peak
+ * calculations starting at line 525
+ * Update to 2.0c 8 Aug 2010 after modifying saalos and adiff for full
  * addition of saalos treatment to post obstruction calculations and debugging.
- ** Modified to make 1st obs loss=5.8 only, no clutter loss considered * Updated
- *to 3.1 after much cleanup, conversion to pure C, and added           *
- * documentation by Michel Hoche-Mong. *
+ * Modified to make 1st obs loss=5.8 only, no clutter loss considered
+
+ * Update to 3.0 2018/2019 after much cleanup, conversion to pure C, and added 
+ * documentation by Michel Hoche-Mong.
  *                                                                               *
- * Commented out unused variables and calculations to eliminate gcc warnings *
- *    (-Wunused-but-set-variable)  -- John A. Magliacane -- July 25, 2013 *
  ********************************************************************************/
+// clang-format on
 
 #include <assert.h>
 #include <complex>
 #include <math.h>
 #include <string.h>
-//#include <stdio.h>
-//#include <stdlib.h>
-//#include <stdbool.h>
 
 #include "itwom3.0.h"
 
