@@ -122,7 +122,7 @@ int main(int argc, const char *argv[]) {
             << "\n\t\t --==[ " << SplatRun::splat_name << " v"
             << SplatRun::splat_version
             << " Available Options... ]==--\n\n"
-               "       -t txsite(s).qth (max of 4 with -c, max of 30 with -L)\n"
+               "       -t txsite(s).qth\n"
                "       -r sr.rxsite.qth\n"
                "       -c plot LOS coverage of TX(s) with an RX antenna at X "
                "feet/meters AGL\n"
@@ -447,7 +447,7 @@ int main(int argc, const char *argv[]) {
 
             z = x + 1;
 
-            while (z <= y && argv[z][0] && argv[z][0] != '-' && tx_site.size() < 30) {
+            while (z <= y && argv[z][0] && argv[z][0] != '-') {
                 string txfile = argv[z];
                 tx_site.push_back(Site(txfile));
                 z++;
