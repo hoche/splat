@@ -39,10 +39,10 @@ You can generally get these via system packages. For instance:
 
 ### Debian and Ubuntu
 
-Debian Trixie and Ubuntu 24.04 LTS
-Debian Bookworm and Ubuntu 22.04 LTS
-Debian Bullseye and Ubuntu 20.04 LTS
-Debian Buster and Ubuntu 18.04 LTS
+- Debian Trixie and Ubuntu 24.04 LTS
+- Debian Bookworm and Ubuntu 22.04 LTS
+- Debian Bullseye and Ubuntu 20.04 LTS
+- Debian Buster and Ubuntu 18.04 LTS
 
 `apt-get install cmake libbz2-dev zlib1g-dev libjpeg-dev libpng-dev libgdal-dev gnuplot`
 
