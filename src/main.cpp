@@ -117,7 +117,7 @@ int main(int argc, const char *argv[]) {
     sr.verbose = 1;    
     sr.sdf_delimiter = "_";
     
-    if (argc == 1) {
+    if (argc == 1 || (argc == 2 && strcmp(argv[1], "--help") == 0)) {
         cout
             << "\n\t\t --==[ " << SplatRun::splat_name << " v"
             << SplatRun::splat_version
