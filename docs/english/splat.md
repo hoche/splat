@@ -13,40 +13,50 @@
 
 ```
 splat
-  [-t  transmitter_site.qth]
-  [-r receiver_site.qth]
-  [-c rx antenna height for LOS coverage analysis (feet/meters) (float)]
-  [-L rx antenna height for ITM coverage analysis (feet/meters) (float)]
-  [-p terrain_profile.ext]
-  [-e elevation_profile.ext]
-  [-h height_profile.ext]
-  [-H normalized_height_profile.ext]
-  [-l ITM_profile.ext]
-  [-o topographic_map_filename.ppm]
-  [-b cartographic_boundary_filename.dat]
-  [-s site/city_database.dat]
-  [-d sdf_directory_path]
-  [-m earth radius multiplier (float)]
-  [-f frequency (MHz) for Fresnel zone calculations (float)]
-  [-R maximum coverage radius (miles/kilometers) (float)]
-  [-dB threshold beyond which contours will not be displayed]
-  [-gc ground clutter height (feet/meters) (float)]
-  [-fz Fresnel zone clearance percentage (default = 60)]
-  [-ano alphanumeric output file name]
-  [-ani alphanumeric input file name]
-  [-udt user_defined_terrain_file.dat]
-  [-log logfile.ext]
-  [-n]
-  [-N]
-  [-nf]
-  [-sc]
-  [-dbm]
-  [-ngs]
-  [-geo]
-  [-kml]
-  [-gpsav]
-  [-imperial]
-  [-olditm]
+       -t txsite(s).qth (max of 4 with -c, max of 30 with -L)
+       -r sr.rxsite.qth
+       -c plot LOS coverage of TX(s) with an RX antenna at X feet/meters AGL
+       -L plot path loss map of TX based on an RX at X feet/meters AGL
+       -s filename(s) of city/site file(s) to import (5 max)
+       -b filename(s) of cartographic boundary file(s) to import (5 max)
+       -p filename of terrain profile graph to plot
+       -e filename of terrain elevation graph to plot
+       -h filename of terrain height graph to plot
+       -H filename of normalized terrain height graph to plot
+       -l filename of path loss graph to plot
+       -o filename of topographic map to generate (without suffix)
+       -u filename of user-defined terrain file to import
+       -d sdf file directory path (overrides path in ~/.splat_path file)
+       -m earth radius multiplier
+       -n do not plot LOS paths in maps
+       -N do not produce unnecessary site or obstruction reports
+       -f frequency for Fresnel zone calculation (MHz)
+       -R modify default range for -c or -L (miles/kilometers)
+       -v N verbosity level. Default is 1. Set to 0 to quiet everything.
+      -st use a single CPU thread (classic mode)
+      -hd Use High Definition mode. Requires 1-deg SDF files.
+      -sc display smooth rather than quantized contour levels
+      -db threshold beyond which contours will not be displayed
+      -nf do not plot Fresnel zones in height plots
+      -fz Fresnel zone clearance percentage (default = 60)
+      -gc ground clutter height (feet/meters)
+     -jpg when generating maps, create jpgs instead of pngs or ppms
+     -tif create geotiff instead of png or jpeg
+     -ngs display greyscale topography as white in images
+     -erp override ERP in .lrp file (Watts)
+     -ano name of alphanumeric output file
+     -ani name of alphanumeric input file
+     -udt name of user defined terrain input file
+     -kml generate Google Earth (.kml) compatible output
+     -geo generate an Xastir .geo georeference file (with image output)
+     -dbm plot signal power level contours rather than field strength
+     -log copy command line std::string to this output file
+     -json create JSON file containing configuration 
+   -gpsav preserve gnuplot temporary working files after SPLAT! execution
+   -itwom invoke the ITWOM model instead of using Longley-Rice
+  -imperial employ imperial rather than metric units for all user I/O
+-maxpages [16] Maximum Analysis Region capability: 1, 4, 9, 16, 25, 36, 49, 64 
+  -sdelim [_] Lat and lon delimeter in SDF filenames 
 ```
 
 ## DESCRIPTION
