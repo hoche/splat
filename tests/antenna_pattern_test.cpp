@@ -38,6 +38,8 @@ bool ReadAntennaPattern(const std::string &filename,
             float value = std::stof(line);
             pattern.push_back(value);
         } catch (...) {
+            // Clear pattern on error to leave it in a clean state
+            pattern.clear();
             return false;
         }
     }

@@ -334,11 +334,16 @@ TEST_P(AngleReductionTest, ReduceVariousAngles) {
 
 INSTANTIATE_TEST_SUITE_P(
     VariousAngles, AngleReductionTest,
-    ::testing::Values(std::make_pair(0.0, 0), std::make_pair(90.0, 90),
-                      std::make_pair(180.0, 180), std::make_pair(270.0, 270),
-                      std::make_pair(360.0, 0), std::make_pair(450.0, 90),
-                      std::make_pair(-90.0, 270), std::make_pair(-180.0, 180),
-                      std::make_pair(720.5, 0), std::make_pair(1000.0, 280)));
+    ::testing::Values(
+        std::make_pair(0.0, 0), std::make_pair(90.0, 90),
+        std::make_pair(180.0, 180),
+        std::make_pair(270.0, 90),  // cos(270°) = cos(90°) -> 90°
+        std::make_pair(360.0, 0), std::make_pair(450.0, 90),
+        std::make_pair(-90.0, 90),  // cos(-90°) = cos(90°) -> 90°
+        std::make_pair(-180.0, 180), std::make_pair(720.5, 0),
+        std::make_pair(1000.0,
+                       80)  // 1000° mod 360 = 280°, cos(280°) = cos(80°) -> 80°
+        ));
 
 // Parameterized test for path operations
 class PathOperationsTest

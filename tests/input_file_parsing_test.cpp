@@ -45,12 +45,18 @@ bool ParseSDF(const std::string &filename,
             while (iss >> value) {
                 row.push_back(value);
             }
+            // Check if stream failed (encountered invalid data)
+            if (iss.fail() && ! iss.eof()) {
+                elevation_data.clear();
+                return false;
+            }
             if (! row.empty()) {
                 elevation_data.push_back(row);
             }
         }
         return ! elevation_data.empty();
     } catch (...) {
+        elevation_data.clear();
         return false;
     }
 }
