@@ -31,11 +31,9 @@ void Udt::LoadUDT(const std::string &filename, ElevationMap &em) {
      elevation data already loaded into memory. */
 
     int i, x, y, z, ypix, xpix, tempxpix, tempypix, fd = 0;
-    char input[80], str[3][80], tempname[15], *pointer = NULL;
+    char input[80], str[3][80], tempname[15] = "/tmp/XXXXXX", *pointer = NULL;
     double latitude, longitude, height, tempheight;
     FILE *fd1 = NULL, *fd2 = NULL;
-
-    strcpy(tempname, "/tmp/XXXXXX\0");
 
     fd1 = fopen(filename.c_str(), "r");
 

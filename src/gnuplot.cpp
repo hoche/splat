@@ -37,7 +37,7 @@ void GnuPlot::GraphTerrain(const Site &source, const Site &destination,
      If no extension is found, .png is assumed.  */
 
     int x, z;
-    char basename[255], term[30], ext[15];
+    std::string basename, term, ext;
     double minheight = 100000.0, maxheight = -100000.0;
     FILE *fd = NULL, *fd1 = NULL;
 
@@ -86,48 +86,48 @@ void GnuPlot::GraphTerrain(const Site &source, const Site &destination,
     if (name[0] == '.') {
         /* Default filename and output file type */
 
-        strncpy(basename, "profile\0", 8);
-        strncpy(term, "png\0", 4);
-        strncpy(ext, "png\0", 4);
+        basename = "profile";
+        term = "png";
+        ext = "png";
     }
 
     else {
         /* Extract extension and terminal type from "name" */
 
-        ext[0] = 0;
-        size_t y = strlen(name.c_str());
-        strncpy(basename, name.c_str(), 254);
+        ext = "";
+        size_t y = name.length();
+        basename = name;
 
         for (x = (int)y - 1; x > 0 && name[x] != '.'; x--)
             ;
 
         if (x > 0) /* Extension found */
         {
+            ext = "";
+            term = "";
             for (z = x + 1; z <= (int)y && (z - (x + 1)) < 10; z++) {
-                ext[z - (x + 1)] = tolower(name[z]);
-                term[z - (x + 1)] = name[z];
+                ext += tolower(name[z]);
+                term += name[z];
             }
 
-            ext[z - (x + 1)] = 0; /* Ensure an ending 0 */
-            term[z - (x + 1)] = 0;
-            basename[x] = 0;
+            basename = name.substr(0, x);
         }
 
-        if (ext[0] == 0) /* No extension -- Default is png */
+        if (ext.empty()) /* No extension -- Default is png */
         {
-            strncpy(term, "png\0", 4);
-            strncpy(ext, "png\0", 4);
+            term = "png";
+            ext = "png";
         }
     }
 
     /* Either .ps or .postscript may be used
      as an extension for postscript output. */
 
-    if (strncmp(term, "postscript", 10) == 0)
-        strncpy(ext, "ps\0", 3);
+    if (term.compare(0, 10, "postscript") == 0)
+        ext = "ps";
 
-    else if (strncmp(ext, "ps", 2) == 0)
-        strncpy(term, "postscript enhanced color\0", 26);
+    else if (ext.compare(0, 2, "ps") == 0)
+        term = "postscript enhanced color";
 
     if (maxheight < 1.0) {
         maxheight = 1.0;  /* Avoid a gnuplot y-range error */
@@ -143,7 +143,7 @@ void GnuPlot::GraphTerrain(const Site &source, const Site &destination,
             sr.metric ? minheight * METERS_PER_FOOT : minheight,
             sr.metric ? maxheight * METERS_PER_FOOT : maxheight);
     fprintf(fd, "set encoding iso_8859_1\n");
-    fprintf(fd, "set term %s\n", term);
+    fprintf(fd, "set term %s\n", term.c_str());
     fprintf(
         fd,
         "set title \"%s Terrain Profile Between %s and %s (%.2f%c Azimuth)\"\n",
@@ -166,7 +166,7 @@ void GnuPlot::GraphTerrain(const Site &source, const Site &destination,
         fprintf(fd, "set ylabel \"Ground Elevation Above Sea Level (feet)\"\n");
     }
 
-    fprintf(fd, "set output \"%s.%s\"\n", basename, ext);
+    fprintf(fd, "set output \"%s.%s\"\n", basename.c_str(), ext.c_str());
 
     if (sr.clutter > 0.0) {
         if (sr.metric)
@@ -196,7 +196,7 @@ void GnuPlot::GraphTerrain(const Site &source, const Site &destination,
             unlink("profile.gp");
         }
 
-        fprintf(stdout, "Terrain plot written to: \"%s.%s\"\n", basename, ext);
+        fprintf(stdout, "Terrain plot written to: \"%s.%s\"\n", basename.c_str(), ext.c_str());
         fflush(stdout);
     }
 
@@ -215,7 +215,7 @@ void GnuPlot::GraphElevation(const Site &source, const Site &destination,
      If no extension is found, .png is assumed.  */
 
     int x, z;
-    char basename[255], term[30], ext[15];
+    std::string basename, term, ext;
     double angle, clutter_angle = 0.0, refangle, maxangle = -90.0,
                   minangle = 90.0, distance;
     Site remote, remote2;
@@ -301,48 +301,48 @@ void GnuPlot::GraphElevation(const Site &source, const Site &destination,
     if (name[0] == '.') {
         /* Default filename and output file type */
 
-        strncpy(basename, "profile\0", 8);
-        strncpy(term, "png\0", 4);
-        strncpy(ext, "png\0", 4);
+        basename = "profile";
+        term = "png";
+        ext = "png";
     }
 
     else {
         /* Extract extension and terminal type from "name" */
 
-        ext[0] = 0;
-        size_t y = strlen(name.c_str());
-        strncpy(basename, name.c_str(), 254);
+        ext = "";
+        size_t y = name.length();
+        basename = name;
 
         for (x = (int)y - 1; x > 0 && name[x] != '.'; x--)
             ;
 
         if (x > 0) /* Extension found */
         {
+            ext = "";
+            term = "";
             for (z = x + 1; z <= (int)y && (z - (x + 1)) < 10; z++) {
-                ext[z - (x + 1)] = tolower(name[z]);
-                term[z - (x + 1)] = name[z];
+                ext += tolower(name[z]);
+                term += name[z];
             }
 
-            ext[z - (x + 1)] = 0; /* Ensure an ending 0 */
-            term[z - (x + 1)] = 0;
-            basename[x] = 0;
+            basename = name.substr(0, x);
         }
 
-        if (ext[0] == 0) /* No extension -- Default is png */
+        if (ext.empty()) /* No extension -- Default is png */
         {
-            strncpy(term, "png\0", 4);
-            strncpy(ext, "png\0", 4);
+            term = "png";
+            ext = "png";
         }
     }
 
     /* Either .ps or .postscript may be used
      as an extension for postscript output. */
 
-    if (strncmp(term, "postscript", 10) == 0)
-        strncpy(ext, "ps\0", 3);
+    if (term.compare(0, 10, "postscript") == 0)
+        ext = "ps";
 
-    else if (strncmp(ext, "ps", 2) == 0)
-        strncpy(term, "postscript enhanced color\0", 26);
+    else if (ext.compare(0, 2, "ps") == 0)
+        term = "postscript enhanced color";
 
     fd = fopen("splat.gp", "w");
 
@@ -356,7 +356,7 @@ void GnuPlot::GraphElevation(const Site &source, const Site &destination,
                 refangle + (-minangle / 8.0));
 
     fprintf(fd, "set encoding iso_8859_1\n");
-    fprintf(fd, "set term %s\n", term);
+    fprintf(fd, "set term %s\n", term.c_str());
     fprintf(fd,
             "set title \"%s Elevation Profile Between %s and %s (%.2f%c "
             "azimuth)\"\n",
@@ -376,7 +376,7 @@ void GnuPlot::GraphElevation(const Site &source, const Site &destination,
             "set ylabel \"Elevation Angle Along LOS Path Between\\n%s and %s "
             "(degrees)\"\n",
             destination.name.c_str(), source.name.c_str());
-    fprintf(fd, "set output \"%s.%s\"\n", basename, ext);
+    fprintf(fd, "set output \"%s.%s\"\n", basename.c_str(), ext.c_str());
 
     if (sr.clutter > 0.0) {
         if (sr.metric)
@@ -416,8 +416,8 @@ void GnuPlot::GraphElevation(const Site &source, const Site &destination,
                 unlink("clutter.gp");
         }
 
-        fprintf(stdout, "Elevation plot written to: \"%s.%s\"\n", basename,
-                ext);
+        fprintf(stdout, "Elevation plot written to: \"%s.%s\"\n", basename.c_str(),
+                ext.c_str());
         fflush(stdout);
     }
 
@@ -440,7 +440,7 @@ void GnuPlot::GraphHeight(const Site &source, const Site &destination,
      .png is assumed.  */
 
     int x, z;
-    char basename[255], term[30], ext[15];
+    std::string basename, term, ext;
     double a, b, c, height = 0.0, refangle, cangle, maxheight = -100000.0,
                     minheight = 100000.0, lambda = 0.0, f_zone = 0.0,
                     fpt6_zone = 0.0, nm = 0.0, nb = 0.0, ed = 0.0, es = 0.0,
@@ -644,48 +644,48 @@ void GnuPlot::GraphHeight(const Site &source, const Site &destination,
     if (name[0] == '.') {
         /* Default filename and output file type */
 
-        strncpy(basename, "profile\0", 8);
-        strncpy(term, "png\0", 4);
-        strncpy(ext, "png\0", 4);
+        basename = "profile";
+        term = "png";
+        ext = "png";
     }
 
     else {
         /* Extract extension and terminal type from "name" */
 
-        ext[0] = 0;
-        size_t y = strlen(name.c_str());
-        strncpy(basename, name.c_str(), 254);
+        ext = "";
+        size_t y = name.length();
+        basename = name;
 
         for (x = (int)y - 1; x > 0 && name[x] != '.'; x--)
             ;
 
         if (x > 0) /* Extension found */
         {
+            ext = "";
+            term = "";
             for (z = x + 1; z <= (int)y && (z - (x + 1)) < 10; z++) {
-                ext[z - (x + 1)] = tolower(name[z]);
-                term[z - (x + 1)] = name[z];
+                ext += tolower(name[z]);
+                term += name[z];
             }
 
-            ext[z - (x + 1)] = 0; /* Ensure an ending 0 */
-            term[z - (x + 1)] = 0;
-            basename[x] = 0;
+            basename = name.substr(0, x);
         }
 
-        if (ext[0] == 0) /* No extension -- Default is png */
+        if (ext.empty()) /* No extension -- Default is png */
         {
-            strncpy(term, "png\0", 4);
-            strncpy(ext, "png\0", 4);
+            term = "png";
+            ext = "png";
         }
     }
 
     /* Either .ps or .postscript may be used
      as an extension for postscript output. */
 
-    if (strncmp(term, "postscript", 10) == 0)
-        strncpy(ext, "ps\0", 3);
+    if (term.compare(0, 10, "postscript") == 0)
+        ext = "ps";
 
-    else if (strncmp(ext, "ps", 2) == 0)
-        strncpy(term, "postscript enhanced color\0", 26);
+    else if (ext.compare(0, 2, "ps") == 0)
+        term = "postscript enhanced color";
 
     fd = fopen("splat.gp", "w");
 
@@ -717,7 +717,7 @@ void GnuPlot::GraphHeight(const Site &source, const Site &destination,
             sr.metric ? KM_PER_MILE * rint(distance + 0.5)
                       : rint(distance + 0.5));
     fprintf(fd, "set encoding iso_8859_1\n");
-    fprintf(fd, "set term %s\n", term);
+    fprintf(fd, "set term %s\n", term.c_str());
 
     if ((lrp.frq_mhz >= 20.0) && (lrp.frq_mhz <= 20000.0) && fresnel_plot)
         fprintf(fd,
@@ -772,7 +772,7 @@ void GnuPlot::GraphHeight(const Site &source, const Site &destination,
                     destination.name.c_str(), source.name.c_str());
     }
 
-    fprintf(fd, "set output \"%s.%s\"\n", basename, ext);
+    fprintf(fd, "set output \"%s.%s\"\n", basename.c_str(), ext.c_str());
 
     if ((lrp.frq_mhz >= 20.0) && (lrp.frq_mhz <= 20000.0) && fresnel_plot) {
         if (sr.clutter > 0.0) {
@@ -863,7 +863,7 @@ void GnuPlot::GraphHeight(const Site &source, const Site &destination,
             }
         }
 
-        fprintf(stdout, "\nHeight plot written to: \"%s.%s\"", basename, ext);
+        fprintf(stdout, "\nHeight plot written to: \"%s.%s\"", basename.c_str(), ext.c_str());
         fflush(stdout);
     }
 

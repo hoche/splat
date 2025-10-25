@@ -75,9 +75,8 @@ ImageWriter::ImageWriter(const std::string &filename, ImageType imagetype,
         m_text_ptr[1].text = strdup("EPSG:4326");
         m_text_ptr[1].compression = PNG_TEXT_COMPRESSION_NONE;
         m_text_ptr[2].key = strdup("bounds");
-        bounds_str = ("[["+std::to_string(m_south)+","+std::to_string(m_west)+"],["+std::to_string(m_north)+","+std::to_string(m_east)+"]]").c_str();
-		sprintf(bounds, "%s", bounds_str.c_str());
-        m_text_ptr[2].text = bounds;
+        bounds_str = "[["+std::to_string(m_south)+","+std::to_string(m_west)+"],["+std::to_string(m_north)+","+std::to_string(m_east)+"]]";
+        m_text_ptr[2].text = strdup(bounds_str.c_str());
         m_text_ptr[2].compression = PNG_TEXT_COMPRESSION_NONE;
         png_set_text(m_png_ptr, m_info_ptr, m_text_ptr, PNG_NTEXT);
         png_init_io(m_png_ptr, m_fp);

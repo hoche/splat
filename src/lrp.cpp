@@ -61,7 +61,7 @@ char Lrp::ReadLRParm(const Site &txsite, char forced_read, bool &loadPat,
     if (fd == NULL) {
         /* Load default "splat.lrp" file */
 
-        strncpy(filename, "splat.lrp\0", 10);
+        strcpy(filename, "splat.lrp");
         fd = fopen(filename, "r");
     }
 

@@ -61,16 +61,15 @@ Json::Json(const ElevationMap &em, const SplatRun &sr)
 
     
 void Json::WriteJSON(arg_t args, Site tx_site, Lrp lrp, std::string mapfile) {
-	int x;
-	char report_name[80];
+	std::string report_name;
 
-    sprintf(report_name, "%s.json", mapfile.c_str());
+    report_name = mapfile + ".json";
 
-    for (x = 0; report_name[x] != 0; x++)
-        if (report_name[x] == 32 || report_name[x] == 17 ||
-            report_name[x] == 92 || report_name[x] == 42 ||
-            report_name[x] == 47)
-            report_name[x] = '_';
+    for (size_t i = 0; i < report_name.length(); i++)
+        if (report_name[i] == 32 || report_name[i] == 17 ||
+            report_name[i] == 92 || report_name[i] == 42 ||
+            report_name[i] == 47)
+            report_name[i] = '_';
 
     std::ofstream reportfile(report_name);
     
