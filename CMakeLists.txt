@@ -94,6 +94,10 @@ set(TEST_SOURCES
     tests/image_output_test.cpp
     tests/input_file_parsing_test.cpp
     tests/itwom_test.cpp
+    tests/site_test.cpp
+    tests/utilities_test.cpp
+    tests/lrp_test.cpp
+    tests/sdf_test.cpp
 )
 
 # List source files needed by tests (excluding main.cpp)
