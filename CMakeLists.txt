@@ -6,6 +6,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+set(CMAKE_BUILD_TYPE "Debug")
+
 # Find required libraries
 find_package(PNG REQUIRED)
 find_package(JPEG REQUIRED)
@@ -99,6 +101,7 @@ set(TEST_SOURCES
     tests/utilities_test.cpp
     tests/lrp_test.cpp
     tests/sdf_test.cpp
+    tests/sdf_bz_test.cpp
 )
 
 # List source files needed by tests (excluding main.cpp)
