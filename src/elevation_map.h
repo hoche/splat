@@ -8,8 +8,7 @@
  * This file is covered by the LICENSE.md file in the root of this project.
  */
 
-#ifndef elevation_map_h
-#define elevation_map_h
+#pragma once
 
 #include "itwom3.0.h"
 
@@ -95,4 +94,3 @@ class ElevationMap {
     bool FindMask(double lat, double lon, int &x, int &y, int &indx) const;
 };
 
-#endif /* elevation_map_h */

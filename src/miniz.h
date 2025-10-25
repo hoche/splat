@@ -218,8 +218,7 @@
    32-bit stat() fails for me on files > 0x7FFFFFFF bytes).
 */
 
-#ifndef MINIZ_HEADER_INCLUDED
-#define MINIZ_HEADER_INCLUDED
+#pragma once
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -1327,7 +1326,6 @@ mz_uint tdefl_create_comp_flags_from_zip_params(int level, int window_bits,
 }
 #endif
 
-#endif // MINIZ_HEADER_INCLUDED
 
 // ------------------- End of Header: Implementation follows. (If you only want
 // the header, define MINIZ_HEADER_FILE_ONLY.)

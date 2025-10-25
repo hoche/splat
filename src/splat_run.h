@@ -8,8 +8,7 @@
  * This file is covered by the LICENSE.md file in the root of this project.
  */
 
-#ifndef splat_run_h
-#define splat_run_h
+#pragma once
 
 #include <string>
 #include <iostream>
@@ -105,4 +104,3 @@ class SplatRun {
     ProjectionType projection;
 };
 
-#endif /* splat_run_h */

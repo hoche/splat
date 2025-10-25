@@ -8,8 +8,7 @@
  * This file is covered by the LICENSE.md file in the root of this project.
  */
 
-#ifndef udt_h
-#define udt_h
+#pragma once
 
 #include "splat_run.h"
 #include "elevation_map.h"
@@ -26,4 +25,3 @@ class Udt {
     void LoadUDT(const std::string &filename, ElevationMap &em);
 };
 
-#endif /* udt_hpp */

@@ -8,8 +8,7 @@
  * This file is covered by the LICENSE.md file in the root of this project.
  */
 
-#ifndef splat_itwom3_0_h
-#define splat_itwom3_0_h
+#pragma once
 
 #ifdef ITM_ELEV_DOUBLE
 #define elev_t double
@@ -31,4 +30,3 @@ void point_to_point(const elev_t elev[], double tht_m, double rht_m,
                     int pol, double conf, double rel, double &dbloss,
                     char *strmode, int &errnum);
 
-#endif

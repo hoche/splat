@@ -8,8 +8,7 @@
  * This file is covered by the LICENSE.md file in the root of this project.
  */
 
-#ifndef dem_h
-#define dem_h
+#pragma once
 
 #include <vector>
 
@@ -35,4 +34,3 @@ class Dem {
     ~Dem();
 };
 
-#endif /* dem_h */

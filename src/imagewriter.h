@@ -35,8 +35,7 @@
  *
  */
 
-#ifndef imagewriter_h
-#define imagewriter_h
+#pragma once
 
 #include <string>
 #include <cstdint>
@@ -148,5 +147,3 @@ class ImageWriter {
     struct jpeg_error_mgr m_jerr = {0};
 #endif
 };
-
-#endif /* imagewriter.h */

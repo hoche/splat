@@ -8,8 +8,7 @@
  * This file is covered by the LICENSE.md file in the root of this project.
  */
 
-#ifndef anf_h
-#define anf_h
+#pragma once
 
 #include "splat_run.h"
 #include "lrp.h"
@@ -32,4 +31,3 @@ class Anf {
     int LoadANO(const std::string &filename, Sdf &sdf, ElevationMap &em);
 };
 
-#endif /* anf_h */

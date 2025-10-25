@@ -8,8 +8,7 @@
  * This file is covered by the LICENSE.md file in the root of this project.
  */
 
-#ifndef gnuplot_h
-#define gnuplot_h
+#pragma once
 
 #include "splat_run.h"
 #include "path.h"
@@ -38,4 +37,3 @@ class GnuPlot {
                      bool normalized, const ElevationMap &em, const Lrp &lrp);
 };
 
-#endif /* gnuplot_h */

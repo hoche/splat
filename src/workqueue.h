@@ -1,6 +1,8 @@
 // Simple workqueue loosely adapted from stackexchange
 // https://codereview.stackexchange.com/questions/60363/thread-pool-worker-implementation
 
+#pragma once
+
 #include <cassert>
 #include <deque>
 #include <functional>

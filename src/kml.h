@@ -8,8 +8,7 @@
  * This file is covered by the LICENSE.md file in the root of this project.
  */
 
-#ifndef kml_h
-#define kml_h
+#pragma once
 
 #include <stdio.h>
 
@@ -28,4 +27,3 @@ class Kml {
     void WriteKML(const Site &source, const Site &destination);
 };
 
-#endif /* kml_h */

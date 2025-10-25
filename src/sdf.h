@@ -8,8 +8,7 @@
  * This file is covered by the LICENSE.md file in the root of this project.
  */
 
-#ifndef sdf_h
-#define sdf_h
+#pragma once
 
 #include "elevation_map.h"
 #include "splat_run.h"
@@ -46,4 +45,3 @@ class Sdf {
                       int maxlon, int &indx);
 };
 
-#endif /* sdf_h */

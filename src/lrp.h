@@ -8,8 +8,7 @@
  * This file is covered by the LICENSE.md file in the root of this project.
  */
 
-#ifndef lrp_h
-#define lrp_h
+#pragma once
 
 #include "site.h"
 
@@ -38,4 +37,3 @@ class Lrp {
                     std::string &filename);
 };
 
-#endif /* lrp_h */

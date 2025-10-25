@@ -8,8 +8,7 @@
  * This file is covered by the LICENSE.md file in the root of this project.
  */
 
-#ifndef image_h
-#define image_h
+#pragma once
 
 #include "splat_run.h"
 #include "elevation_map.h"
@@ -65,4 +64,3 @@ class Image {
     
 };
 
-#endif /* image_h */

@@ -8,8 +8,7 @@
  * This file is covered by the LICENSE.md file in the root of this project.
  */
 
-#ifndef json_h
-#define json_h
+#pragma once
 
 #include "elevation_map.h"
 #include "path.h"
@@ -30,4 +29,3 @@ class Json {
 };
 
 
-#endif /* json_h */

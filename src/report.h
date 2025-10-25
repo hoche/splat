@@ -8,8 +8,7 @@
  * This file is covered by the LICENSE.md file in the root of this project.
  */
 
-#ifndef report_h
-#define report_h
+#pragma once
 
 #include "splat_run.h"
 #include "elevation_map.h"
@@ -44,4 +43,3 @@ class Report {
                              FILE *outfile);
 };
 
-#endif /* report_h */

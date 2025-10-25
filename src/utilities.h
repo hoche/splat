@@ -8,8 +8,7 @@
  * This file is covered by the LICENSE.md file in the root of this project.
  */
 
-#ifndef utilities_h
-#define utilities_h
+#pragma once
 
 #include <string>
 
@@ -61,4 +60,3 @@ class Utilities {
     static void Chomp(std::string &str);
 };
 
-#endif /* utilities_h */

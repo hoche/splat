@@ -8,8 +8,7 @@
  * This file is covered by the LICENSE.md file in the root of this project.
  */
 
-#ifndef sdf_bz_hpp
-#define sdf_bz_hpp
+#pragma once
 
 #include "splat_run.h"
 #include "elevation_map.h"
@@ -34,4 +33,3 @@ class SdfBz : public Sdf {
     char *BZfgets(BZFILE *bzfd, unsigned length);
 };
 
-#endif /* sdf_bz_hpp */
