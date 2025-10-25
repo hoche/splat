@@ -24,7 +24,8 @@
 /// @param em The elevation map
 int Anf::LoadANO(const std::string &filename, Sdf &sdf, ElevationMap &em) {
     int error = 0, max_west, min_west, max_north, min_north;
-    char string[80], *pointer = NULL;
+    char buffer[80];
+    char *pointer = NULL;
     double latitude = 0.0, longitude = 0.0, azimuth = 0.0, elevation = 0.0,
            ano = 0.0;
     FILE *fd;
@@ -32,24 +33,24 @@ int Anf::LoadANO(const std::string &filename, Sdf &sdf, ElevationMap &em) {
     fd = fopen(filename.c_str(), "r");
 
     if (fd != NULL) {
-        fgets(string, 78, fd);
-        pointer = strchr(string, ';');
+        fgets(buffer, 78, fd);
+        pointer = strchr(buffer, ';');
 
         if (pointer != NULL)
             *pointer = 0;
 
-        sscanf(string, "%d, %d", &max_west, &min_west);
+        sscanf(buffer, "%d, %d", &max_west, &min_west);
 
-        fgets(string, 78, fd);
-        pointer = strchr(string, ';');
+        fgets(buffer, 78, fd);
+        pointer = strchr(buffer, ';');
 
         if (pointer != NULL)
             *pointer = 0;
 
-        sscanf(string, "%d, %d", &max_north, &min_north);
+        sscanf(buffer, "%d, %d", &max_north, &min_north);
 
-        fgets(string, 78, fd);
-        pointer = strchr(string, ';');
+        fgets(buffer, 78, fd);
+        pointer = strchr(buffer, ';');
 
         if (pointer != NULL)
             *pointer = 0;
@@ -59,8 +60,8 @@ int Anf::LoadANO(const std::string &filename, Sdf &sdf, ElevationMap &em) {
         fprintf(stdout, "\nReading \"%s\"... ", filename.c_str());
         fflush(stdout);
 
-        fgets(string, 78, fd);
-        sscanf(string, "%lf, %lf, %lf, %lf, %lf", &latitude, &longitude,
+        fgets(buffer, 78, fd);
+        sscanf(buffer, "%lf, %lf, %lf, %lf, %lf", &latitude, &longitude,
                &azimuth, &elevation, &ano);
 
         while (feof(fd) == 0) {
@@ -115,8 +116,8 @@ int Anf::LoadANO(const std::string &filename, Sdf &sdf, ElevationMap &em) {
                 }
             }
 
-            fgets(string, 78, fd);
-            sscanf(string, "%lf, %lf, %lf, %lf, %lf", &latitude, &longitude,
+            fgets(buffer, 78, fd);
+            sscanf(buffer, "%lf, %lf, %lf, %lf, %lf", &latitude, &longitude,
                    &azimuth, &elevation, &ano);
         }
 

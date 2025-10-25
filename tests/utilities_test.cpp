@@ -314,9 +314,7 @@ class AngleReductionTest
     : public ::testing::TestWithParam<std::pair<double, int>> { };
 
 TEST_P(AngleReductionTest, ReduceVariousAngles) {
-    double input;
-    int expected;
-    std::tie(input, expected) = GetParam();
+    auto [input, expected] = GetParam();
 
     int result = Utilities::ReduceAngle(input);
 
@@ -337,8 +335,7 @@ class PathOperationsTest
           std::tuple<std::string, std::string, std::string>> { };
 
 TEST_P(PathOperationsTest, PathComponents) {
-    std::string full_path, expected_leaf, expected_ext;
-    std::tie(full_path, expected_leaf, expected_ext) = GetParam();
+    auto [full_path, expected_leaf, expected_ext] = GetParam();
 
     std::string leaf = Utilities::PathLeaf(full_path);
     std::string ext = Utilities::Extension(full_path);

@@ -24,7 +24,8 @@ void AntennaPattern::LoadAntennaPattern(const std::string &filename) {
      loaded SPLAT! .lrp files.  */
 
     int a, b, w, x, y, z, last_index, next_index, span;
-    char string[255], azfile[255], elfile[255], *pointer = NULL;
+    char buffer[255];
+    char *pointer = NULL;
     float az, elevation, amplitude, valid1, valid2, delta, azimuth[361],
         azimuth_pattern[361], el_pattern[10001], elevation_pattern[361][1001],
         slant_angle[361], tilt, sum;
@@ -36,27 +37,23 @@ void AntennaPattern::LoadAntennaPattern(const std::string &filename) {
     float antenna_elevation_tilt = 0;
     float antenna_horizontal_roll = 0;
 
-    for (x = 0; filename[x] != '.' && filename[x] != 0 && x < 250; x++) {
-        azfile[x] = filename[x];
-        elfile[x] = filename[x];
+    // Generate .az and .el filenames from input filename
+    size_t dot_pos = filename.find('.');
+    std::string azfile, elfile;
+    if (dot_pos != std::string::npos) {
+        azfile = filename.substr(0, dot_pos) + ".az";
+        elfile = filename.substr(0, dot_pos) + ".el";
+    } else {
+        azfile = filename + ".az";
+        elfile = filename + ".el";
     }
-
-    azfile[x] = '.';
-    azfile[x + 1] = 'a';
-    azfile[x + 2] = 'z';
-    azfile[x + 3] = 0;
-
-    elfile[x] = '.';
-    elfile[x + 1] = 'e';
-    elfile[x + 2] = 'l';
-    elfile[x + 3] = 0;
 
     got_azimuth_pattern = false;
     got_elevation_pattern = false;
 
     /* Load .az antenna pattern file */
 
-    fd = fopen(azfile, "r");
+    fd = fopen(azfile.c_str(), "r");
 
     if (fd != NULL) {
         /* Clear azimuth pattern array */
@@ -70,25 +67,25 @@ void AntennaPattern::LoadAntennaPattern(const std::string &filename) {
          in degrees measured clockwise
          from true North. */
 
-        fgets(string, 254, fd);
-        pointer = strchr(string, ';');
+        fgets(buffer, 254, fd);
+        pointer = strchr(buffer, ';');
 
         if (pointer != NULL)
             *pointer = 0;
 
-        sscanf(string, "%f", &antenna_azimuth);
+        sscanf(buffer, "%f", &antenna_azimuth);
 
         /* Read azimuth (degrees) and corresponding
          normalized field radiation pattern amplitude
          (0.0 to 1.0) until EOF is reached. */
 
-        fgets(string, 254, fd);
-        pointer = strchr(string, ';');
+        fgets(buffer, 254, fd);
+        pointer = strchr(buffer, ';');
 
         if (pointer != NULL)
             *pointer = 0;
 
-        sscanf(string, "%f %f", &az, &amplitude);
+        sscanf(buffer, "%f %f", &az, &amplitude);
 
         do {
             x = (int) rintf(az);
@@ -98,13 +95,13 @@ void AntennaPattern::LoadAntennaPattern(const std::string &filename) {
                 read_count[x]++;
             }
 
-            fgets(string, 254, fd);
-            pointer = strchr(string, ';');
+            fgets(buffer, 254, fd);
+            pointer = strchr(buffer, ';');
 
             if (pointer != NULL)
                 *pointer = 0;
 
-            sscanf(string, "%f %f", &az, &amplitude);
+            sscanf(buffer, "%f %f", &az, &amplitude);
 
         } while (feof(fd) == 0);
 
@@ -179,7 +176,7 @@ void AntennaPattern::LoadAntennaPattern(const std::string &filename) {
 
     /* Read and process .el file */
 
-    fd = fopen(elfile, "r");
+    fd = fopen(elfile.c_str(), "r");
 
     if (fd != NULL) {
         for (x = 0; x <= 10000; x++) {
@@ -191,26 +188,26 @@ void AntennaPattern::LoadAntennaPattern(const std::string &filename) {
          tilt azimuth in degrees measured
          clockwise from true North. */
 
-        fgets(string, 254, fd);
-        pointer = strchr(string, ';');
+        fgets(buffer, 254, fd);
+        pointer = strchr(buffer, ';');
 
         if (pointer != NULL)
             *pointer = 0;
 
-        sscanf(string, "%f %f", &antenna_elevation_tilt,
+        sscanf(buffer, "%f %f", &antenna_elevation_tilt,
                &antenna_horizontal_roll);
 
         /* Read elevation (degrees) and corresponding
          normalized field radiation pattern amplitude
          (0.0 to 1.0) until EOF is reached. */
 
-        fgets(string, 254, fd);
-        pointer = strchr(string, ';');
+        fgets(buffer, 254, fd);
+        pointer = strchr(buffer, ';');
 
         if (pointer != NULL)
             *pointer = 0;
 
-        sscanf(string, "%f %f", &elevation, &amplitude);
+        sscanf(buffer, "%f %f", &elevation, &amplitude);
 
         while (feof(fd) == 0) {
             /* Read in normalized radiated field values
@@ -224,13 +221,13 @@ void AntennaPattern::LoadAntennaPattern(const std::string &filename) {
                 read_count[x]++;
             }
 
-            fgets(string, 254, fd);
-            pointer = strchr(string, ';');
+            fgets(buffer, 254, fd);
+            pointer = strchr(buffer, ';');
 
             if (pointer != NULL)
                 *pointer = 0;
 
-            sscanf(string, "%f %f", &elevation, &amplitude);
+            sscanf(buffer, "%f %f", &elevation, &amplitude);
         }
 
         fclose(fd);

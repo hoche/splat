@@ -17,18 +17,19 @@
 
 void Region::LoadSignalColors(const Site &xmtr) {
     int x, y, ok, val[4];
-    char filename[255], string[80], *pointer = NULL;
+    char buffer[80];
+    char *pointer = NULL;
     FILE *fd = NULL;
 
-    for (x = 0; xmtr.filename[x] != '.' && xmtr.filename[x] != 0 && x < 250;
-         x++)
-        filename[x] = xmtr.filename[x];
-
-    filename[x] = '.';
-    filename[x + 1] = 's';
-    filename[x + 2] = 'c';
-    filename[x + 3] = 'f';
-    filename[x + 4] = 0;
+    // Generate .scf filename from xmtr filename
+    std::string base = xmtr.filename;
+    size_t dot_pos = base.find('.');
+    std::string filename;
+    if (dot_pos != std::string::npos) {
+        filename = base.substr(0, dot_pos) + ".scf";
+    } else {
+        filename = base + ".scf";
+    }
 
     /* Default values */
 
@@ -102,15 +103,15 @@ void Region::LoadSignalColors(const Site &xmtr) {
     fd = fopen("splat.scf", "r");
 
     if (fd == NULL)
-        fd = fopen(filename, "r");
+        fd = fopen(filename.c_str(), "r");
 
     if (fd == NULL) {
-        fd = fopen(filename, "w");
+        fd = fopen(filename.c_str(), "w");
 
         fprintf(
             fd,
             "; SPLAT! Auto-generated Signal Color Definition (\"%s\") File\n",
-            filename);
+            filename.c_str());
         fprintf(fd, ";\n; Format for the parameters held in this file is as "
                     "follows:\n;\n");
         fprintf(fd, ";    dBuV/m: red, green, blue\n;\n");
@@ -138,15 +139,15 @@ void Region::LoadSignalColors(const Site &xmtr) {
 
     else {
         x = 0;
-        fgets(string, 80, fd);
+        fgets(buffer, 80, fd);
 
         while (x < 32 && feof(fd) == 0) {
-            pointer = strchr(string, ';');
+            pointer = strchr(buffer, ';');
 
             if (pointer != NULL)
                 *pointer = 0;
 
-            ok = sscanf(string, "%d: %d, %d, %d", &val[0], &val[1], &val[2],
+            ok = sscanf(buffer, "%d: %d, %d, %d", &val[0], &val[1], &val[2],
                         &val[3]);
 
             if (ok == 4) {
@@ -165,7 +166,7 @@ void Region::LoadSignalColors(const Site &xmtr) {
                 x++;
             }
 
-            fgets(string, 80, fd);
+            fgets(buffer, 80, fd);
         }
 
         fclose(fd);
@@ -175,18 +176,19 @@ void Region::LoadSignalColors(const Site &xmtr) {
 
 void Region::LoadDBMColors(const Site &xmtr) {
     int x, y, ok, val[4];
-    char filename[255], string[80], *pointer = NULL;
+    char buffer[80];
+    char *pointer = NULL;
     FILE *fd = NULL;
 
-    for (x = 0; xmtr.filename[x] != '.' && xmtr.filename[x] != 0 && x < 250;
-         x++)
-        filename[x] = xmtr.filename[x];
-
-    filename[x] = '.';
-    filename[x + 1] = 'd';
-    filename[x + 2] = 'c';
-    filename[x + 3] = 'f';
-    filename[x + 4] = 0;
+    // Generate .dcf filename from xmtr filename
+    std::string base = xmtr.filename;
+    size_t dot_pos = base.find('.');
+    std::string filename;
+    if (dot_pos != std::string::npos) {
+        filename = base.substr(0, dot_pos) + ".dcf";
+    } else {
+        filename = base + ".dcf";
+    }
 
     /* Default values */
 
@@ -275,15 +277,15 @@ void Region::LoadDBMColors(const Site &xmtr) {
     fd = fopen("splat.dcf", "r");
 
     if (fd == NULL)
-        fd = fopen(filename, "r");
+        fd = fopen(filename.c_str(), "r");
 
     if (fd == NULL) {
-        fd = fopen(filename, "w");
+        fd = fopen(filename.c_str(), "w");
 
         fprintf(fd,
                 "; SPLAT! Auto-generated DBM Signal Level Color Definition "
                 "(\"%s\") File\n",
-                filename);
+                filename.c_str());
         fprintf(fd, ";\n; Format for the parameters held in this file is as "
                     "follows:\n;\n");
         fprintf(fd, ";    dBm: red, green, blue\n;\n");
@@ -309,15 +311,15 @@ void Region::LoadDBMColors(const Site &xmtr) {
 
     else {
         x = 0;
-        fgets(string, 80, fd);
+        fgets(buffer, 80, fd);
 
         while (x < 32 && feof(fd) == 0) {
-            pointer = strchr(string, ';');
+            pointer = strchr(buffer, ';');
 
             if (pointer != NULL)
                 *pointer = 0;
 
-            ok = sscanf(string, "%d: %d, %d, %d", &val[0], &val[1], &val[2],
+            ok = sscanf(buffer, "%d: %d, %d, %d", &val[0], &val[1], &val[2],
                         &val[3]);
 
             if (ok == 4) {
@@ -343,7 +345,7 @@ void Region::LoadDBMColors(const Site &xmtr) {
                 x++;
             }
 
-            fgets(string, 80, fd);
+            fgets(buffer, 80, fd);
         }
 
         fclose(fd);
@@ -353,18 +355,19 @@ void Region::LoadDBMColors(const Site &xmtr) {
 
 void Region::LoadLossColors(const Site &xmtr) {
     int x, y, ok, val[4];
-    char filename[255], string[80], *pointer = NULL;
+    char buffer[80];
+    char *pointer = NULL;
     FILE *fd = NULL;
 
-    for (x = 0; xmtr.filename[x] != '.' && xmtr.filename[x] != 0 && x < 250;
-         x++)
-        filename[x] = xmtr.filename[x];
-
-    filename[x] = '.';
-    filename[x + 1] = 'l';
-    filename[x + 2] = 'c';
-    filename[x + 3] = 'f';
-    filename[x + 4] = 0;
+    // Generate .lcf filename from xmtr filename
+    std::string base = xmtr.filename;
+    size_t dot_pos = base.find('.');
+    std::string filename;
+    if (dot_pos != std::string::npos) {
+        filename = base.substr(0, dot_pos) + ".lcf";
+    } else {
+        filename = base + ".lcf";
+    }
 
     /* Default values */
 
@@ -453,15 +456,15 @@ void Region::LoadLossColors(const Site &xmtr) {
     fd = fopen("splat.lcf", "r");
 
     if (fd == NULL)
-        fd = fopen(filename, "r");
+        fd = fopen(filename.c_str(), "r");
 
     if (fd == NULL) {
-        fd = fopen(filename, "w");
+        fd = fopen(filename.c_str(), "w");
 
         fprintf(fd,
                 "; SPLAT! Auto-generated Path-Loss Color Definition (\"%s\") "
                 "File\n",
-                filename);
+                filename.c_str());
         fprintf(fd, ";\n; Format for the parameters held in this file is as "
                     "follows:\n;\n");
         fprintf(fd, ";    dB: red, green, blue\n;\n");
@@ -487,15 +490,15 @@ void Region::LoadLossColors(const Site &xmtr) {
 
     else {
         x = 0;
-        fgets(string, 80, fd);
+        fgets(buffer, 80, fd);
 
         while (x < 32 && feof(fd) == 0) {
-            pointer = strchr(string, ';');
+            pointer = strchr(buffer, ';');
 
             if (pointer != NULL)
                 *pointer = 0;
 
-            ok = sscanf(string, "%d: %d, %d, %d", &val[0], &val[1], &val[2],
+            ok = sscanf(buffer, "%d: %d, %d, %d", &val[0], &val[1], &val[2],
                         &val[3]);
 
             if (ok == 4) {
@@ -514,7 +517,7 @@ void Region::LoadLossColors(const Site &xmtr) {
                 x++;
             }
 
-            fgets(string, 80, fd);
+            fgets(buffer, 80, fd);
         }
 
         fclose(fd);

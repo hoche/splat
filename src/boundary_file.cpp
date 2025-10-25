@@ -30,7 +30,7 @@ void BoundaryFile::LoadBoundaries(const std::string &filename,
 
     int x;
     double lat0, lon0, lat1, lon1;
-    char string[80];
+    char buffer[80];
     Site source, destination;
     FILE *fd = NULL;
 
@@ -39,18 +39,18 @@ void BoundaryFile::LoadBoundaries(const std::string &filename,
     fd = fopen(filename.c_str(), "r");
 
     if (fd != NULL) {
-        fgets(string, 78, fd);
+        fgets(buffer, 78, fd);
 
         fprintf(stdout, "\nReading \"%s\"... ", filename.c_str());
         fflush(stdout);
 
         do {
-            fgets(string, 78, fd);
-            sscanf(string, "%lf %lf", &lon0, &lat0);
-            fgets(string, 78, fd);
+            fgets(buffer, 78, fd);
+            sscanf(buffer, "%lf %lf", &lon0, &lat0);
+            fgets(buffer, 78, fd);
 
             do {
-                sscanf(string, "%lf %lf", &lon1, &lat1);
+                sscanf(buffer, "%lf %lf", &lon1, &lat1);
 
                 source.lat = lat0;
                 source.lon = (lon0 > 0.0 ? 360.0 - lon0 : -lon0);
@@ -65,13 +65,13 @@ void BoundaryFile::LoadBoundaries(const std::string &filename,
                 lat0 = lat1;
                 lon0 = lon1;
 
-                fgets(string, 78, fd);
+                fgets(buffer, 78, fd);
 
-            } while (strncmp(string, "END", 3) != 0 && feof(fd) == 0);
+            } while (strncmp(buffer, "END", 3) != 0 && feof(fd) == 0);
 
-            fgets(string, 78, fd);
+            fgets(buffer, 78, fd);
 
-        } while (strncmp(string, "END", 3) != 0 && feof(fd) == 0);
+        } while (strncmp(buffer, "END", 3) != 0 && feof(fd) == 0);
 
         fclose(fd);
 

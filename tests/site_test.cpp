@@ -221,8 +221,7 @@ class SiteDistanceTest
           std::tuple<double, double, double, double, double, double>> { };
 
 TEST_P(SiteDistanceTest, VerifyDistanceSymmetry) {
-    double lat1, lon1, lat2, lon2, min_dist, max_dist;
-    std::tie(lat1, lon1, lat2, lon2, min_dist, max_dist) = GetParam();
+    auto [lat1, lon1, lat2, lon2, min_dist, max_dist] = GetParam();
 
     std::ofstream qth1("temp1.qth");
     qth1 << "Site1\n" << lat1 << "\n" << lon1 << "\n100.0\n";

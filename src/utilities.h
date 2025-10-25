@@ -11,6 +11,7 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 
 #ifndef PI
 #define PI 3.141592653589793
@@ -44,15 +45,15 @@ class Utilities {
 
     static std::string dec2dms(double decimal);
 
-    static double ReadBearing(const std::string &input);
+    static double ReadBearing(std::string_view input);
 
-    static std::string PathLeaf(const std::string &path);
+    static std::string PathLeaf(std::string_view path);
 
-    static std::string Extension(const std::string &path);
+    static std::string Extension(std::string_view path);
 
-    static std::string Basename(const std::string &path);
+    static std::string Basename(std::string_view path);
 
-    static std::string::size_type ExtensionIdx(const std::string &path);
+    static std::string::size_type ExtensionIdx(std::string_view path);
 
     static std::string DivideExtension(std::string &path,
                                        const std::string &default_extension);

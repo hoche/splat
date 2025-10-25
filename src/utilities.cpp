@@ -132,7 +132,7 @@ std::string Utilities::dec2dms(double decimal) {
     return oss.str();
 }
 
-double Utilities::ReadBearing(const std::string &input) {
+double Utilities::ReadBearing(std::string_view input) {
     /* This function takes numeric input in the form of a character
      string, and returns an equivalent bearing in degrees as a
      decimal number (double).  The input may either be expressed
@@ -194,20 +194,20 @@ double Utilities::ReadBearing(const std::string &input) {
     return bearing;
 }
 
-std::string Utilities::PathLeaf(const std::string &path) {
+std::string Utilities::PathLeaf(std::string_view path) {
     std::string::size_type idx;
 
     idx = path.rfind('/');
 
     // No delimeter found. Must just be a filename. Return that.
     if (idx == std::string::npos) {
-        return path;
+        return std::string(path);
     }
 
-    return path.substr(idx + 1);
+    return std::string(path.substr(idx + 1));
 }
 
-std::string::size_type Utilities::ExtensionIdx(const std::string &path) {
+std::string::size_type Utilities::ExtensionIdx(std::string_view path) {
     std::string::size_type idx;
 
     std::string leaf = Utilities::PathLeaf(path);
@@ -224,14 +224,15 @@ std::string::size_type Utilities::ExtensionIdx(const std::string &path) {
     return path.size() - leaf.size() + idx;
 }
 
-std::string Utilities::Basename(const std::string &path) {
+std::string Utilities::Basename(std::string_view path) {
     std::string::size_type idx = Utilities::ExtensionIdx(path);
-    return idx == std::string::npos ? path : path.substr(0, idx);
+    return idx == std::string::npos ? std::string(path)
+                                    : std::string(path.substr(0, idx));
 }
 
-std::string Utilities::Extension(const std::string &path) {
+std::string Utilities::Extension(std::string_view path) {
     std::string::size_type idx = Utilities::ExtensionIdx(path);
-    return idx == std::string::npos ? "" : path.substr(idx + 1);
+    return idx == std::string::npos ? "" : std::string(path.substr(idx + 1));
 }
 
 std::string Utilities::DivideExtension(std::string &path,

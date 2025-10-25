@@ -27,8 +27,12 @@ char Lrp::ReadLRParm(const Site &txsite, char forced_read, bool &loadPat,
      into this function to be used and written to "splat.lrp". */
 
     double din;
-    char filename[255], string[80], *pointer = NULL, return_value = 0;
-    int iin = 0, ok = 0, x;
+    std::string filename;
+    std::string line;
+    char string[80];
+    char *pointer = NULL;
+    char return_value = 0;
+    int iin = 0, ok = 0;
     FILE *fd = NULL, *outfile = NULL;
 
     /* Default parameters */
@@ -45,23 +49,21 @@ char Lrp::ReadLRParm(const Site &txsite, char forced_read, bool &loadPat,
 
     /* Generate .lrp filename from txsite filename. */
 
-    for (x = 0; txsite.filename[x] != '.' && txsite.filename[x] != 0 && x < 250;
-         x++)
-        filename[x] = txsite.filename[x];
+    std::string base = txsite.filename;
+    size_t dot_pos = base.find('.');
+    if (dot_pos != std::string::npos) {
+        filename = base.substr(0, dot_pos) + ".lrp";
+    } else {
+        filename = base + ".lrp";
+    }
 
-    filename[x] = '.';
-    filename[x + 1] = 'l';
-    filename[x + 2] = 'r';
-    filename[x + 3] = 'p';
-    filename[x + 4] = 0;
-
-    fd = fopen(filename, "r");
+    fd = fopen(filename.c_str(), "r");
 
     if (fd == NULL) {
         /* Load default "splat.lrp" file */
 
-        strcpy(filename, "splat.lrp");
-        fd = fopen(filename, "r");
+        filename = "splat.lrp";
+        fd = fopen(filename.c_str(), "r");
     }
 
     if (fd != NULL) {
@@ -252,7 +254,7 @@ char Lrp::ReadLRParm(const Site &txsite, char forced_read, bool &loadPat,
                 "\n\n%c*** There were problems reading your \"%s\" file! "
                 "***\nA \"splat.lrp\" file was written to your directory with "
                 "default data.\n",
-                7, filename);
+                7, filename.c_str());
     }
 
     else if (forced_read == 0)

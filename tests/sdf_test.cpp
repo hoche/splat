@@ -270,8 +270,7 @@ class SdfCoordinateTest
 };
 
 TEST_P(SdfCoordinateTest, ValidCoordinateRanges) {
-    int min_lat, max_lat, min_lon, max_lon;
-    std::tie(min_lat, max_lat, min_lon, max_lon) = GetParam();
+    auto [min_lat, max_lat, min_lon, max_lon] = GetParam();
 
     Sdf sdf("./test_sdf_coords", *sr);
 

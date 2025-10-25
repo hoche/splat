@@ -100,7 +100,7 @@ void Site::LoadQTH(const std::string &filename) {
     /* . */
 
     std::string qthfile;
-    char string[50];
+    std::string line;
     FILE *fd = NULL;
 
     size_t x = filename.size();
@@ -122,53 +122,49 @@ void Site::LoadQTH(const std::string &filename) {
         return;
 
     /* Site Name */
-    fgets(string, 49, fd);
-
-    /* Strip <CR> and/or <LF> from end of site name */
-    name = string;
-    Utilities::Chomp(name);
+    char buffer[256];
+    if (fgets(buffer, sizeof(buffer), fd)) {
+        name = buffer;
+        Utilities::Chomp(name);
+    }
 
     /* Site Latitude */
-    fgets(string, 49, fd);
-    lat = Utilities::ReadBearing(string);
+    if (fgets(buffer, sizeof(buffer), fd)) {
+        lat = Utilities::ReadBearing(buffer);
+    }
 
     /* Site Longitude */
-    fgets(string, 49, fd);
-    lon = Utilities::ReadBearing(string);
+    if (fgets(buffer, sizeof(buffer), fd)) {
+        lon = Utilities::ReadBearing(buffer);
+    }
 
     if (lon < 0.0)
         lon += 360.0;
 
     /* Antenna Height */
-    fgets(string, 49, fd);
+    if (fgets(buffer, sizeof(buffer), fd)) {
+        line = buffer;
+        Utilities::Chomp(line);
+
+        /* Antenna height may either be in feet or meters.
+         If the letter 'M' or 'm' is discovered in
+         the string, then this is an indication that
+         the value given is expressed in meters, and
+         must be converted to feet before exiting. */
+
+        if (line.find('M') != std::string::npos ||
+            line.find('m') != std::string::npos) {
+            // Remove the 'M' or 'm' and convert from meters to feet
+            size_t m_pos = line.find_first_of("Mm");
+            if (m_pos != std::string::npos) {
+                line = line.substr(0, m_pos);
+            }
+            alt = std::stof(line) * 3.28084f;
+        } else {
+            alt = std::stof(line);
+        }
+    }
     fclose(fd);
-
-    /* Remove <CR> and/or <LF> from antenna height string */
-    for (x = 0; string[x] != 13 && string[x] != 10 && string[x] != 0; x++)
-        ;
-
-    string[x] = 0;
-
-    /* Antenna height may either be in feet or meters.
-     If the letter 'M' or 'm' is discovered in
-     the string, then this is an indication that
-     the value given is expressed in meters, and
-     must be converted to feet before exiting. */
-
-    for (x = 0;
-         string[x] != 'M' && string[x] != 'm' && string[x] != 0 && x < 48; x++)
-        ;
-
-    if (string[x] == 'M' || string[x] == 'm') {
-        string[x] = 0;
-        sscanf(string, "%f", &alt);
-        alt *= 3.28084;
-    }
-
-    else {
-        string[x] = 0;
-        sscanf(string, "%f", &alt);
-    }
 
     this->filename = qthfile;
 }
