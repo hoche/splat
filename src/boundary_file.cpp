@@ -10,6 +10,8 @@
 
 #include <cstdio>
 #include <cstring>
+#include <fstream>
+#include <sstream>
 #include <string>
 
 #include "boundary_file.h"
@@ -30,27 +32,31 @@ void BoundaryFile::LoadBoundaries(const std::string &filename,
 
     int x;
     double lat0, lon0, lat1, lon1;
-    char buffer[80];
+    std::string line;
+    std::stringstream ss;
     Site source, destination;
-    FILE *fd = NULL;
 
     Path path(sr.arraysize, sr.ppd);
 
-    fd = fopen(filename.c_str(), "r");
+    std::ifstream infile(filename);
 
-    if (fd != NULL) {
-        fgets(buffer, 78, fd);
+    if (infile.is_open()) {
+        std::getline(infile, line);  // Skip first line
 
         fprintf(stdout, "\nReading \"%s\"... ", filename.c_str());
         fflush(stdout);
 
-        do {
-            fgets(buffer, 78, fd);
-            sscanf(buffer, "%lf %lf", &lon0, &lat0);
-            fgets(buffer, 78, fd);
+        while (std::getline(infile, line) && line.substr(0, 3) != "END") {
+            ss.clear();
+            ss.str(line);
+            ss >> lon0 >> lat0;
 
-            do {
-                sscanf(buffer, "%lf %lf", &lon1, &lat1);
+            std::getline(infile, line);
+
+            while (line.substr(0, 3) != "END" && infile.good()) {
+                ss.clear();
+                ss.str(line);
+                ss >> lon1 >> lat1;
 
                 source.lat = lat0;
                 source.lon = (lon0 > 0.0 ? 360.0 - lon0 : -lon0);
@@ -65,15 +71,12 @@ void BoundaryFile::LoadBoundaries(const std::string &filename,
                 lat0 = lat1;
                 lon0 = lon1;
 
-                fgets(buffer, 78, fd);
+                if (! std::getline(infile, line))
+                    break;
+            }
+        }
 
-            } while (strncmp(buffer, "END", 3) != 0 && feof(fd) == 0);
-
-            fgets(buffer, 78, fd);
-
-        } while (strncmp(buffer, "END", 3) != 0 && feof(fd) == 0);
-
-        fclose(fd);
+        infile.close();
 
         fprintf(stdout, "Done!");
         fflush(stdout);

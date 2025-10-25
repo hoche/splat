@@ -12,6 +12,7 @@
 #include "utilities.h"
 #include <cmath>
 #include <cstdio>
+#include <fstream>
 #include <string>
 
 Site::Site() { }
@@ -101,7 +102,6 @@ void Site::LoadQTH(const std::string &filename) {
 
     std::string qthfile;
     std::string line;
-    FILE *fd = NULL;
 
     size_t x = filename.size();
     qthfile = filename;
@@ -115,35 +115,33 @@ void Site::LoadQTH(const std::string &filename) {
     lon = 361.0;
     alt = 0.0;
 
-    fd = fopen(qthfile.c_str(), "r");
+    std::ifstream infile(qthfile);
 
     // Early out if we can't open the file. TODO: Shouldn't we WARN?
-    if (fd == NULL)
+    if (! infile.is_open())
         return;
 
     /* Site Name */
-    char buffer[256];
-    if (fgets(buffer, sizeof(buffer), fd)) {
-        name = buffer;
+    if (std::getline(infile, line)) {
+        name = line;
         Utilities::Chomp(name);
     }
 
     /* Site Latitude */
-    if (fgets(buffer, sizeof(buffer), fd)) {
-        lat = Utilities::ReadBearing(buffer);
+    if (std::getline(infile, line)) {
+        lat = Utilities::ReadBearing(line);
     }
 
     /* Site Longitude */
-    if (fgets(buffer, sizeof(buffer), fd)) {
-        lon = Utilities::ReadBearing(buffer);
+    if (std::getline(infile, line)) {
+        lon = Utilities::ReadBearing(line);
     }
 
     if (lon < 0.0)
         lon += 360.0;
 
     /* Antenna Height */
-    if (fgets(buffer, sizeof(buffer), fd)) {
-        line = buffer;
+    if (std::getline(infile, line)) {
         Utilities::Chomp(line);
 
         /* Antenna height may either be in feet or meters.
@@ -164,7 +162,7 @@ void Site::LoadQTH(const std::string &filename) {
             alt = std::stof(line);
         }
     }
-    fclose(fd);
+    infile.close();
 
     this->filename = qthfile;
 }

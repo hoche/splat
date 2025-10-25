@@ -16,6 +16,7 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <string>
 
 void AntennaPattern::LoadAntennaPattern(const std::string &filename) {
@@ -24,12 +25,11 @@ void AntennaPattern::LoadAntennaPattern(const std::string &filename) {
      loaded SPLAT! .lrp files.  */
 
     int a, b, w, x, y, z, last_index, next_index, span;
-    char buffer[255];
-    char *pointer = NULL;
+    std::string line;
+    std::stringstream ss;
     float az, elevation, amplitude, valid1, valid2, delta, azimuth[361],
         azimuth_pattern[361], el_pattern[10001], elevation_pattern[361][1001],
         slant_angle[361], tilt, sum;
-    FILE *fd = NULL;
     unsigned char read_count[10001];
 
     /* antenna */
@@ -53,9 +53,9 @@ void AntennaPattern::LoadAntennaPattern(const std::string &filename) {
 
     /* Load .az antenna pattern file */
 
-    fd = fopen(azfile.c_str(), "r");
+    std::ifstream azfile_stream(azfile);
 
-    if (fd != NULL) {
+    if (azfile_stream.is_open()) {
         /* Clear azimuth pattern array */
 
         for (x = 0; x <= 360; x++) {
@@ -67,45 +67,38 @@ void AntennaPattern::LoadAntennaPattern(const std::string &filename) {
          in degrees measured clockwise
          from true North. */
 
-        fgets(buffer, 254, fd);
-        pointer = strchr(buffer, ';');
-
-        if (pointer != NULL)
-            *pointer = 0;
-
-        sscanf(buffer, "%f", &antenna_azimuth);
+        if (std::getline(azfile_stream, line)) {
+            size_t comment_pos = line.find(';');
+            if (comment_pos != std::string::npos) {
+                line = line.substr(0, comment_pos);
+            }
+            ss.clear();
+            ss.str(line);
+            ss >> antenna_azimuth;
+        }
 
         /* Read azimuth (degrees) and corresponding
          normalized field radiation pattern amplitude
          (0.0 to 1.0) until EOF is reached. */
 
-        fgets(buffer, 254, fd);
-        pointer = strchr(buffer, ';');
-
-        if (pointer != NULL)
-            *pointer = 0;
-
-        sscanf(buffer, "%f %f", &az, &amplitude);
-
-        do {
-            x = (int) rintf(az);
-
-            if (x >= 0 && x <= 360 && fd != NULL) {
-                azimuth[x] += amplitude;
-                read_count[x]++;
+        while (std::getline(azfile_stream, line)) {
+            size_t comment_pos = line.find(';');
+            if (comment_pos != std::string::npos) {
+                line = line.substr(0, comment_pos);
             }
+            ss.clear();
+            ss.str(line);
+            if (ss >> az >> amplitude) {
+                x = (int) rintf(az);
 
-            fgets(buffer, 254, fd);
-            pointer = strchr(buffer, ';');
+                if (x >= 0 && x <= 360) {
+                    azimuth[x] += amplitude;
+                    read_count[x]++;
+                }
+            }
+        }
 
-            if (pointer != NULL)
-                *pointer = 0;
-
-            sscanf(buffer, "%f %f", &az, &amplitude);
-
-        } while (feof(fd) == 0);
-
-        fclose(fd);
+        azfile_stream.close();
 
         /* Handle 0=360 degree ambiguity */
 
@@ -176,9 +169,9 @@ void AntennaPattern::LoadAntennaPattern(const std::string &filename) {
 
     /* Read and process .el file */
 
-    fd = fopen(elfile.c_str(), "r");
+    std::ifstream elfile_stream(elfile);
 
-    if (fd != NULL) {
+    if (elfile_stream.is_open()) {
         for (x = 0; x <= 10000; x++) {
             el_pattern[x] = 0.0;
             read_count[x] = 0;
@@ -188,49 +181,42 @@ void AntennaPattern::LoadAntennaPattern(const std::string &filename) {
          tilt azimuth in degrees measured
          clockwise from true North. */
 
-        fgets(buffer, 254, fd);
-        pointer = strchr(buffer, ';');
-
-        if (pointer != NULL)
-            *pointer = 0;
-
-        sscanf(buffer, "%f %f", &antenna_elevation_tilt,
-               &antenna_horizontal_roll);
+        if (std::getline(elfile_stream, line)) {
+            size_t comment_pos = line.find(';');
+            if (comment_pos != std::string::npos) {
+                line = line.substr(0, comment_pos);
+            }
+            ss.clear();
+            ss.str(line);
+            ss >> antenna_elevation_tilt >> antenna_horizontal_roll;
+        }
 
         /* Read elevation (degrees) and corresponding
          normalized field radiation pattern amplitude
          (0.0 to 1.0) until EOF is reached. */
 
-        fgets(buffer, 254, fd);
-        pointer = strchr(buffer, ';');
-
-        if (pointer != NULL)
-            *pointer = 0;
-
-        sscanf(buffer, "%f %f", &elevation, &amplitude);
-
-        while (feof(fd) == 0) {
-            /* Read in normalized radiated field values
-             for every 0.01 degrees of elevation between
-             -10.0 and +90.0 degrees */
-
-            x = (int) rintf(100.0 * (elevation + 10.0));
-
-            if (x >= 0 && x <= 10000) {
-                el_pattern[x] += amplitude;
-                read_count[x]++;
+        while (std::getline(elfile_stream, line)) {
+            size_t comment_pos = line.find(';');
+            if (comment_pos != std::string::npos) {
+                line = line.substr(0, comment_pos);
             }
+            ss.clear();
+            ss.str(line);
+            if (ss >> elevation >> amplitude) {
+                /* Read in normalized radiated field values
+                 for every 0.01 degrees of elevation between
+                 -10.0 and +90.0 degrees */
 
-            fgets(buffer, 254, fd);
-            pointer = strchr(buffer, ';');
+                x = (int) rintf(100.0 * (elevation + 10.0));
 
-            if (pointer != NULL)
-                *pointer = 0;
-
-            sscanf(buffer, "%f %f", &elevation, &amplitude);
+                if (x >= 0 && x <= 10000) {
+                    el_pattern[x] += amplitude;
+                    read_count[x]++;
+                }
+            }
         }
 
-        fclose(fd);
+        elfile_stream.close();
 
         /* Average the field values in case more than
          one was read for each 0.01 degrees of elevation. */

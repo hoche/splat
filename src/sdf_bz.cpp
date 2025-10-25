@@ -86,10 +86,19 @@ char *SdfBz::BZfgets(BZFILE *bzfd, unsigned length) {
     return (output);
 }
 
-char *SdfBz::GetString() { return BZfgets(bzfd, 255); }
+bool SdfBz::GetString() {
+    char *result = BZfgets(bzfd, 255);
+    if (result && result[0] != 0) {
+        line = result;
+        return true;
+    }
+    return false;
+}
 
 bool SdfBz::OpenFile(std::string path) {
-    if (! Sdf::OpenFile(path)) {
+    // For bzip2 files, we need to use FILE* instead of ifstream
+    fd = fopen(path.c_str(), "rb");
+    if (fd == NULL) {
         return false;
     }
 
@@ -100,6 +109,8 @@ bool SdfBz::OpenFile(std::string path) {
 
 void SdfBz::CloseFile() {
     BZ2_bzReadClose(&bzerror, bzfd);
-
-    Sdf::CloseFile();
+    if (fd != NULL) {
+        fclose(fd);
+        fd = NULL;
+    }
 }

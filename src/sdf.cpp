@@ -20,6 +20,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -39,7 +40,7 @@
 int Sdf::LoadSDF(ElevationMap &em, const std::string &name, int minlat,
                  int maxlat, int minlon, int maxlon) {
     int x, y, data, indx;
-    char *string;
+    std::stringstream ss;
 
     std::string path_plus_name;
     std::string sdf_file = name + suffix;
@@ -68,25 +69,45 @@ int Sdf::LoadSDF(ElevationMap &em, const std::string &name, int minlat,
             indx + 1);
     fflush(stdout);
 
-    sscanf(GetString(), "%d", &dem->max_west);
-    sscanf(GetString(), "%d", &dem->min_north);
-    sscanf(GetString(), "%d", &dem->min_west);
-    sscanf(GetString(), "%d", &dem->max_north);
+    // Read header values
+    if (GetString()) {
+        ss.clear();
+        ss.str(line);
+        ss >> dem->max_west;
+    }
+    if (GetString()) {
+        ss.clear();
+        ss.str(line);
+        ss >> dem->min_north;
+    }
+    if (GetString()) {
+        ss.clear();
+        ss.str(line);
+        ss >> dem->min_west;
+    }
+    if (GetString()) {
+        ss.clear();
+        ss.str(line);
+        ss >> dem->max_north;
+    }
 
     for (x = 0; x < sr.ippd; x++) {
         for (y = 0; y < sr.ippd; y++) {
-            string = GetString();
-            data = atoi(string);
+            if (GetString()) {
+                ss.clear();
+                ss.str(line);
+                ss >> data;
 
-            dem->data[x * sr.ippd + y] = data;
-            dem->signal[x * sr.ippd + y] = 0;
-            dem->mask[x * sr.ippd + y] = 0;
+                dem->data[x * sr.ippd + y] = data;
+                dem->signal[x * sr.ippd + y] = 0;
+                dem->mask[x * sr.ippd + y] = 0;
 
-            if (data > dem->max_el)
-                dem->max_el = data;
+                if (data > dem->max_el)
+                    dem->max_el = data;
 
-            if (data < dem->min_el)
-                dem->min_el = data;
+                if (data < dem->min_el)
+                    dem->min_el = data;
+            }
         }
     }
 
@@ -287,15 +308,11 @@ Dem *Sdf::FindEmptyDem(ElevationMap &em, int minlat, int maxlat, int minlon,
     return NULL;
 }
 
-char *Sdf::GetString() { return fgets(line, sizeof(line) - 1, fd); }
+bool Sdf::GetString() { return static_cast<bool>(std::getline(infile, line)); }
 
 bool Sdf::OpenFile(std::string path) {
-    fd = fopen(path.c_str(), "rb");
-
-    return (fd != NULL);
+    infile.open(path);
+    return infile.is_open();
 }
 
-void Sdf::CloseFile() {
-    fclose(fd);
-    fd = NULL;
-}
+void Sdf::CloseFile() { infile.close(); }

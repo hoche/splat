@@ -13,13 +13,14 @@
 #include "site.h"
 #include <cstdio>
 #include <cstring>
+#include <fstream>
+#include <sstream>
 #include <string>
 
 void Region::LoadSignalColors(const Site &xmtr) {
-    int x, y, ok, val[4];
-    char buffer[80];
-    char *pointer = NULL;
-    FILE *fd = NULL;
+    int x, y, val[4];
+    std::string line;
+    std::stringstream ss;
 
     // Generate .scf filename from xmtr filename
     std::string base = xmtr.filename;
@@ -100,13 +101,13 @@ void Region::LoadSignalColors(const Site &xmtr) {
 
     levels = 13;
 
-    fd = fopen("splat.scf", "r");
+    std::ifstream infile("splat.scf");
 
-    if (fd == NULL)
-        fd = fopen(filename.c_str(), "r");
+    if (! infile.is_open())
+        infile.open(filename);
 
-    if (fd == NULL) {
-        fd = fopen(filename.c_str(), "w");
+    if (! infile.is_open()) {
+        FILE *fd = fopen(filename.c_str(), "w");
 
         fprintf(
             fd,
@@ -139,18 +140,19 @@ void Region::LoadSignalColors(const Site &xmtr) {
 
     else {
         x = 0;
-        fgets(buffer, 80, fd);
 
-        while (x < 32 && feof(fd) == 0) {
-            pointer = strchr(buffer, ';');
+        while (x < 32 && std::getline(infile, line)) {
+            // Strip comments
+            size_t comment_pos = line.find(';');
+            if (comment_pos != std::string::npos) {
+                line = line.substr(0, comment_pos);
+            }
 
-            if (pointer != NULL)
-                *pointer = 0;
-
-            ok = sscanf(buffer, "%d: %d, %d, %d", &val[0], &val[1], &val[2],
-                        &val[3]);
-
-            if (ok == 4) {
+            ss.clear();
+            ss.str(line);
+            char colon, comma1, comma2;
+            if (ss >> val[0] >> colon >> val[1] >> comma1 >> val[2] >> comma2 >>
+                val[3]) {
                 for (y = 0; y < 4; y++) {
                     if (val[y] > 255)
                         val[y] = 255;
@@ -165,20 +167,17 @@ void Region::LoadSignalColors(const Site &xmtr) {
                 color[x][2] = val[3];
                 x++;
             }
-
-            fgets(buffer, 80, fd);
         }
 
-        fclose(fd);
+        infile.close();
         levels = x;
     }
 }
 
 void Region::LoadDBMColors(const Site &xmtr) {
-    int x, y, ok, val[4];
-    char buffer[80];
-    char *pointer = NULL;
-    FILE *fd = NULL;
+    int x, y, val[4];
+    std::string line;
+    std::stringstream ss;
 
     // Generate .dcf filename from xmtr filename
     std::string base = xmtr.filename;
@@ -274,13 +273,13 @@ void Region::LoadDBMColors(const Site &xmtr) {
 
     levels = 16;
 
-    fd = fopen("splat.dcf", "r");
+    std::ifstream infile("splat.dcf");
 
-    if (fd == NULL)
-        fd = fopen(filename.c_str(), "r");
+    if (! infile.is_open())
+        infile.open(filename);
 
-    if (fd == NULL) {
-        fd = fopen(filename.c_str(), "w");
+    if (! infile.is_open()) {
+        FILE *fd = fopen(filename.c_str(), "w");
 
         fprintf(fd,
                 "; SPLAT! Auto-generated DBM Signal Level Color Definition "
@@ -311,18 +310,19 @@ void Region::LoadDBMColors(const Site &xmtr) {
 
     else {
         x = 0;
-        fgets(buffer, 80, fd);
 
-        while (x < 32 && feof(fd) == 0) {
-            pointer = strchr(buffer, ';');
+        while (x < 32 && std::getline(infile, line)) {
+            // Strip comments
+            size_t comment_pos = line.find(';');
+            if (comment_pos != std::string::npos) {
+                line = line.substr(0, comment_pos);
+            }
 
-            if (pointer != NULL)
-                *pointer = 0;
-
-            ok = sscanf(buffer, "%d: %d, %d, %d", &val[0], &val[1], &val[2],
-                        &val[3]);
-
-            if (ok == 4) {
+            ss.clear();
+            ss.str(line);
+            char colon, comma1, comma2;
+            if (ss >> val[0] >> colon >> val[1] >> comma1 >> val[2] >> comma2 >>
+                val[3]) {
                 if (val[0] < -200)
                     val[0] = -200;
 
@@ -344,20 +344,17 @@ void Region::LoadDBMColors(const Site &xmtr) {
                 color[x][2] = val[3];
                 x++;
             }
-
-            fgets(buffer, 80, fd);
         }
 
-        fclose(fd);
+        infile.close();
         levels = x;
     }
 }
 
 void Region::LoadLossColors(const Site &xmtr) {
-    int x, y, ok, val[4];
-    char buffer[80];
-    char *pointer = NULL;
-    FILE *fd = NULL;
+    int x, y, val[4];
+    std::string line;
+    std::stringstream ss;
 
     // Generate .lcf filename from xmtr filename
     std::string base = xmtr.filename;
@@ -453,13 +450,13 @@ void Region::LoadLossColors(const Site &xmtr) {
 
     levels = 16;
 
-    fd = fopen("splat.lcf", "r");
+    std::ifstream infile("splat.lcf");
 
-    if (fd == NULL)
-        fd = fopen(filename.c_str(), "r");
+    if (! infile.is_open())
+        infile.open(filename);
 
-    if (fd == NULL) {
-        fd = fopen(filename.c_str(), "w");
+    if (! infile.is_open()) {
+        FILE *fd = fopen(filename.c_str(), "w");
 
         fprintf(fd,
                 "; SPLAT! Auto-generated Path-Loss Color Definition (\"%s\") "
@@ -490,18 +487,19 @@ void Region::LoadLossColors(const Site &xmtr) {
 
     else {
         x = 0;
-        fgets(buffer, 80, fd);
 
-        while (x < 32 && feof(fd) == 0) {
-            pointer = strchr(buffer, ';');
+        while (x < 32 && std::getline(infile, line)) {
+            // Strip comments
+            size_t comment_pos = line.find(';');
+            if (comment_pos != std::string::npos) {
+                line = line.substr(0, comment_pos);
+            }
 
-            if (pointer != NULL)
-                *pointer = 0;
-
-            ok = sscanf(buffer, "%d: %d, %d, %d", &val[0], &val[1], &val[2],
-                        &val[3]);
-
-            if (ok == 4) {
+            ss.clear();
+            ss.str(line);
+            char colon, comma1, comma2;
+            if (ss >> val[0] >> colon >> val[1] >> comma1 >> val[2] >> comma2 >>
+                val[3]) {
                 for (y = 0; y < 4; y++) {
                     if (val[y] > 255)
                         val[y] = 255;
@@ -516,11 +514,9 @@ void Region::LoadLossColors(const Site &xmtr) {
                 color[x][2] = val[3];
                 x++;
             }
-
-            fgets(buffer, 80, fd);
         }
 
-        fclose(fd);
+        infile.close();
         levels = x;
     }
 }

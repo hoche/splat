@@ -14,12 +14,14 @@
 #include "sdf.h"
 #include "splat_run.h"
 #include <bzlib.h>
+#include <cstdio>
 #include <string>
 
 class SdfBz : public Sdf {
   private:
     int bzerror;
     BZFILE *bzfd;
+    FILE *fd;  // Needed for bzip2 operations
 
   public:
     SdfBz(const std::string &path, const SplatRun &sr);
@@ -27,7 +29,7 @@ class SdfBz : public Sdf {
   protected:
     virtual bool OpenFile(std::string path);
     virtual void CloseFile();
-    virtual char *GetString();
+    virtual bool GetString();
 
   private:
     char *BZfgets(BZFILE *bzfd, unsigned length);

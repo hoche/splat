@@ -14,17 +14,18 @@
 #include "elevation_map.h"
 #include "splat_run.h"
 
+#include <fstream>
 #include <string>
 
 class Sdf {
   private:
     std::string sdf_path;
     const SplatRun &sr;
-    char line[20];
 
   protected:
+    std::string line;
     std::string suffix;
-    FILE *fd;
+    std::ifstream infile;
 
   public:
     Sdf(const std::string &path, const SplatRun &sr)
@@ -40,7 +41,7 @@ class Sdf {
   protected:
     virtual bool OpenFile(std::string path);
     virtual void CloseFile();
-    virtual char *GetString();
+    virtual bool GetString();
 
   private:
     Dem *FindEmptyDem(ElevationMap &em, int minlat, int maxlat, int minlon,
