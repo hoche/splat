@@ -14,10 +14,9 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
-#include <string>
-#include <iostream>
 #include <fstream>
-
+#include <iostream>
+#include <string>
 
 void AntennaPattern::LoadAntennaPattern(const std::string &filename) {
     /* This function reads and processes antenna pattern (.az
@@ -26,12 +25,12 @@ void AntennaPattern::LoadAntennaPattern(const std::string &filename) {
 
     int a, b, w, x, y, z, last_index, next_index, span;
     char string[255], azfile[255], elfile[255], *pointer = NULL;
-    float az, elevation, amplitude, valid1, valid2, delta,
-        azimuth[361], azimuth_pattern[361], el_pattern[10001],
-        elevation_pattern[361][1001], slant_angle[361], tilt, sum;
+    float az, elevation, amplitude, valid1, valid2, delta, azimuth[361],
+        azimuth_pattern[361], el_pattern[10001], elevation_pattern[361][1001],
+        slant_angle[361], tilt, sum;
     FILE *fd = NULL;
     unsigned char read_count[10001];
-    
+
     /* antenna */
     float antenna_azimuth = 0;
     float antenna_elevation_tilt = 0;
@@ -92,7 +91,7 @@ void AntennaPattern::LoadAntennaPattern(const std::string &filename) {
         sscanf(string, "%f %f", &az, &amplitude);
 
         do {
-            x = (int)rintf(az);
+            x = (int) rintf(az);
 
             if (x >= 0 && x <= 360 && fd != NULL) {
                 azimuth[x] += amplitude;
@@ -128,7 +127,7 @@ void AntennaPattern::LoadAntennaPattern(const std::string &filename) {
 
         for (x = 0; x <= 360; x++) {
             if (read_count[x] > 1)
-                azimuth[x] /= (float)read_count[x];
+                azimuth[x] /= (float) read_count[x];
         }
 
         /* Interpolate missing azimuths
@@ -150,7 +149,7 @@ void AntennaPattern::LoadAntennaPattern(const std::string &filename) {
                 valid2 = azimuth[next_index];
 
                 span = next_index - last_index;
-                delta = (valid2 - valid1) / (float)span;
+                delta = (valid2 - valid1) / (float) span;
 
                 for (y = last_index + 1; y < next_index; y++)
                     azimuth[y] = azimuth[y - 1] + delta;
@@ -165,7 +164,7 @@ void AntennaPattern::LoadAntennaPattern(const std::string &filename) {
          azimuth pattern data in its final form. */
 
         for (x = 0; x < 360; x++) {
-            y = x + (int)rintf(antenna_azimuth);
+            y = x + (int) rintf(antenna_azimuth);
 
             if (y >= 360)
                 y -= 360;
@@ -198,7 +197,8 @@ void AntennaPattern::LoadAntennaPattern(const std::string &filename) {
         if (pointer != NULL)
             *pointer = 0;
 
-        sscanf(string, "%f %f", &antenna_elevation_tilt, &antenna_horizontal_roll);
+        sscanf(string, "%f %f", &antenna_elevation_tilt,
+               &antenna_horizontal_roll);
 
         /* Read elevation (degrees) and corresponding
          normalized field radiation pattern amplitude
@@ -217,7 +217,7 @@ void AntennaPattern::LoadAntennaPattern(const std::string &filename) {
              for every 0.01 degrees of elevation between
              -10.0 and +90.0 degrees */
 
-            x = (int)rintf(100.0 * (elevation + 10.0));
+            x = (int) rintf(100.0 * (elevation + 10.0));
 
             if (x >= 0 && x <= 10000) {
                 el_pattern[x] += amplitude;
@@ -240,7 +240,7 @@ void AntennaPattern::LoadAntennaPattern(const std::string &filename) {
 
         for (x = 0; x <= 10000; x++) {
             if (read_count[x] > 1)
-                el_pattern[x] /= (float)read_count[x];
+                el_pattern[x] /= (float) read_count[x];
         }
 
         /* Interpolate between missing elevations (if
@@ -264,7 +264,7 @@ void AntennaPattern::LoadAntennaPattern(const std::string &filename) {
                 valid2 = el_pattern[next_index];
 
                 span = next_index - last_index;
-                delta = (valid2 - valid1) / (float)span;
+                delta = (valid2 - valid1) / (float) span;
 
                 for (y = last_index + 1; y < next_index; y++)
                     el_pattern[y] = el_pattern[y - 1] + delta;
@@ -277,12 +277,15 @@ void AntennaPattern::LoadAntennaPattern(const std::string &filename) {
         /* Fill slant_angle[] array with offset angles based
          on the antenna's mechanical beam tilt (if any)
          and tilt direction (azimuth). */
-         
+
         /* transform coordinates starting from antenna_azimuth */
         int n = 0;
-		for (x = (int)rintf(antenna_azimuth), n = 0; x <= (int)rintf(antenna_azimuth) + 360; x++, n++) {
-			slant_angle[x%360] = cos(n * 3.14159265 / 180) * (-antenna_elevation_tilt) + sin(n * 3.14159265 / 180) * (-antenna_horizontal_roll);
-		}
+        for (x = (int) rintf(antenna_azimuth), n = 0;
+             x <= (int) rintf(antenna_azimuth) + 360; x++, n++) {
+            slant_angle[x % 360] =
+                cos(n * 3.14159265 / 180) * (-antenna_elevation_tilt) +
+                sin(n * 3.14159265 / 180) * (-antenna_horizontal_roll);
+        }
 
         slant_angle[360] = slant_angle[0]; /* 360 degree wrap-around */
 
@@ -292,7 +295,7 @@ void AntennaPattern::LoadAntennaPattern(const std::string &filename) {
             /** Convert tilt angle to
              an array index offset **/
 
-            y = (int)rintf(100.0 * tilt);
+            y = (int) rintf(100.0 * tilt);
 
             /* Copy shifted el_pattern[10001] field
              values into elevation_pattern[361][1001]
@@ -317,8 +320,7 @@ void AntennaPattern::LoadAntennaPattern(const std::string &filename) {
 
         got_elevation_pattern = true;
     }
-    
-    
+
     /* DEBUG: output 2D antenna pattern as csv file */
     //sprintf(antenna_name, "antennafile.csv");
     //std::ofstream antennafile(antenna_name);
@@ -336,15 +338,15 @@ void AntennaPattern::LoadAntennaPattern(const std::string &filename) {
                 az = 1.0;
 
             antenna_pattern[x][y] = az * elevation;
-            
+
             //antennafile << antenna_pattern[x][y] << " ";
         }
         //antennafile << std::endl;
     }
-    
+
     //antennafile.close();
-    
+
     if (got_elevation_pattern && got_azimuth_pattern) {
-		std::cout << "Using elevation and azimuth pattern\n";
-	}
+        std::cout << "Using elevation and azimuth pattern\n";
+    }
 }

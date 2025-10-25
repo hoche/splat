@@ -67,8 +67,8 @@ void WorkQueue::waitForCompletion() {
 }
 
 void WorkQueue::submit(std::function<void()> job, bool blocking) {
-    std::unique_lock<std::mutex> ul(m_mutex); // constructed locked
-    if (m_exit || !m_finish_work) {
+    std::unique_lock<std::mutex> ul(m_mutex);  // constructed locked
+    if (m_exit || ! m_finish_work) {
         return;
     }
     if (blocking && (m_work.size() >= m_workers.size())) {
@@ -85,10 +85,10 @@ void WorkQueue::submit(std::function<void()> job, bool blocking) {
 
 // Thread main loop
 void WorkQueue::doWork() {
-    std::unique_lock<std::mutex> ul(m_mutex); // constructed locked
+    std::unique_lock<std::mutex> ul(m_mutex);  // constructed locked
 
-    while (!m_exit || (m_finish_work && !m_work.empty())) {
-        if (!m_work.empty()) {
+    while (! m_exit || (m_finish_work && ! m_work.empty())) {
+        if (! m_work.empty()) {
             // fprintf(stderr, "    Thr[%d]: Working.\n", myId);
             std::function<void()> work(std::move(m_work.front()));
             m_work.pop_front();
@@ -97,11 +97,11 @@ void WorkQueue::doWork() {
             ul.lock();
             // fprintf(stderr, "    Thr[%d]: Done.\n", myId);
             m_signalWorkDone
-                .notify_one(); // This just notifies any blocking submits
+                .notify_one();  // This just notifies any blocking submits
         } else {
             // fprintf(stderr, "    Thr[%d]: Paused for more work.\n", myId);
             m_signalWaiting.wait(
-                ul); // Wait until either new work is added or we're cleaning up
+                ul);  // Wait until either new work is added or we're cleaning up
         }
     }
 }

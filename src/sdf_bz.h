@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "splat_run.h"
 #include "elevation_map.h"
 #include "sdf.h"
+#include "splat_run.h"
 #include <bzlib.h>
 #include <string>
 
@@ -32,4 +32,3 @@ class SdfBz : public Sdf {
   private:
     char *BZfgets(BZFILE *bzfd, unsigned length);
 };
-

@@ -9,10 +9,10 @@
  */
 
 #include "sdf_bz.h"
+#include "antenna_pattern.h"
 #include "dem.h"
 #include "elevation_map.h"
 #include "lrp.h"
-#include "antenna_pattern.h"
 #include "path.h"
 #include "sdf.h"
 #include "site.h"
@@ -68,7 +68,7 @@ char *SdfBz::BZfgets(BZFILE *bzfd, unsigned length) {
 
         output[y] = buffer[x];
 
-        if (output[y] == '\n' || output[y] == 0 || y == (int)length - 1) {
+        if (output[y] == '\n' || output[y] == 0 || y == (int) length - 1) {
             output[y + 1] = 0;
             done = 1;
             y = 0;
@@ -89,7 +89,7 @@ char *SdfBz::BZfgets(BZFILE *bzfd, unsigned length) {
 char *SdfBz::GetString() { return BZfgets(bzfd, 255); }
 
 bool SdfBz::OpenFile(std::string path) {
-    if (!Sdf::OpenFile(path)) {
+    if (! Sdf::OpenFile(path)) {
         return false;
     }
 

@@ -22,4 +22,3 @@ class Region {
     void LoadDBMColors(const Site &xmtr);
     void LoadSignalColors(const Site &xmtr);
 };
-

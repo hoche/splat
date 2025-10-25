@@ -14,7 +14,7 @@
 #include <cstdio>
 #include <string>
 
-Site::Site() {}
+Site::Site() { }
 
 Site::Site(const std::string &filename) { LoadQTH(filename); }
 

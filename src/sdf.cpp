@@ -9,10 +9,10 @@
  */
 
 #include "sdf.h"
+#include "antenna_pattern.h"
 #include "dem.h"
 #include "elevation_map.h"
 #include "lrp.h"
-#include "antenna_pattern.h"
 #include "path.h"
 #include "sdf_bz.h"
 #include "site.h"
@@ -36,8 +36,8 @@
 /// @param maxlat The maximum lattitude value
 /// @param minlon The minimum longitude value
 /// @param maxlon The maximum longitude value
-int Sdf::LoadSDF(ElevationMap &em, const std::string &name, int minlat, int maxlat,
-                 int minlon, int maxlon) {
+int Sdf::LoadSDF(ElevationMap &em, const std::string &name, int minlat,
+                 int maxlat, int minlon, int maxlon) {
     int x, y, data, indx;
     char *string;
 
@@ -53,13 +53,13 @@ int Sdf::LoadSDF(ElevationMap &em, const std::string &name, int minlat, int maxl
 
     /* Search for SDF file in current working directory first */
     path_plus_name = sdf_file;
-    if (!OpenFile(path_plus_name)) {
+    if (! OpenFile(path_plus_name)) {
         /* Next, try loading SDF file from path specified
          in $HOME/.splat_path file or by -d argument */
         path_plus_name = sdf_path + sdf_file;
 
         // Stop here if the file couldn't be opened
-        if (!OpenFile(path_plus_name)) {
+        if (! OpenFile(path_plus_name)) {
             return -1;
         }
     }
@@ -161,9 +161,9 @@ char Sdf::LoadSDF(ElevationMap &em, int minlat, int maxlat, int minlon,
     int x, y, indx;
     int return_value = -1;
     std::string name = "" + std::to_string(minlat) + sr.sdf_delimiter +
-                  std::to_string(maxlat) + sr.sdf_delimiter + std::to_string(minlon) +
-                  sr.sdf_delimiter + std::to_string(maxlon) +
-                  (sr.hd_mode ? "-hd" : "");
+                       std::to_string(maxlat) + sr.sdf_delimiter +
+                       std::to_string(minlon) + sr.sdf_delimiter +
+                       std::to_string(maxlon) + (sr.hd_mode ? "-hd" : "");
 
     // Try to load an uncompressed SDF first.
     // Stop here if we successfully loaded the file

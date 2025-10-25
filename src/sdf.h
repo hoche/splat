@@ -10,9 +10,9 @@
 
 #pragma once
 
+#include "dem.h"
 #include "elevation_map.h"
 #include "splat_run.h"
-#include "dem.h"
 
 #include <string>
 
@@ -28,7 +28,9 @@ class Sdf {
 
   public:
     Sdf(const std::string &path, const SplatRun &sr)
-        : sdf_path(path), sr(sr), suffix(".sdf") {}
+        : sdf_path(path),
+          sr(sr),
+          suffix(".sdf") { }
 
     int LoadSDF(ElevationMap &em, const std::string &name, int minlat,
                 int maxlat, int minlon, int maxlon);
@@ -44,4 +46,3 @@ class Sdf {
     Dem *FindEmptyDem(ElevationMap &em, int minlat, int maxlat, int minlon,
                       int maxlon, int &indx);
 };
-

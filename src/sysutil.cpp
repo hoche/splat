@@ -2,12 +2,12 @@
 
 #include <cerrno>
 #include <cstddef>
-#include <cstdio> // for snprintf
+#include <cstdio>  // for snprintf
 #include <cstdlib>
 #include <cstring>
 
 #ifndef _WIN32
-#include <libgen.h> // for dirname() and basename()
+#include <libgen.h>  // for dirname() and basename()
 #endif
 
 #ifndef _WIN32
@@ -30,10 +30,10 @@ unsigned long long SysUtil::GetTotalSystemMemory() {
 #endif
 
 char *SysUtil::Basename(char *path) {
-    if (!path)
-        return (char *)""; /* const string */
+    if (! path)
+        return (char *) ""; /* const string */
 
-    int i = (int)strlen(path);
+    int i = (int) strlen(path);
     for (; i >= 0 && i != '/' && i != '\\'; --i)
         ; /* walk backwards until we find a path separator */
     ++i;  /* i is either -1 or the index of the slash, so move forward */
@@ -176,7 +176,7 @@ char *SysUtil::CopyFilename(char *fname, const char *newSuffix) {
 
     if (newSuffix && (strlen(newSuffix) > 0)) {
         size_t len = strlen(pathbuf) + strlen(filebuf) + strlen(newSuffix) + 3;
-        newFname = (char *)malloc(len);
+        newFname = (char *) malloc(len);
         if (strlen(pathbuf) == 0 ||
             strcmp(pathbuf, ".") ==
                 0) { /* if it's "./foo", just make it "foo" */
@@ -187,7 +187,7 @@ char *SysUtil::CopyFilename(char *fname, const char *newSuffix) {
         }
     } else {
         size_t len = strlen(pathbuf) + strlen(filebuf) + 2;
-        newFname = (char *)malloc(len);
+        newFname = (char *) malloc(len);
         if (strlen(pathbuf) == 0 ||
             strcmp(pathbuf, ".") ==
                 0) { /* if it's "./foo", just make it "foo" */

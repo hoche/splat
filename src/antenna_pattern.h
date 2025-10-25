@@ -21,4 +21,3 @@ class AntennaPattern {
   public:
     void LoadAntennaPattern(const std::string &filename);
 };
-

@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include <string>
 #include <iostream>
+#include <string>
 
 #include "imagewriter.h"
 #include "site.h"
@@ -27,10 +27,7 @@ const size_t SPLAT_NAME_SIZE = 10;
 const size_t DASHES_SIZE = 80;
 const size_t SDF_PATH_SIZE = 255;
 
-typedef enum PropagationModel {
-    PROP_ITM = 0,
-    PROP_ITWOM
-} PropagationModel;
+typedef enum PropagationModel { PROP_ITM = 0, PROP_ITWOM } PropagationModel;
 
 class SplatRun {
   public:
@@ -103,4 +100,3 @@ class SplatRun {
     ImageType imagetype;
     ProjectionType projection;
 };
-

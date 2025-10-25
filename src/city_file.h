@@ -18,4 +18,3 @@ class CityFile {
   public:
     void LoadCities(const std::string &filename, ElevationMap &em);
 };
-

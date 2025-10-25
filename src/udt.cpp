@@ -104,8 +104,8 @@ void Udt::LoadUDT(const std::string &filename, ElevationMap &em) {
             }
 
             if (height > 0.0)
-                fprintf(fd2, "%d, %d, %f\n", (int)rint(latitude / sr.dpp),
-                        (int)rint(longitude / sr.dpp), height);
+                fprintf(fd2, "%d, %d, %f\n", (int) rint(latitude / sr.dpp),
+                        (int) rint(longitude / sr.dpp), height);
 
             fgets(input, 78, fd1);
 

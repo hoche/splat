@@ -15,18 +15,17 @@
 #include <unistd.h>
 #include <vector>
 
+#include "antenna_pattern.h"
 #include "dem.h"
 #include "elevation_map.h"
 #include "itwom3.0.h"
 #include "lrp.h"
-#include "antenna_pattern.h"
 #include "path.h"
 #include "report.h"
 #include "sdf.h"
 #include "site.h"
 #include "splat_run.h"
 #include "utilities.h"
-
 
 void Report::PathReport(const Site &source, const Site &destination,
                         const std::string &name, bool graph_it, elev_t elev[],
@@ -116,10 +115,10 @@ void Report::PathReport(const Site &source, const Site &destination,
     angle2 = em.ElevationAngle2(path, source, destination, sr.earthradius);
 
     if (pat.got_azimuth_pattern || pat.got_elevation_pattern) {
-        x = (int)rint(10.0 * (10.0 - angle2));
+        x = (int) rint(10.0 * (10.0 - angle2));
 
         if (x >= 0 && x <= 1000)
-            pattern = (double)pat.antenna_pattern[(int)rint(azimuth)][x];
+            pattern = (double) pat.antenna_pattern[(int) rint(azimuth)][x];
 
         patterndB = 20.0 * log10(pattern);
     }
@@ -454,10 +453,10 @@ void Report::PathReport(const Site &source, const Site &destination,
             /* Integrate the antenna's radiation
              pattern into the overall path loss. */
 
-            x = (int)rint(10.0 * (10.0 - elevation));
+            x = (int) rint(10.0 * (10.0 - elevation));
 
             if (x >= 0 && x <= 1000) {
-                pattern = (double)pat.antenna_pattern[(int)azimuth][x];
+                pattern = (double) pat.antenna_pattern[(int) azimuth][x];
 
                 if (pattern != 0.0)
                     patterndB = 20.0 * log10(pattern);
@@ -548,7 +547,7 @@ void Report::PathReport(const Site &source, const Site &destination,
 
         fprintf(fd2, "Mode of propagation: ");
 
-		if (sr.propagation_model == PROP_ITM) {
+        if (sr.propagation_model == PROP_ITM) {
             fprintf(fd2, "%s\n", strmode);
             fprintf(fd2, "Longley-Rice model error number: %d", errnum);
         }
@@ -568,7 +567,7 @@ void Report::PathReport(const Site &source, const Site &destination,
             if (y > 19)
                 y = 19;
 
-            for (x = 6; x < (int)y; x++)
+            for (x = 6; x < (int) y; x++)
                 propstring[x - 6] = strmode[x];
 
             propstring[x] = 0;
@@ -616,7 +615,8 @@ void Report::PathReport(const Site &source, const Site &destination,
         fprintf(fd2, "\n%s\n\n", dashes.c_str());
     }
 
-    fprintf(stdout, "\nPath Loss Report written to: \"%s\"\n", report_name.c_str());
+    fprintf(stdout, "\nPath Loss Report written to: \"%s\"\n",
+            report_name.c_str());
     fflush(stdout);
 
     ObstructionAnalysis(source, destination, lrp.frq_mhz, fd2);
@@ -641,14 +641,14 @@ void Report::PathReport(const Site &source, const Site &destination,
             size_t y = name.length();
             basename = name;
 
-            for (x = (int)y - 1; x > 0 && name[x] != '.'; x--)
+            for (x = (int) y - 1; x > 0 && name[x] != '.'; x--)
                 ;
 
             if (x > 0) /* Extension found */
             {
                 ext = "";
                 term = "";
-                for (z = x + 1; z <= (int)y && (z - (x + 1)) < 10; z++) {
+                for (z = x + 1; z <= (int) y && (z - (x + 1)) < 10; z++) {
                     ext += tolower(name[z]);
                     term += name[z];
                 }
@@ -707,7 +707,8 @@ void Report::PathReport(const Site &source, const Site &destination,
                         ITWOMVersion());
         }
 
-        fprintf(fd, "\"\nset output \"%s.%s\"\n", basename.c_str(), ext.c_str());
+        fprintf(fd, "\"\nset output \"%s.%s\"\n", basename.c_str(),
+                ext.c_str());
         fprintf(fd, "plot \"profile.gp\" title \"Path Loss\" with lines\n");
 
         fclose(fd);
@@ -715,14 +716,14 @@ void Report::PathReport(const Site &source, const Site &destination,
         x = system("gnuplot splat.gp");
 
         if (x != -1) {
-            if (!sr.gpsav) {
+            if (! sr.gpsav) {
                 unlink("splat.gp");
                 unlink("profile.gp");
                 unlink("reference.gp");
             }
 
-            fprintf(stdout, "Path loss plot written to: \"%s.%s\"\n", basename.c_str(),
-                    ext.c_str());
+            fprintf(stdout, "Path loss plot written to: \"%s.%s\"\n",
+                    basename.c_str(), ext.c_str());
             fflush(stdout);
         }
 
@@ -730,7 +731,7 @@ void Report::PathReport(const Site &source, const Site &destination,
             fprintf(stderr, "\n*** ERROR: Error occurred invoking gnuplot!\n");
     }
 
-    if (x != -1 && !sr.gpsav)
+    if (x != -1 && ! sr.gpsav)
         unlink("profile.gp");
 }
 
@@ -801,7 +802,7 @@ void Report::SiteReport(const Site &xmtr) {
 
         for (azi = 0; azi <= 315; azi += 45) {
             fprintf(fd, "Average terrain at %3d degrees azimuth: ", azi);
-            terrain = em.AverageTerrain(path, xmtr, (double)azi, 2.0, 10.0);
+            terrain = em.AverageTerrain(path, xmtr, (double) azi, 2.0, 10.0);
 
             if (terrain > -4999.0) {
                 if (sr.metric)
@@ -818,7 +819,8 @@ void Report::SiteReport(const Site &xmtr) {
 
     fprintf(fd, "\n%s\n\n", dashes.c_str());
     fclose(fd);
-    fprintf(stdout, "\nSite analysis report written to: \"%s\"\n", report_name.c_str());
+    fprintf(stdout, "\nSite analysis report written to: \"%s\"\n",
+            report_name.c_str());
 }
 
 void Report::ObstructionAnalysis(const Site &xmtr, const Site &rcvr, double f,

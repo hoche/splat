@@ -26,4 +26,3 @@ class Kml {
     Kml(const ElevationMap &em, const SplatRun &sr);
     void WriteKML(const Site &source, const Site &destination);
 };
-

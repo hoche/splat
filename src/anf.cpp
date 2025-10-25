@@ -68,14 +68,14 @@ int Anf::LoadANO(const std::string &filename, Sdf &sdf, ElevationMap &em) {
                 /* Path loss */
 
                 if (sr.contour_threshold == 0 ||
-                    (fabs(ano) <= (double)sr.contour_threshold)) {
+                    (fabs(ano) <= (double) sr.contour_threshold)) {
                     ano = fabs(ano);
 
                     if (ano > 255.0)
                         ano = 255.0;
 
                     em.PutSignal(latitude, longitude,
-                                 ((unsigned char)round(ano)));
+                                 ((unsigned char) round(ano)));
                 }
             }
 
@@ -83,7 +83,7 @@ int Anf::LoadANO(const std::string &filename, Sdf &sdf, ElevationMap &em) {
                 /* signal power level in dBm */
 
                 if (sr.contour_threshold == 0 ||
-                    (ano >= (double)sr.contour_threshold)) {
+                    (ano >= (double) sr.contour_threshold)) {
                     ano = 200.0 + rint(ano);
 
                     if (ano < 0.0)
@@ -93,15 +93,15 @@ int Anf::LoadANO(const std::string &filename, Sdf &sdf, ElevationMap &em) {
                         ano = 255.0;
 
                     em.PutSignal(latitude, longitude,
-                                 ((unsigned char)round(ano)));
+                                 ((unsigned char) round(ano)));
                 }
             }
 
-            if (lrp.erp != 0.0 && !sr.dbm) {
+            if (lrp.erp != 0.0 && ! sr.dbm) {
                 /* field strength dBuV/m */
 
                 if (sr.contour_threshold == 0 ||
-                    (ano >= (double)sr.contour_threshold)) {
+                    (ano >= (double) sr.contour_threshold)) {
                     ano = 100.0 + rint(ano);
 
                     if (ano < 0.0)
@@ -111,7 +111,7 @@ int Anf::LoadANO(const std::string &filename, Sdf &sdf, ElevationMap &em) {
                         ano = 255.0;
 
                     em.PutSignal(latitude, longitude,
-                                 ((unsigned char)round(ano)));
+                                 ((unsigned char) round(ano)));
                 }
             }
 

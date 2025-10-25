@@ -59,4 +59,3 @@ class Utilities {
 
     static void Chomp(std::string &str);
 };
-

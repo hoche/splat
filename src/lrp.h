@@ -21,7 +21,8 @@ class Lrp {
 
   public:
     Lrp(double forced_erp, double forced_freq)
-        : forced_erp(forced_erp), forced_freq(forced_freq) {}
+        : forced_erp(forced_erp),
+          forced_freq(forced_freq) { }
 
     double eps_dielect;
     double sgm_conductivity;
@@ -36,4 +37,3 @@ class Lrp {
     char ReadLRParm(const Site &txsite, char forced_read, bool &loadPat,
                     std::string &filename);
 };
-

@@ -25,7 +25,6 @@
 #include <unistd.h>
 #include <vector>
 
-
 void GnuPlot::GraphTerrain(const Site &source, const Site &destination,
                            const std::string &name, const ElevationMap &em) {
     /* This function invokes gnuplot to generate an appropriate
@@ -98,14 +97,14 @@ void GnuPlot::GraphTerrain(const Site &source, const Site &destination,
         size_t y = name.length();
         basename = name;
 
-        for (x = (int)y - 1; x > 0 && name[x] != '.'; x--)
+        for (x = (int) y - 1; x > 0 && name[x] != '.'; x--)
             ;
 
         if (x > 0) /* Extension found */
         {
             ext = "";
             term = "";
-            for (z = x + 1; z <= (int)y && (z - (x + 1)) < 10; z++) {
+            for (z = x + 1; z <= (int) y && (z - (x + 1)) < 10; z++) {
                 ext += tolower(name[z]);
                 term += name[z];
             }
@@ -191,12 +190,13 @@ void GnuPlot::GraphTerrain(const Site &source, const Site &destination,
     x = system("gnuplot splat.gp");
 
     if (x != -1) {
-        if (!sr.gpsav) {
+        if (! sr.gpsav) {
             unlink("splat.gp");
             unlink("profile.gp");
         }
 
-        fprintf(stdout, "Terrain plot written to: \"%s.%s\"\n", basename.c_str(), ext.c_str());
+        fprintf(stdout, "Terrain plot written to: \"%s.%s\"\n",
+                basename.c_str(), ext.c_str());
         fflush(stdout);
     }
 
@@ -313,14 +313,14 @@ void GnuPlot::GraphElevation(const Site &source, const Site &destination,
         size_t y = name.length();
         basename = name;
 
-        for (x = (int)y - 1; x > 0 && name[x] != '.'; x--)
+        for (x = (int) y - 1; x > 0 && name[x] != '.'; x--)
             ;
 
         if (x > 0) /* Extension found */
         {
             ext = "";
             term = "";
-            for (z = x + 1; z <= (int)y && (z - (x + 1)) < 10; z++) {
+            for (z = x + 1; z <= (int) y && (z - (x + 1)) < 10; z++) {
                 ext += tolower(name[z]);
                 term += name[z];
             }
@@ -407,7 +407,7 @@ void GnuPlot::GraphElevation(const Site &source, const Site &destination,
     x = system("gnuplot splat.gp");
 
     if (x != -1) {
-        if (!sr.gpsav) {
+        if (! sr.gpsav) {
             unlink("splat.gp");
             unlink("profile.gp");
             unlink("reference.gp");
@@ -416,8 +416,8 @@ void GnuPlot::GraphElevation(const Site &source, const Site &destination,
                 unlink("clutter.gp");
         }
 
-        fprintf(stdout, "Elevation plot written to: \"%s.%s\"\n", basename.c_str(),
-                ext.c_str());
+        fprintf(stdout, "Elevation plot written to: \"%s.%s\"\n",
+                basename.c_str(), ext.c_str());
         fflush(stdout);
     }
 
@@ -656,14 +656,14 @@ void GnuPlot::GraphHeight(const Site &source, const Site &destination,
         size_t y = name.length();
         basename = name;
 
-        for (x = (int)y - 1; x > 0 && name[x] != '.'; x--)
+        for (x = (int) y - 1; x > 0 && name[x] != '.'; x--)
             ;
 
         if (x > 0) /* Extension found */
         {
             ext = "";
             term = "";
-            for (z = x + 1; z <= (int)y && (z - (x + 1)) < 10; z++) {
+            for (z = x + 1; z <= (int) y && (z - (x + 1)) < 10; z++) {
                 ext += tolower(name[z]);
                 term += name[z];
             }
@@ -847,7 +847,7 @@ void GnuPlot::GraphHeight(const Site &source, const Site &destination,
     x = system("gnuplot splat.gp");
 
     if (x != -1) {
-        if (!sr.gpsav) {
+        if (! sr.gpsav) {
             unlink("splat.gp");
             unlink("profile.gp");
             unlink("reference.gp");
@@ -863,7 +863,8 @@ void GnuPlot::GraphHeight(const Site &source, const Site &destination,
             }
         }
 
-        fprintf(stdout, "\nHeight plot written to: \"%s.%s\"", basename.c_str(), ext.c_str());
+        fprintf(stdout, "\nHeight plot written to: \"%s.%s\"", basename.c_str(),
+                ext.c_str());
         fflush(stdout);
     }
 

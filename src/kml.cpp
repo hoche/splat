@@ -16,7 +16,9 @@
 #include "utilities.h"
 
 Kml::Kml(const ElevationMap &em, const SplatRun &sr)
-    : path(sr.arraysize, sr.ppd), em(em), sr(sr) {}
+    : path(sr.arraysize, sr.ppd),
+      em(em),
+      sr(sr) { }
 
 void Kml::WriteKML(const Site &source, const Site &destination) {
     int x, y;

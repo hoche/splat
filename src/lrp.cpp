@@ -16,7 +16,6 @@
 #include <iostream>
 #include <string>
 
-
 char Lrp::ReadLRParm(const Site &txsite, char forced_read, bool &loadPat,
                      std::string &filenameOut) {
     /* This function reads ITM parameter data for the transmitter

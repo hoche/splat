@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "splat_run.h"
+#include "antenna_pattern.h"
 #include "elevation_map.h"
 #include "path.h"
 #include "site.h"
-#include "antenna_pattern.h"
+#include "splat_run.h"
 
 #include <string>
 
@@ -30,7 +30,9 @@ class Report {
     Report(const ElevationMap &em, const SplatRun &sr)
         : dashes("-------------------------------------------------------------"
                  "--------------"),
-          em(em), sr(sr), path(sr.arraysize, sr.ppd) {}
+          em(em),
+          sr(sr),
+          path(sr.arraysize, sr.ppd) { }
 
     void PathReport(const Site &source, const Site &destination,
                     const std::string &name, bool graph_it, elev_t elev[],
@@ -42,4 +44,3 @@ class Report {
     void ObstructionAnalysis(const Site &xmtr, const Site &rcvr, double f,
                              FILE *outfile);
 };
-

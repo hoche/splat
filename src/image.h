@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "splat_run.h"
 #include "elevation_map.h"
-#include "site.h"
-#include "region.h"
 #include "imagewriter.h"
+#include "region.h"
+#include "site.h"
+#include "splat_run.h"
 #include "utilities.h"
 
 #include <string>
@@ -52,15 +52,18 @@ class Image {
     static void WriteGeo(const std::string &geofile, const std::string &mapfile,
                          double north, double south, double east, double west,
                          unsigned int width, unsigned int height);
-    Pixel GetPixel(const Dem *dem, MapType maptype, Region &region, int x0, int y0);
-    
-    int GetIndexForLegend(int colorwidth, MapType maptype, Region &region, int x0, int y0);
-    
-    int GetIndexForColorKeyImageFile(MapType maptype, Region &region, int x0, int y0);
-    
-    void WriteColorKeyImageFile(const std::string &ckfile, ImageType imagetype, MapType maptype, Region &region);
-    
-    void WriteLegend(ImageWriter &iw, MapType maptype, Region &region, unsigned int width);
-    
-};
+    Pixel GetPixel(const Dem *dem, MapType maptype, Region &region, int x0,
+                   int y0);
 
+    int GetIndexForLegend(int colorwidth, MapType maptype, Region &region,
+                          int x0, int y0);
+
+    int GetIndexForColorKeyImageFile(MapType maptype, Region &region, int x0,
+                                     int y0);
+
+    void WriteColorKeyImageFile(const std::string &ckfile, ImageType imagetype,
+                                MapType maptype, Region &region);
+
+    void WriteLegend(ImageWriter &iw, MapType maptype, Region &region,
+                     unsigned int width);
+};

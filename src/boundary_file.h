@@ -24,4 +24,3 @@ class BoundaryFile {
 
     void LoadBoundaries(const std::string &filename, ElevationMap &em);
 };
-

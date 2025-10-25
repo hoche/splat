@@ -29,4 +29,3 @@ void point_to_point(const elev_t elev[], double tht_m, double rht_m,
                     double eno_ns_surfref, double frq_mhz, int radio_climate,
                     int pol, double conf, double rel, double &dbloss,
                     char *strmode, int &errnum);
-

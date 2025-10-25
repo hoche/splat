@@ -39,4 +39,3 @@ class Site {
      */
     void LoadQTH(const std::string &filename);
 };
-

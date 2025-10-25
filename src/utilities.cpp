@@ -14,10 +14,10 @@
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
+#include <iostream>
 #include <math.h>
 #include <sstream>
 #include <string>
-#include <iostream>
 
 int Utilities::interpolate(int y0, int y1, int x0, int x1, int n) {
     /* Perform linear interpolation between quantized contour
@@ -42,10 +42,10 @@ int Utilities::interpolate(int y0, int y1, int x0, int x1, int n) {
     if (x0 == x1)
         return y0;
 
-    delta_y = (double)(y0 - y1);
-    delta_x = (double)(x0 - x1);
+    delta_y = (double) (y0 - y1);
+    delta_x = (double) (x0 - x1);
 
-    result = y0 + (int)ceil((delta_y / delta_x) * (n - x0));
+    result = y0 + (int) ceil((delta_y / delta_x) * (n - x0));
 
     return result;
 }
@@ -73,7 +73,7 @@ int Utilities::ReduceAngle(double angle) {
 
     temp = acos(cos(angle * DEG2RAD));
 
-    return (int)rint(temp / DEG2RAD);
+    return (int) rint(temp / DEG2RAD);
 }
 
 double Utilities::LonDiff(double lon1, double lon2) {
@@ -117,9 +117,9 @@ std::string Utilities::dec2dms(double decimal) {
     c = floor(b);
     d = 60.0 * (b - c);
 
-    degrees = (int)a;
-    minutes = (int)c;
-    seconds = (int)d;
+    degrees = (int) a;
+    minutes = (int) c;
+    seconds = (int) d;
 
     if (seconds < 0)
         seconds = 0;
@@ -152,7 +152,7 @@ double Utilities::ReadBearing(const std::string &input) {
     string[0] = 0;
 
     size_t length = input.size();
-    for (a = 0, b = 0; a < (int)length && a < 18; a++) {
+    for (a = 0, b = 0; a < (int) length && a < 18; a++) {
         if ((input[a] != 32 && input[a] != '\n') ||
             (input[a] == 32 && input[a + 1] != 32 && input[a + 1] != '\n' &&
              b != 0)) {
@@ -167,7 +167,7 @@ double Utilities::ReadBearing(const std::string &input) {
 
     length = strlen(string);
 
-    for (a = 0, b = 0; a < (int)length; a++)
+    for (a = 0, b = 0; a < (int) length; a++)
         if (string[a] == 32)
             b++;
 
@@ -178,8 +178,8 @@ double Utilities::ReadBearing(const std::string &input) {
     {
         sscanf(string, "%d %d %lf", &degrees, &minutes, &seconds);
 
-        bearing = fabs((double)degrees);
-        bearing += fabs(((double)minutes) / 60.0);
+        bearing = fabs((double) degrees);
+        bearing += fabs(((double) minutes) / 60.0);
         bearing += fabs(seconds / 3600.0);
 
         if ((degrees < 0) || (minutes < 0) || (seconds < 0.0))
@@ -234,7 +234,8 @@ std::string Utilities::Extension(const std::string &path) {
     return idx == std::string::npos ? "" : path.substr(idx + 1);
 }
 
-std::string Utilities::DivideExtension(std::string &path,const std::string &default_extension) {
+std::string Utilities::DivideExtension(std::string &path,
+                                       const std::string &default_extension) {
     std::string::size_type idx = Utilities::ExtensionIdx(path);
 
     // No delimeter found. There must be no extension specified. Use the

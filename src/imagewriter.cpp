@@ -35,37 +35,45 @@
  */
 
 #include "imagewriter.h"
-#include <string.h>
 #include <exception>
 #include <iostream>
+#include <string.h>
 #include <string>
 
 #define DEFAULT_JPEG_QUALITY 90
 
-ImageWriter::ImageWriter(){}; // private constructor
+ImageWriter::ImageWriter(){};  // private constructor
 
 ImageWriter::ImageWriter(const std::string &filename, ImageType imagetype,
-                         int width, int height, double north, double south, double east, double west)
-    : m_imagetype(imagetype), m_width(width), m_height(height), m_north(north), m_south(south), m_east(east), m_west(west) {
+                         int width, int height, double north, double south,
+                         double east, double west)
+    : m_imagetype(imagetype),
+      m_width(width),
+      m_height(height),
+      m_north(north),
+      m_south(south),
+      m_east(east),
+      m_west(west) {
 
     m_imgline_signal = new unsigned char[m_width];
     m_imgline_red = new unsigned char[m_width];
     m_imgline_green = new unsigned char[m_width];
     m_imgline_blue = new unsigned char[m_width];
     m_imgline_alpha = new unsigned char[m_width];
-    
+
     m_imgline = new unsigned char[3 * m_width];
 
     if ((m_fp = fopen(filename.c_str(), "wb")) == NULL) {
         throw std::invalid_argument("Invalid filename");
     }
-	
+
     // XXX TODO: error handling - throw exceptions
     switch (m_imagetype) {
     default:
 #ifdef HAVE_LIBPNG
     case IMAGETYPE_PNG:
-        m_png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+        m_png_ptr =
+            png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
         m_info_ptr = png_create_info_struct(m_png_ptr);
         // write metadata
         m_text_ptr[0].key = strdup("Title");
@@ -75,7 +83,9 @@ ImageWriter::ImageWriter(const std::string &filename, ImageType imagetype,
         m_text_ptr[1].text = strdup("EPSG:4326");
         m_text_ptr[1].compression = PNG_TEXT_COMPRESSION_NONE;
         m_text_ptr[2].key = strdup("bounds");
-        bounds_str = "[["+std::to_string(m_south)+","+std::to_string(m_west)+"],["+std::to_string(m_north)+","+std::to_string(m_east)+"]]";
+        bounds_str = "[[" + std::to_string(m_south) + "," +
+                     std::to_string(m_west) + "],[" + std::to_string(m_north) +
+                     "," + std::to_string(m_east) + "]]";
         m_text_ptr[2].text = strdup(bounds_str.c_str());
         m_text_ptr[2].compression = PNG_TEXT_COMPRESSION_NONE;
         png_set_text(m_png_ptr, m_info_ptr, m_text_ptr, PNG_NTEXT);
@@ -84,30 +94,35 @@ ImageWriter::ImageWriter(const std::string &filename, ImageType imagetype,
                      8, /* 8 bits per color or 24 bits per pixel for RGB */
                      PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
                      PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_BASE);
-        png_set_compression_level(m_png_ptr, 6); /* default is Z_DEFAULT_COMPRESSION; see zlib.h */
+        png_set_compression_level(
+            m_png_ptr, 6); /* default is Z_DEFAULT_COMPRESSION; see zlib.h */
         png_write_info(m_png_ptr, m_info_ptr);
         break;
 #endif
 #ifdef HAVE_LIBGDAL
     case IMAGETYPE_GEOTIFF:
-		GDALAllRegister();
-		papszOptions = CSLSetNameValue(papszOptions, "COMPRESS", "DEFLATE");
-		papszOptions = CSLSetNameValue(papszOptions, "TILED", "YES");
-		poDriver = GetGDALDriverManager()->GetDriverByName("GTiff");
-		poDstDS = poDriver->Create(filename.c_str(), m_width, m_height, 5, GDT_Byte, papszOptions);	/* create geotiff file with rgba bands */
-		poDstDS->SetGeoTransform(adfGeoTransform);	/* georeferencing of image (see .h file) */
-		oSRS.SetWellKnownGeogCS("EPSG:4326");
-		oSRS.exportToWkt(&pszSRS_WKT);
-		poDstDS->SetProjection(pszSRS_WKT);	/* set projection and spatial reference system*/
+        GDALAllRegister();
+        papszOptions = CSLSetNameValue(papszOptions, "COMPRESS", "DEFLATE");
+        papszOptions = CSLSetNameValue(papszOptions, "TILED", "YES");
+        poDriver = GetGDALDriverManager()->GetDriverByName("GTiff");
+        poDstDS = poDriver->Create(
+            filename.c_str(), m_width, m_height, 5, GDT_Byte,
+            papszOptions); /* create geotiff file with rgba bands */
+        poDstDS->SetGeoTransform(
+            adfGeoTransform); /* georeferencing of image (see .h file) */
+        oSRS.SetWellKnownGeogCS("EPSG:4326");
+        oSRS.exportToWkt(&pszSRS_WKT);
+        poDstDS->SetProjection(
+            pszSRS_WKT); /* set projection and spatial reference system*/
 
-		//Add Meta data to the image, see https://gdal.org/drivers/raster/gtiff.html#metadata for the full list.
-		poDstDS->SetMetadataItem( "TIFFTAG_DOCUMENTNAME", "Coverage plot" );
-		poDstDS->SetMetadataItem( "TIFFTAG_SOFTWARE", "Splat!" );
+        //Add Meta data to the image, see https://gdal.org/drivers/raster/gtiff.html#metadata for the full list.
+        poDstDS->SetMetadataItem("TIFFTAG_DOCUMENTNAME", "Coverage plot");
+        poDstDS->SetMetadataItem("TIFFTAG_SOFTWARE", "Splat!");
 
-		CPLFree(pszSRS_WKT);
-		
-		/* Reprojection NON-FUNCTIONAL... */
-		/*poDriver = GetGDALDriverManager()->GetDriverByName("GTiff");
+        CPLFree(pszSRS_WKT);
+
+        /* Reprojection NON-FUNCTIONAL... */
+        /*poDriver = GetGDALDriverManager()->GetDriverByName("GTiff");
 		papszOptions = CSLSetNameValue(papszOptions, "COMPRESS", "DEFLATE");
 			
 		oSRS.SetWellKnownGeogCS("EPSG:3857");
@@ -159,7 +174,8 @@ ImageWriter::ImageWriter(const std::string &filename, ImageType imagetype,
         m_cinfo.input_components = 3;     /* # of color components per pixel */
         m_cinfo.in_color_space = JCS_RGB; /* colorspace of input image */
         jpeg_set_defaults(&m_cinfo);      /* default compression */
-        jpeg_set_quality(&m_cinfo, DEFAULT_JPEG_QUALITY, TRUE);	/* possible range is 0-100 */
+        jpeg_set_quality(&m_cinfo, DEFAULT_JPEG_QUALITY,
+                         TRUE);              /* possible range is 0-100 */
         jpeg_start_compress(&m_cinfo, TRUE); /* start compressor. */
         break;
 #endif
@@ -180,8 +196,8 @@ ImageWriter::~ImageWriter() {
 };
 
 void ImageWriter::AppendPixel(Pixel pixel) {
-	/* populate one image line */
-    if (!m_initialized) {
+    /* populate one image line */
+    if (! m_initialized) {
         return;
     }
 
@@ -189,44 +205,57 @@ void ImageWriter::AppendPixel(Pixel pixel) {
         return;
     }
 
-	/* four distinct lines for red, green, blue and alpha (rgba) for geotiff */
-	m_imgline_signal[m_xoffset_rgb] = GetSValue(pixel);
-        m_imgline_red[m_xoffset_rgb] = GetRValue(pixel);
-	m_imgline_green[m_xoffset_rgb] = GetGValue(pixel);
-	m_imgline_blue[m_xoffset_rgb] = GetBValue(pixel);
-	m_imgline_alpha[m_xoffset_rgb] = ((pixel & 0xFF00FFFF) == 0xFF00FFFF) ? 0 : 255;	// Select all white pixels and mask them as transparent
-	
-	m_xoffset_rgb++;
-	
-	/* 3-byte array (rgb) for other image types */
+    /* four distinct lines for red, green, blue and alpha (rgba) for geotiff */
+    m_imgline_signal[m_xoffset_rgb] = GetSValue(pixel);
+    m_imgline_red[m_xoffset_rgb] = GetRValue(pixel);
+    m_imgline_green[m_xoffset_rgb] = GetGValue(pixel);
+    m_imgline_blue[m_xoffset_rgb] = GetBValue(pixel);
+    m_imgline_alpha[m_xoffset_rgb] =
+        ((pixel & 0xFF00FFFF) == 0xFF00FFFF)
+            ? 0
+            : 255;  // Select all white pixels and mask them as transparent
+
+    m_xoffset_rgb++;
+
+    /* 3-byte array (rgb) for other image types */
     m_imgline[m_xoffset++] = GetRValue(pixel);
     m_imgline[m_xoffset++] = GetGValue(pixel);
     m_imgline[m_xoffset++] = GetBValue(pixel);
 };
 
 void ImageWriter::EmitLine() {
-    if (!m_initialized) {
+    if (! m_initialized) {
         return;
     }
-    
+
     if (m_linenumber > m_height) {
-		return;
-	}
+        return;
+    }
 
     switch (m_imagetype) {
     default:
 #ifdef HAVE_LIBPNG
     case IMAGETYPE_PNG:
-        png_write_row(m_png_ptr, (png_bytep)(m_imgline));
+        png_write_row(m_png_ptr, (png_bytep) (m_imgline));
         break;
 #endif
 #ifdef HAVE_LIBGDAL
     case IMAGETYPE_GEOTIFF:
-		poDstDS->GetRasterBand(1)->RasterIO(GF_Write, 0, m_linenumber, m_width, 1, m_imgline_red, m_width, 1, GDT_Byte, 0, 0);
-		poDstDS->GetRasterBand(2)->RasterIO(GF_Write, 0, m_linenumber, m_width, 1, m_imgline_green, m_width, 1, GDT_Byte, 0, 0);
-		poDstDS->GetRasterBand(3)->RasterIO(GF_Write, 0, m_linenumber, m_width, 1, m_imgline_blue, m_width, 1, GDT_Byte, 0, 0);
-		poDstDS->GetRasterBand(4)->RasterIO(GF_Write, 0, m_linenumber, m_width, 1, m_imgline_alpha, m_width, 1, GDT_Byte, 0, 0);
-		poDstDS->GetRasterBand(5)->RasterIO(GF_Write, 0, m_linenumber, m_width, 1, m_imgline_signal, m_width, 1, GDT_Byte, 0, 0);
+        poDstDS->GetRasterBand(1)->RasterIO(GF_Write, 0, m_linenumber, m_width,
+                                            1, m_imgline_red, m_width, 1,
+                                            GDT_Byte, 0, 0);
+        poDstDS->GetRasterBand(2)->RasterIO(GF_Write, 0, m_linenumber, m_width,
+                                            1, m_imgline_green, m_width, 1,
+                                            GDT_Byte, 0, 0);
+        poDstDS->GetRasterBand(3)->RasterIO(GF_Write, 0, m_linenumber, m_width,
+                                            1, m_imgline_blue, m_width, 1,
+                                            GDT_Byte, 0, 0);
+        poDstDS->GetRasterBand(4)->RasterIO(GF_Write, 0, m_linenumber, m_width,
+                                            1, m_imgline_alpha, m_width, 1,
+                                            GDT_Byte, 0, 0);
+        poDstDS->GetRasterBand(5)->RasterIO(GF_Write, 0, m_linenumber, m_width,
+                                            1, m_imgline_signal, m_width, 1,
+                                            GDT_Byte, 0, 0);
         break;
 #endif
 #ifdef HAVE_LIBJPEG
@@ -244,7 +273,7 @@ void ImageWriter::EmitLine() {
 };
 
 void ImageWriter::Finish() {
-    if (!m_initialized) {
+    if (! m_initialized) {
         return;
     }
 
@@ -258,7 +287,7 @@ void ImageWriter::Finish() {
 #endif
 #ifdef HAVE_LIBGDAL
     case IMAGETYPE_GEOTIFF:
-		/* warping is not functional yet.
+        /* warping is not functional yet.
 		oOperation.Initialize( psWarpOptions );
 		oOperation.ChunkAndWarpImage( 0, 0,
 									GDALGetRasterXSize( poDstDSproj ),
@@ -266,8 +295,8 @@ void ImageWriter::Finish() {
 		GDALDestroyGenImgProjTransformer( psWarpOptions->pTransformerArg );
 		GDALDestroyWarpOptions( psWarpOptions );	
 		GDALClose( (GDALDatasetH) poDstDSproj );*/
-		GDALClose( (GDALDatasetH) poDstDS );
-		GDALDestroyDriverManager();
+        GDALClose((GDALDatasetH) poDstDS);
+        GDALDestroyDriverManager();
         break;
 #endif
 #ifdef HAVE_LIBJPEG
