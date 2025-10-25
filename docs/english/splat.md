@@ -1,8 +1,7 @@
 # SPLAT! Manual
 
-**Version 1.4.2**
-**Date: 27 June 2014**
-**Author: KD2BD Software**
+**Version 2.0.0**
+**Date: 25 October 2025**
 
 ---
 
@@ -194,7 +193,7 @@ A total of five separate cartographic boundary files may be imported at a time. 
 The number and type of switches passed to **SPLAT!** determine its mode of operation and method of output data generation. Nearly all of **SPLAT!**'s switches may be cascaded in any order on the command line when invoking the program. Simply typing `splat` on the command line will return a summary of **SPLAT!**'s command line options:
 
 ```
-               --==[ SPLAT! v1.4.2 Available Options... ]==--
+               --==[ SPLAT! v2.0.0 Available Options... ]==--
      -t txsite(s).qth (max of 4 with -c, max of 30 with -L)
      -r rxsite.qth
      -c plot LOS coverage of TX(s) with RX antenna at X feet/meters AGL
@@ -820,14 +819,13 @@ When performing point-to-point terrain analysis, **SPLAT!** determines the anten
 
 When performing area prediction analysis, enough topography data is normally loaded by **SPLAT!** to perform average terrain calculations. Under such conditions, **SPLAT!** will provide the antenna height above average terrain as well as the average terrain above mean sea level for azimuths of 0, 45, 90, 135, 180, 225, 270, and 315 degrees, and include such information in the generated site report. If one or more of the eight radials surveyed fall over water, or over regions for which no SDF data is available, **SPLAT!** reports *No Terrain* for the radial paths affected.
 
-## ADDITIONAL INFORMATION
-
-The latest news and information regarding **SPLAT!** software is available through the official **SPLAT!** software web page located at: http://www.qsl.net/kd2bd/splat.html
-
 ## AUTHORS
 
+- **Michel Hoche-Mong**
+  Current Maintainer
+
 - **John A. Magliacane, KD2BD** <kd2bd@amsat.org>
-  Creator, Lead Developer
+  Original Creator
 
 - **Doug McDonald** <mcdonald@scs.uiuc.edu>
   Original Longley-Rice ITM Model integration
