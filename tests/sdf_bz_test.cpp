@@ -43,7 +43,7 @@ class SdfBzTest : public ::testing::Test {
         std::string temp_filename = filename + ".tmp";
         std::ofstream sdf(temp_filename);
 
-        if (!sdf.is_open()) {
+        if (! sdf.is_open()) {
             return;
         }
 
@@ -231,8 +231,7 @@ TEST_F(SdfBzTest, NegativeCoordinates) {
 
     SdfBz sdf_bz("./test_sdf_bz_data", *sr);
 
-    int result =
-        sdf_bz.LoadSDF(*em, "-45:-122:-45:-122", -45, -45, -122, -122);
+    int result = sdf_bz.LoadSDF(*em, "-45:-122:-45:-122", -45, -45, -122, -122);
 
     EXPECT_NE(result, -1);
 
@@ -302,9 +301,7 @@ TEST_F(SdfBzTest, CorruptedFile) {
     SdfBz sdf_bz("./test_sdf_bz_data", *sr);
 
     // Should handle corrupted file gracefully
-    EXPECT_NO_THROW({
-        sdf_bz.LoadSDF(*em, "corrupted", 45, 45, -122, -122);
-    });
+    EXPECT_NO_THROW({ sdf_bz.LoadSDF(*em, "corrupted", 45, 45, -122, -122); });
 
     remove(filename.c_str());
 }
@@ -410,7 +407,8 @@ TEST_F(SdfBzTest, DifferentPPDValues) {
     // Skip this test - creating a custom PPD requires proper initialization
     // of the entire SplatRun which is complex. This test would be better
     // as an integration test rather than a unit test.
-    GTEST_SKIP() << "Skipping custom PPD test - requires full SplatRun initialization";
+    GTEST_SKIP()
+        << "Skipping custom PPD test - requires full SplatRun initialization";
 }
 
 // Test mixed compressed and uncompressed file handling
