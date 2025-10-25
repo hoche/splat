@@ -18,9 +18,8 @@
 #include <iostream>
 #include <fstream>
 
-using namespace std;
 
-void AntennaPattern::LoadAntennaPattern(const string &filename) {
+void AntennaPattern::LoadAntennaPattern(const std::string &filename) {
     /* This function reads and processes antenna pattern (.az
      and .el) files that correspond in name to previously
      loaded SPLAT! .lrp files.  */
@@ -322,7 +321,7 @@ void AntennaPattern::LoadAntennaPattern(const string &filename) {
     
     /* DEBUG: output 2D antenna pattern as csv file */
     //sprintf(antenna_name, "antennafile.csv");
-    //ofstream antennafile(antenna_name);
+    //std::ofstream antennafile(antenna_name);
 
     for (x = 0; x <= 360; x++) {
         for (y = 0; y <= 1000; y++) {
@@ -340,12 +339,12 @@ void AntennaPattern::LoadAntennaPattern(const string &filename) {
             
             //antennafile << antenna_pattern[x][y] << " ";
         }
-        //antennafile << endl;
+        //antennafile << std::endl;
     }
     
     //antennafile.close();
     
     if (got_elevation_pattern && got_azimuth_pattern) {
-		cout << "Using elevation and azimuth pattern\n";
+		std::cout << "Using elevation and azimuth pattern\n";
 	}
 }

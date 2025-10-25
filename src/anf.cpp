@@ -17,14 +17,12 @@
 #include <cstring>
 #include <string>
 
-using namespace std;
-
 /// This function reads a SPLAT! alphanumeric output file (-ani option) for
 /// analysis and/or map generation.
 /// @param filename The path to the alphanumeric output file
 /// @param sdf The SDF object
 /// @param em The elevation map
-int Anf::LoadANO(const string &filename, Sdf &sdf, ElevationMap &em) {
+int Anf::LoadANO(const std::string &filename, Sdf &sdf, ElevationMap &em) {
     int error = 0, max_west, min_west, max_north, min_north;
     char string[80], *pointer = NULL;
     double latitude = 0.0, longitude = 0.0, azimuth = 0.0, elevation = 0.0,

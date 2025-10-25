@@ -17,8 +17,6 @@
 #include <iostream>
 #include <fstream>
 
-using namespace std;
-
 Json::Json(const ElevationMap &em, const SplatRun &sr)
     : path(sr.arraysize, sr.ppd), em(em), sr(sr) {}
     
@@ -62,7 +60,7 @@ Json::Json(const ElevationMap &em, const SplatRun &sr)
 // === unsorted end ===
 
     
-void Json::WriteJSON(arg_t args, Site tx_site, Lrp lrp, string mapfile) {
+void Json::WriteJSON(arg_t args, Site tx_site, Lrp lrp, std::string mapfile) {
 	int x;
 	char report_name[80];
 
@@ -73,8 +71,8 @@ void Json::WriteJSON(arg_t args, Site tx_site, Lrp lrp, string mapfile) {
             report_name[x] == 92 || report_name[x] == 42 ||
             report_name[x] == 47)
             report_name[x] = '_';
-    
-    ofstream reportfile(report_name);
+
+    std::ofstream reportfile(report_name);
     
     reportfile << "{\n";
     reportfile << "\t\"splat\": \"" << sr.splat_version.c_str() << "\",\n";
@@ -104,8 +102,8 @@ void Json::WriteJSON(arg_t args, Site tx_site, Lrp lrp, string mapfile) {
     reportfile << "\t\t\"erp\": " << lrp.erp << "\n";
     reportfile << "\t},\n";
     reportfile << "\t\"arguments\": {\n";
-    
-    map<string, string>::iterator i;
+
+    std::map<std::string, std::string>::iterator i;
     int pos = 0;
     int len = args.size();
     for (i=args.begin(); i != args.end(); i++, pos++) {
@@ -121,8 +119,8 @@ void Json::WriteJSON(arg_t args, Site tx_site, Lrp lrp, string mapfile) {
     reportfile << "}\n";
 
 	reportfile.close();
-	
-	cout << "\nJSON file written to: " << report_name;
+
+	std::cout << "\nJSON file written to: " << report_name;
 
     fflush(stdout);
 }

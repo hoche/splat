@@ -22,8 +22,6 @@
 #include <string>
 #include <vector>
 
-using namespace std;
-
 void Path::ReadPath(const Site &source, const Site &destination,
                     const ElevationMap &em) {
     /* This function generates a sequence of latitude and

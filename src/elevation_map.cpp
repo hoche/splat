@@ -29,7 +29,6 @@
 #include <unistd.h>
 #include <vector>
 
-using namespace std;
 
 #define MAX_LINE_LEN 128
 #define NO_ANTENNA_DATA (-1.0)
@@ -887,7 +886,7 @@ void ElevationMap::PlotLOSMap(const Site &source, double altitude) {
  * the WriteCoverageMap() function is later invoked.
  */
 void ElevationMap::PlotLRMap(const Site &source, double altitude,
-                             const string &plo_filename, const AntennaPattern &pat,
+                             const std::string &plo_filename, const AntennaPattern &pat,
                              const Lrp &lrp) {
     int y, z, count;
     Site edge;

@@ -40,9 +40,6 @@
 #include <iostream>
 #include <string>
 
-using namespace std;
-
-
 #define DEFAULT_JPEG_QUALITY 90
 
 ImageWriter::ImageWriter(){}; // private constructor
@@ -78,7 +75,7 @@ ImageWriter::ImageWriter(const std::string &filename, ImageType imagetype,
         m_text_ptr[1].text = strdup("EPSG:4326");
         m_text_ptr[1].compression = PNG_TEXT_COMPRESSION_NONE;
         m_text_ptr[2].key = strdup("bounds");
-        bounds_str = ("[["+to_string(m_south)+","+to_string(m_west)+"],["+to_string(m_north)+","+to_string(m_east)+"]]").c_str();
+        bounds_str = ("[["+std::to_string(m_south)+","+std::to_string(m_west)+"],["+std::to_string(m_north)+","+std::to_string(m_east)+"]]").c_str();
 		sprintf(bounds, "%s", bounds_str.c_str());
         m_text_ptr[2].text = bounds;
         m_text_ptr[2].compression = PNG_TEXT_COMPRESSION_NONE;
@@ -121,7 +118,7 @@ ImageWriter::ImageWriter(const std::string &filename, ImageType imagetype,
 		GDALDestroyGenImgProjTransformer( hTransformArg );
 		poDstDSproj = poDriver->Create("test_12345.tif", nPixels, nLines, 6, GDT_Byte, papszOptions);
 		poDstDSproj->SetGeoTransform(adfGeoTransform);
-		cout << pszSRS_WKTproj << endl;
+		std::cout << pszSRS_WKTproj << std::endl;
 		poDstDSproj->SetProjection(pszSRS_WKTproj);
 		CPLFree(pszSRS_WKT);
 		CPLFree(pszSRS_WKTproj);

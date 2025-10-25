@@ -25,10 +25,9 @@
 #include <unistd.h>
 #include <vector>
 
-using namespace std;
 
 void GnuPlot::GraphTerrain(const Site &source, const Site &destination,
-                           const string &name, const ElevationMap &em) {
+                           const std::string &name, const ElevationMap &em) {
     /* This function invokes gnuplot to generate an appropriate
      output file indicating the terrain profile between the source
      and destination locations when the -p command line option
@@ -206,7 +205,7 @@ void GnuPlot::GraphTerrain(const Site &source, const Site &destination,
 }
 
 void GnuPlot::GraphElevation(const Site &source, const Site &destination,
-                             const string &name, const ElevationMap &em) {
+                             const std::string &name, const ElevationMap &em) {
     /* This function invokes gnuplot to generate an appropriate
      output file indicating the terrain elevation profile between
      the source and destination locations when the -e command line
@@ -427,7 +426,7 @@ void GnuPlot::GraphElevation(const Site &source, const Site &destination,
 }
 
 void GnuPlot::GraphHeight(const Site &source, const Site &destination,
-                          const string &name, bool fresnel_plot,
+                          const std::string &name, bool fresnel_plot,
                           bool normalized, const ElevationMap &em,
                           const Lrp &lrp) {
     /* This function invokes gnuplot to generate an appropriate

@@ -14,11 +14,9 @@
 #include <cstdio>
 #include <string>
 
-using namespace std;
-
 Site::Site() {}
 
-Site::Site(const string &filename) { LoadQTH(filename); }
+Site::Site(const std::string &filename) { LoadQTH(filename); }
 
 double Site::Distance(const Site &site2) const {
     /* This function returns the great circle distance
@@ -98,10 +96,10 @@ double Site::Azimuth(const Site &destination) const {
  or 'm', or by the word "meters" or "Meters", in which
  case meters is assumed, and is handled accordingly
  */
-void Site::LoadQTH(const string &filename) {
+void Site::LoadQTH(const std::string &filename) {
     /* . */
 
-    string qthfile;
+    std::string qthfile;
     char string[50];
     FILE *fd = NULL;
 

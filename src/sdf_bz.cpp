@@ -25,8 +25,6 @@
 #include <string>
 #include <vector>
 
-using namespace std;
-
 #define BZBUFFER 65536
 
 SdfBz::SdfBz(const std::string &path, const SplatRun &sr) : Sdf(path, sr) {
@@ -90,7 +88,7 @@ char *SdfBz::BZfgets(BZFILE *bzfd, unsigned length) {
 
 char *SdfBz::GetString() { return BZfgets(bzfd, 255); }
 
-bool SdfBz::OpenFile(string path) {
+bool SdfBz::OpenFile(std::string path) {
     if (!Sdf::OpenFile(path)) {
         return false;
     }

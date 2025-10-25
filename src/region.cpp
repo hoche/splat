@@ -15,8 +15,6 @@
 #include <cstring>
 #include <string>
 
-using namespace std;
-
 void Region::LoadSignalColors(const Site &xmtr) {
     int x, y, ok, val[4];
     char filename[255], string[80], *pointer = NULL;

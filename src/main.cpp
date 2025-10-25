@@ -41,9 +41,8 @@
 #include <string>
 #include <vector>
 
-using namespace std;
 
-void check_allocation(void *ptr, string name, const SplatRun &sr);
+void check_allocation(void *ptr, std::string name, const SplatRun &sr);
 
 int main(int argc, const char *argv[]) {
     size_t x, y, z = 0;
@@ -51,13 +50,13 @@ int main(int argc, const char *argv[]) {
         west_min, west_max, north_min, north_max;
 
     char *env = NULL;
-    string mapfile, elevation_file, height_file, longley_file, terrain_file,
+    std::string mapfile, elevation_file, height_file, longley_file, terrain_file,
         udt_file, ani_filename, ano_filename, logfile, maxpages_str, proj;
 
-    vector<std::string> city_file;
-    vector<std::string> boundary_file;
+    std::vector<std::string> city_file;
+    std::vector<std::string> boundary_file;
 
-    vector<Site> tx_site;
+    std::vector<Site> tx_site;
     Site rx_site;
 
     SplatRun sr;
@@ -118,7 +117,7 @@ int main(int argc, const char *argv[]) {
     sr.sdf_delimiter = "_";
     
     if (argc == 1) {
-        cout
+        std::cout
             << "\n\t\t --==[ " << SplatRun::splat_name << " v"
             << SplatRun::splat_version
             << " Available Options... ]==--\n\n"
@@ -175,7 +174,7 @@ int main(int argc, const char *argv[]) {
                "image output)\n"
                "     -dbm plot signal power level contours rather than field "
                "strength\n"
-               "     -log copy command line string to this output file\n"
+               "     -log copy command line std::string to this output file\n"
                "     -json create JSON file containing configuration \n"
                "   -gpsav preserve gnuplot temporary working files after "
                "SPLAT! execution\n"
@@ -385,11 +384,11 @@ int main(int argc, const char *argv[]) {
 					} else if(strcmp(argv[z], "epsg:4326") == 0) {
 						sr.projection = PROJ_EPSG_4326;
 					} else {
-						cerr << "Ignoring unknown projection " << argv[z] << " and taking epsg:4326 instead.\n";
+						std::cerr << "Ignoring unknown projection " << argv[z] << " and taking epsg:4326 instead.\n";
 					}
 				}	
             } else {
-                cerr << "-proj supports only gdal output formats. Please use -png, -tif or -jpg.\n";
+                std::cerr << "-proj supports only gdal output formats. Please use -png, -tif or -jpg.\n";
             }
         }
 #endif
@@ -448,7 +447,7 @@ int main(int argc, const char *argv[]) {
             z = x + 1;
 
             while (z <= y && argv[z][0] && argv[z][0] != '-' && tx_site.size() < 30) {
-                string txfile = argv[z];
+                std::string txfile = argv[z];
                 tx_site.push_back(Site(txfile));
                 z++;
             }
@@ -486,7 +485,7 @@ int main(int argc, const char *argv[]) {
             z = x + 1;
 
             if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                string rxfile = argv[z];
+                std::string rxfile = argv[z];
                 rx_site.LoadQTH(rxfile);
                 sr.rxsite = true;
                 sr.pt2pt_mode = true;
@@ -564,7 +563,7 @@ int main(int argc, const char *argv[]) {
             if (z <= y && argv[z][0] && argv[z][0] != '-') {
                 maxpages_str = argv[z];
                 if (sscanf(maxpages_str.c_str(), "%d", &sr.maxpages) != 1) {
-                    cerr << "\n"
+                    std::cerr << "\n"
                          << 7 << "*** ERROR: Could not parse maxpages: "
                          << maxpages_str << "\n\n";
                     exit(-1);
@@ -678,7 +677,7 @@ int main(int argc, const char *argv[]) {
 
     int degrees = (int)sqrt((int)sr.maxpages);
 
-    cout << "This invocation of " << SplatRun::splat_name
+    std::cout << "This invocation of " << SplatRun::splat_name
          << " supports analysis over a region of " << degrees << " square \n" << ((degrees == 1) ? "degree" : "degrees")
 		 << " of terrain, and computes signal levels using ITWOM Version " << ITWOMVersion() << ".\n\n";
 
@@ -707,8 +706,8 @@ int main(int argc, const char *argv[]) {
         env = getenv("HOME");
         std::string config_path = env;
         config_path += "/.splat_path";
-        fstream fs;
-        fs.open(config_path.c_str(), fstream::in);
+        std::fstream fs;
+        fs.open(config_path.c_str(), std::fstream::in);
 
         if (fs) {
             getline(fs, sr.sdf_path);
@@ -724,7 +723,7 @@ int main(int argc, const char *argv[]) {
     Sdf sdf(sr.sdf_path, sr);
 
     // Now print the header:
-    cout << "\n\t\t--==[ Welcome To " << SplatRun::splat_name << " v"
+    std::cout << "\n\t\t--==[ Welcome To " << SplatRun::splat_name << " v"
          << SplatRun::splat_version << " ]==--\n\n";
 
     elev_t *elev = new elev_t[sr.arraysize + 10];
@@ -747,7 +746,7 @@ int main(int argc, const char *argv[]) {
 
         // TODO: Why only the first TX site?
         bool loadPat;
-        string patFilename;
+        std::string patFilename;
         lrp.ReadLRParm(tx_site[0], 0, loadPat, patFilename); /* Get ERP status */
         if (loadPat) {
             pat.LoadAntennaPattern(patFilename);
@@ -973,7 +972,7 @@ int main(int argc, const char *argv[]) {
     if (sr.pt2pt_mode) {
         em_p->PlaceMarker(rx_site);
 
-        string ext;
+        std::string ext;
         if (sr.terrain_plot) {
             /* Extract extension (if present)
              from "terrain_file" */
@@ -1045,7 +1044,7 @@ int main(int argc, const char *argv[]) {
                 bool longly_file_exists = !longley_file.empty();
 
                 bool loadPat;
-                string patFilename;
+                std::string patFilename;
                 lrp.ReadLRParm(tx_site[x], longly_file_exists, loadPat,
                                patFilename);
                 if (loadPat) {
@@ -1055,7 +1054,7 @@ int main(int argc, const char *argv[]) {
                                   longly_file_exists, elev, pat, lrp);
             } else {
                 bool loadPat;
-                string patFilename;
+                std::string patFilename;
                 lrp.ReadLRParm(tx_site[x], 1, loadPat, patFilename);
                 if (loadPat) {
                     pat.LoadAntennaPattern(patFilename);
@@ -1094,7 +1093,7 @@ int main(int argc, const char *argv[]) {
                 em_p->PlotLOSMap(tx_site[x], sr.altitude);
             } else {
                 bool loadPat;
-                string patFilename;
+                std::string patFilename;
                 char flag = lrp.ReadLRParm(tx_site[x], 1, loadPat, patFilename);
                 if (loadPat) {
                     p_pat->LoadAntennaPattern(patFilename);
@@ -1157,8 +1156,8 @@ int main(int argc, const char *argv[]) {
     }    
 
     if (sr.command_line_log && !logfile.empty()) {
-        fstream fs;
-        fs.open(logfile.c_str(), fstream::out);
+        std::fstream fs;
+        fs.open(logfile.c_str(), std::fstream::out);
 
         // TODO: Should we fail silently if we can't open the logfile. Shouldn't
         // we WARN?
@@ -1166,23 +1165,23 @@ int main(int argc, const char *argv[]) {
             for (x = 0; x < (size_t)argc; x++) {
                 fs << argv[x] << " ";
 			}
-            fs << endl;
+            fs << std::endl;
             fs.close();
 
-            cout << "\nCommand-line parameter log written to: \"" << logfile << "\"\n";
+            std::cout << "\nCommand-line parameter log written to: \"" << logfile << "\"\n";
         }
     }
 
-    cout << endl;
+    std::cout << std::endl;
     
     /* json input/output must be somewhere else, but this is how it goes: 
     //================
     arg_t args;
 	
-	string curr_arg = "";
+	std::string curr_arg = "";
 	int curr_arg_i = 0;
 	for(int i=0; i<argc; i++) {		// step through argv[] array
-		string arg = argv[i];
+		std::string arg = argv[i];
 		if(arg.find("-") == 0) {	// check if current argument has leading "-"
 			curr_arg = arg.erase(0,1);	// remove leading "-" and save as new array entry
 			curr_arg_i = i;		// save position for multiple parameters
@@ -1221,9 +1220,9 @@ int main(int argc, const char *argv[]) {
     return 0;
 }
 
-void check_allocation(void *ptr, string name, const SplatRun &sr) {
+void check_allocation(void *ptr, std::string name, const SplatRun &sr) {
     if (ptr == NULL) {
-        cerr << "\n\a*** ERROR: Could not allocate memory for " << name
+        std::cerr << "\n\a*** ERROR: Could not allocate memory for " << name
              << " with -maxpages == " << sr.maxpages << "\n\n";
         exit(-1);
     }

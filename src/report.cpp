@@ -27,10 +27,9 @@
 #include "splat_run.h"
 #include "utilities.h"
 
-using namespace std;
 
 void Report::PathReport(const Site &source, const Site &destination,
-                        const string &name, bool graph_it, elev_t elev[],
+                        const std::string &name, bool graph_it, elev_t elev[],
                         const AntennaPattern &pat, const Lrp &lrp) {
     /* This function writes a SPLAT! Path Report (name.txt) to
      the filesystem.  If (graph_it == 1), then gnuplot is invoked

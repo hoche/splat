@@ -21,9 +21,7 @@
 #include "splat_run.h"
 #include "utilities.h"
 
-using namespace std;
-
-void Udt::LoadUDT(const string &filename, ElevationMap &em) {
+void Udt::LoadUDT(const std::string &filename, ElevationMap &em) {
     /* This function reads a file containing User-Defined Terrain
      features for their addition to the digital elevation model
      data used by SPLAT!.  Elevations in the UDT file are evaluated

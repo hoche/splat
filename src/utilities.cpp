@@ -19,8 +19,6 @@
 #include <string>
 #include <iostream>
 
-using namespace std;
-
 int Utilities::interpolate(int y0, int y1, int x0, int x1, int n) {
     /* Perform linear interpolation between quantized contour
      levels displayed in field strength and path loss maps.
@@ -98,7 +96,7 @@ double Utilities::LonDiff(double lon1, double lon2) {
     return diff;
 }
 
-string Utilities::dec2dms(double decimal) {
+std::string Utilities::dec2dms(double decimal) {
     /* Converts decimal degrees to degrees, minutes, seconds,
      (DMS) and returns the result as a character string. */
 
@@ -134,7 +132,7 @@ string Utilities::dec2dms(double decimal) {
     return oss.str();
 }
 
-double Utilities::ReadBearing(const string &input) {
+double Utilities::ReadBearing(const std::string &input) {
     /* This function takes numeric input in the form of a character
      string, and returns an equivalent bearing in degrees as a
      decimal number (double).  The input may either be expressed
@@ -196,29 +194,29 @@ double Utilities::ReadBearing(const string &input) {
     return bearing;
 }
 
-string Utilities::PathLeaf(const string &path) {
-    string::size_type idx;
+std::string Utilities::PathLeaf(const std::string &path) {
+    std::string::size_type idx;
 
     idx = path.rfind('/');
 
     // No delimeter found. Must just be a filename. Return that.
-    if (idx == string::npos) {
+    if (idx == std::string::npos) {
         return path;
     }
 
     return path.substr(idx + 1);
 }
 
-string::size_type Utilities::ExtensionIdx(const string &path) {
-    string::size_type idx;
+std::string::size_type Utilities::ExtensionIdx(const std::string &path) {
+    std::string::size_type idx;
 
-    string leaf = Utilities::PathLeaf(path);
+    std::string leaf = Utilities::PathLeaf(path);
 
     idx = leaf.rfind('.');
 
     // No delimeter found. There must be no extension specified. Use the
     // default.
-    if (idx == string::npos) {
+    if (idx == std::string::npos) {
         return idx;
     }
 
@@ -226,32 +224,32 @@ string::size_type Utilities::ExtensionIdx(const string &path) {
     return path.size() - leaf.size() + idx;
 }
 
-string Utilities::Basename(const string &path) {
-    string::size_type idx = Utilities::ExtensionIdx(path);
-    return idx == string::npos ? path : path.substr(0, idx);
+std::string Utilities::Basename(const std::string &path) {
+    std::string::size_type idx = Utilities::ExtensionIdx(path);
+    return idx == std::string::npos ? path : path.substr(0, idx);
 }
 
-string Utilities::Extension(const string &path) {
-    string::size_type idx = Utilities::ExtensionIdx(path);
-    return idx == string::npos ? "" : path.substr(idx + 1);
+std::string Utilities::Extension(const std::string &path) {
+    std::string::size_type idx = Utilities::ExtensionIdx(path);
+    return idx == std::string::npos ? "" : path.substr(idx + 1);
 }
 
-string Utilities::DivideExtension(string &path,const string &default_extension) {
-    string::size_type idx = Utilities::ExtensionIdx(path);
+std::string Utilities::DivideExtension(std::string &path,const std::string &default_extension) {
+    std::string::size_type idx = Utilities::ExtensionIdx(path);
 
     // No delimeter found. There must be no extension specified. Use the
     // default.
-    if (idx == string::npos) {
+    if (idx == std::string::npos) {
         return default_extension;
     }
 
     // We know idx into leaf. Return just the path minus the extension.
-    string ext = path.substr(idx + 1);
+    std::string ext = path.substr(idx + 1);
     path = path.substr(0, idx);
     return ext;
 }
 
-void Utilities::Chomp(string &str) {
-    str.erase(remove(str.begin(), str.end(), '\n'), str.end());
-    str.erase(remove(str.begin(), str.end(), '\r'), str.end());
+void Utilities::Chomp(std::string &str) {
+    str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
+    str.erase(std::remove(str.begin(), str.end(), '\r'), str.end());
 }

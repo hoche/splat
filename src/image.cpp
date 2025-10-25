@@ -27,7 +27,6 @@
 #include <string>
 #include <vector>
 
-using namespace std;
 
 #ifndef _WIN32
 #define RGB(signal, r, g, b) (((uint32_t)(uint8_t)signal) | ((uint32_t)((uint8_t)r) << 8) | ((uint32_t)((uint8_t)g) << 16) | ((uint32_t)((uint8_t)b) << 24))
@@ -868,9 +867,9 @@ void Image::WriteLegend(ImageWriter &iw, MapType maptype, Region &region, unsign
  */
  
 void Image::WriteCoverageMap(MapType maptype, ImageType imagetype, Region &region) {
-    string basename, mapfile, geofile, kmlfile, ckfile, suffix, description;
+    std::string basename, mapfile, geofile, kmlfile, ckfile, suffix, description;
 #if DO_KMZ
-    string kmzfile;
+    std::string kmzfile;
 #endif
     unsigned int width, height;
     unsigned int imgheight, imgwidth;
@@ -896,7 +895,7 @@ void Image::WriteCoverageMap(MapType maptype, ImageType imagetype, Region &regio
 	case MAPTYPE_LOS:
 		description = "Line of Sight";
         // PVW: TODO remove comment
-		//cerr << "Not yet implemented! Use Image::WriteImage() instead.";
+		//std::cerr << "Not yet implemented! Use Image::WriteImage() instead.";
 		//exit(1);
 		break;
 	}
@@ -973,7 +972,7 @@ void Image::WriteCoverageMap(MapType maptype, ImageType imagetype, Region &regio
 
     fd = fopen(mapfile.c_str(), "wb");
 
-	cout << "Writing " << description << " map \"" << mapfile << "\" (" << imgwidth << "x" << imgheight << " image)...\n";
+	std::cout << "Writing " << description << " map \"" << mapfile << "\" (" << imgwidth << "x" << imgheight << " image)...\n";
 
     try {
         ImageWriter iw = ImageWriter(mapfile, imagetype, imgwidth, imgheight, north, south, east, west);
@@ -1056,13 +1055,13 @@ void Image::WriteCoverageMap(MapType maptype, ImageType imagetype, Region &regio
     fflush(stdout);
 }
 
-void Image::WriteKmlForImage(const string &groundOverlayName,
-                             const string &description, bool writeScreenOverlay,
-                             const string &kmlfile, const string &mapfile,
+void Image::WriteKmlForImage(const std::string &groundOverlayName,
+                             const std::string &description, bool writeScreenOverlay,
+                             const std::string &kmlfile, const std::string &mapfile,
                              double north, double south, double east,
-                             double west, const string &ckfile) {
-    fstream fs;
-    fs.open(kmlfile.c_str(), fstream::out);
+                             double west, const std::string &ckfile) {
+    std::fstream fs;
+    fs.open(kmlfile.c_str(), std::fstream::out);
 
     // TODO: Should we fail silently if we can't open. Shouldn't we WARN?
     if (!fs) {
@@ -1070,8 +1069,8 @@ void Image::WriteKmlForImage(const string &groundOverlayName,
     }
 
     // Use 5 decimal places.
-    ios::fmtflags fsOriginalFlags(fs.flags());
-    fs.setf(ios::fixed, ios::floatfield);
+    std::ios::fmtflags fsOriginalFlags(fs.flags());
+    fs.setf(std::ios::fixed, std::ios::floatfield);
     fs.precision(5);
 
     fs << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
@@ -1173,11 +1172,11 @@ void Image::WriteKmlForImage(const string &groundOverlayName,
     fs.close();
 }
 
-void Image::WriteGeo(const string &geofile, const string &mapfile, double north,
+void Image::WriteGeo(const std::string &geofile, const std::string &mapfile, double north,
                      double south, double east, double west, unsigned int width,
                      unsigned int height) {
-    fstream fs;
-    fs.open(geofile.c_str(), fstream::out);
+    std::fstream fs;
+    fs.open(geofile.c_str(), std::fstream::out);
 
     // TODO: Should we fail silently if we can't open. Shouldn't we WARN?
     if (!fs) {
@@ -1185,7 +1184,7 @@ void Image::WriteGeo(const string &geofile, const string &mapfile, double north,
     }
 
     // Always use 3 decimal places.
-    fs.setf(ios::fixed, ios::floatfield);
+    fs.setf(std::ios::fixed, std::ios::floatfield);
     fs.precision(3);
 
     fs << "FILENAME\t" << mapfile

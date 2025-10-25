@@ -16,10 +16,9 @@
 #include <iostream>
 #include <string>
 
-using namespace std;
 
 char Lrp::ReadLRParm(const Site &txsite, char forced_read, bool &loadPat,
-                     string &filenameOut) {
+                     std::string &filenameOut) {
     /* This function reads ITM parameter data for the transmitter
      site.  The file name is the same as the txsite, except the
      filename extension is .lrp.  If the needed file is not found,

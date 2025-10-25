@@ -23,8 +23,6 @@
 #include <string>
 #include <vector>
 
-using namespace std;
-
 /// This function reads a SPLAT Data File containing digital elevation model
 /// data into memory.  Elevation data, maximum and minimum elevations, and
 /// quadrangle limits are stored in the first available em.dem[] structure. The
@@ -38,7 +36,7 @@ using namespace std;
 /// @param maxlat The maximum lattitude value
 /// @param minlon The minimum longitude value
 /// @param maxlon The maximum longitude value
-int Sdf::LoadSDF(ElevationMap &em, const string &name, int minlat, int maxlat,
+int Sdf::LoadSDF(ElevationMap &em, const std::string &name, int minlat, int maxlat,
                  int minlon, int maxlon) {
     int x, y, data, indx;
     char *string;
@@ -162,9 +160,9 @@ char Sdf::LoadSDF(ElevationMap &em, int minlat, int maxlat, int minlon,
                   int maxlon) {
     int x, y, indx;
     int return_value = -1;
-    string name = "" + to_string(minlat) + sr.sdf_delimiter +
-                  to_string(maxlat) + sr.sdf_delimiter + to_string(minlon) +
-                  sr.sdf_delimiter + to_string(maxlon) +
+    std::string name = "" + std::to_string(minlat) + sr.sdf_delimiter +
+                  std::to_string(maxlat) + sr.sdf_delimiter + std::to_string(minlon) +
+                  sr.sdf_delimiter + std::to_string(maxlon) +
                   (sr.hd_mode ? "-hd" : "");
 
     // Try to load an uncompressed SDF first.
@@ -291,7 +289,7 @@ Dem *Sdf::FindEmptyDem(ElevationMap &em, int minlat, int maxlat, int minlon,
 
 char *Sdf::GetString() { return fgets(line, sizeof(line) - 1, fd); }
 
-bool Sdf::OpenFile(string path) {
+bool Sdf::OpenFile(std::string path) {
     fd = fopen(path.c_str(), "rb");
 
     return (fd != NULL);
