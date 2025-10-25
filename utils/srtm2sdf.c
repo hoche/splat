@@ -122,21 +122,44 @@ int ReadSRTM(char *filename) {
                 exit(1);
             }
 
-            fscanf(fd, "%lf", &cell_size);
+            if (fscanf(fd, "%lf", &cell_size) != 1) {
+                fprintf(stderr, "\n*** Error reading cell_size from %s\n",
+                        blw_filename);
+                fclose(fd);
+                exit(1);
+            }
 
             if ((cell_size < 0.0008) || (cell_size > 0.0009)) {
                 printf("\n*** .BIL file's cell size is incompatible with "
                        "SPLAT!!\n");
+                fclose(fd);
                 exit(1);
             }
 
-            fscanf(fd, "%lf", &deg_west);
-            fscanf(fd, "%lf", &deg_west);
-            fscanf(fd, "%lf", &deg_west);
+            /* Read and discard three values */
+            if (fscanf(fd, "%lf", &deg_west) != 1 ||
+                fscanf(fd, "%lf", &deg_west) != 1 ||
+                fscanf(fd, "%lf", &deg_west) != 1) {
+                fprintf(stderr,
+                        "\n*** Error reading intermediate values from %s\n",
+                        blw_filename);
+                fclose(fd);
+                exit(1);
+            }
 
-            fscanf(fd, "%lf", &deg_west);
+            if (fscanf(fd, "%lf", &deg_west) != 1) {
+                fprintf(stderr, "\n*** Error reading deg_west from %s\n",
+                        blw_filename);
+                fclose(fd);
+                exit(1);
+            }
 
-            fscanf(fd, "%lf", &deg_north);
+            if (fscanf(fd, "%lf", &deg_north) != 1) {
+                fprintf(stderr, "\n*** Error reading deg_north from %s\n",
+                        blw_filename);
+                fclose(fd);
+                exit(1);
+            }
 
             fclose(fd);
 
@@ -266,17 +289,30 @@ int LoadSDF_SDF(char *name) {
     if (infile == NULL)
         return 0;
 
-    fscanf(infile, "%d", &dummy);
-    fscanf(infile, "%d", &dummy);
-    fscanf(infile, "%d", &dummy);
-    fscanf(infile, "%d", &dummy);
+    if (fscanf(infile, "%d", &dummy) != 1 ||
+        fscanf(infile, "%d", &dummy) != 1 ||
+        fscanf(infile, "%d", &dummy) != 1 ||
+        fscanf(infile, "%d", &dummy) != 1) {
+        fprintf(stderr, "\n*** Error reading SDF header from %s\n",
+                path_plus_name);
+        fclose(infile);
+        return 0;
+    }
 
     printf("\nReading %s... ", path_plus_name);
     fflush(stdout);
 
     for (x = 0; x < 1200; x++)
-        for (y = 0; y < 1200; y++)
-            fscanf(infile, "%d", &usgs[x][y]);
+        for (y = 0; y < 1200; y++) {
+            if (fscanf(infile, "%d", &usgs[x][y]) != 1) {
+                fprintf(stderr,
+                        "\n*** Error reading SDF data at position [%d][%d] "
+                        "from %s\n",
+                        x, y, path_plus_name);
+                fclose(infile);
+                return 0;
+            }
+        }
 
     fclose(infile);
 
@@ -367,17 +403,65 @@ int LoadSDF_BZ(char *name) {
     bzfd = BZ2_bzReadOpen(&bzerror, fd, 0, 0, NULL, 0);
 
     if (fd != NULL && bzerror == BZ_OK) {
+        char *line;
+
         printf("\nReading %s... ", path_plus_name);
         fflush(stdout);
 
-        sscanf(BZfgets(bzfd, 255), "%d", &dummy);
-        sscanf(BZfgets(bzfd, 255), "%d", &dummy);
-        sscanf(BZfgets(bzfd, 255), "%d", &dummy);
-        sscanf(BZfgets(bzfd, 255), "%d", &dummy);
+        /* Read and validate header lines */
+        line = BZfgets(bzfd, 255);
+        if (line == NULL || sscanf(line, "%d", &dummy) != 1) {
+            fprintf(stderr,
+                    "\n*** Error reading BZ2 SDF header line 1 from %s\n",
+                    path_plus_name);
+            BZ2_bzReadClose(&bzerror, bzfd);
+            fclose(fd);
+            return 0;
+        }
+
+        line = BZfgets(bzfd, 255);
+        if (line == NULL || sscanf(line, "%d", &dummy) != 1) {
+            fprintf(stderr,
+                    "\n*** Error reading BZ2 SDF header line 2 from %s\n",
+                    path_plus_name);
+            BZ2_bzReadClose(&bzerror, bzfd);
+            fclose(fd);
+            return 0;
+        }
+
+        line = BZfgets(bzfd, 255);
+        if (line == NULL || sscanf(line, "%d", &dummy) != 1) {
+            fprintf(stderr,
+                    "\n*** Error reading BZ2 SDF header line 3 from %s\n",
+                    path_plus_name);
+            BZ2_bzReadClose(&bzerror, bzfd);
+            fclose(fd);
+            return 0;
+        }
+
+        line = BZfgets(bzfd, 255);
+        if (line == NULL || sscanf(line, "%d", &dummy) != 1) {
+            fprintf(stderr,
+                    "\n*** Error reading BZ2 SDF header line 4 from %s\n",
+                    path_plus_name);
+            BZ2_bzReadClose(&bzerror, bzfd);
+            fclose(fd);
+            return 0;
+        }
 
         for (x = 0; x < 1200; x++)
-            for (y = 0; y < 1200; y++)
-                sscanf(BZfgets(bzfd, 20), "%d", &usgs[x][y]);
+            for (y = 0; y < 1200; y++) {
+                line = BZfgets(bzfd, 20);
+                if (line == NULL || sscanf(line, "%d", &usgs[x][y]) != 1) {
+                    fprintf(stderr,
+                            "\n*** Error reading BZ2 SDF data at position "
+                            "[%d][%d] from %s\n",
+                            x, y, path_plus_name);
+                    BZ2_bzReadClose(&bzerror, bzfd);
+                    fclose(fd);
+                    return 0;
+                }
+            }
 
         fclose(fd);
 
@@ -669,19 +753,24 @@ int main(int argc, char **argv) {
         fd = fopen(string, "r");
 
         if (fd != NULL) {
-            fgets(string, 253, fd);
+            if (fgets(string, 253, fd) == NULL) {
+                fprintf(stderr, "*** Error reading .splat_path file (empty or "
+                                "unreadable)\n");
+                fclose(fd);
+                fd = NULL;
+            } else {
+                /* Remove <CR> and/or <LF> from string */
 
-            /* Remove <CR> and/or <LF> from string */
+                for (x = 0; string[x] != 13 && string[x] != 10 &&
+                            string[x] != 0 && x < 253;
+                     x++)
+                    ;
+                string[x] = 0;
 
-            for (x = 0; string[x] != 13 && string[x] != 10 && string[x] != 0 &&
-                        x < 253;
-                 x++)
-                ;
-            string[x] = 0;
+                strcpy(sdf_path, string);
 
-            strcpy(sdf_path, string);
-
-            fclose(fd);
+                fclose(fd);
+            }
         }
     }
 #endif
