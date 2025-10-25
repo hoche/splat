@@ -42,8 +42,13 @@ FetchContent_MakeAvailable(googletest)
 # Test source files (example, adjust paths as needed)
 file(GLOB_RECURSE TEST_SOURCES tests/*.cpp)
 
+# Add specific source files needed by tests
+set(TEST_REQUIRED_SOURCES
+    src/imagewriter.cpp
+)
+
 # Create test executable
-add_executable(splat_tests ${TEST_SOURCES})
+add_executable(splat_tests ${TEST_SOURCES} ${TEST_REQUIRED_SOURCES})
 target_link_libraries(splat_tests GTest::gtest_main GTest::gmock_main ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${GDAL_LIBRARIES} ${ZLIB_LIBRARIES} ${BZIP2_LIBRARIES})
 
 # Include project source directories for tests

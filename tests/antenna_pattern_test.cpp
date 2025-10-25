@@ -158,7 +158,3 @@ INSTANTIATE_TEST_SUITE_P(
     AntennaPatternSizeTest,
     ::testing::Values(0, 1, 10, 360)); // Empty, single value, small pattern, full 360-degree pattern
 
-int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}

@@ -217,7 +217,3 @@ INSTANTIATE_TEST_SUITE_P(
         std::make_tuple(8, 8)     // 8x8 grid (max supported per repository)
     ));
 
-int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}

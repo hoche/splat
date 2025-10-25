@@ -1,139 +1,137 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <fstream>
+#include <string>
 
-// Mock class for libpng/libjpeg dependencies
-class MockImageWriter {
-public:
-    MOCK_METHOD3(write_png, int(const char* filename, unsigned char* image, int width));
-    MOCK_METHOD3(write_jpeg, int(const char* filename, unsigned char* image, int width));
-    MOCK_METHOD3(write_ppm, int(const char* filename, unsigned char* image, int width));
-};
+// Include the ImageWriter header
+#include "../src/imagewriter.h"
 
-// Test fixture for image output functions
-class ImageOutputTest : public ::testing::Test {
+// Test fixture for ImageWriter class
+class ImageWriterTest : public ::testing::Test {
 protected:
     void SetUp() override {
         // Initialize common test data
         width = 100;
         height = 100;
-        image_data = new unsigned char[width * height * 3]; // RGB image
-        for (int i = 0; i < width * height * 3; ++i) {
-            image_data[i] = static_cast<unsigned char>(i % 256); // Sample pixel data
-        }
+        north = 45.0;
+        south = 44.0;
+        east = -122.0;
+        west = -123.0;
     }
 
     void TearDown() override {
-        delete[] image_data;
+        // Clean up any test files
+        std::remove("test_output.ppm");
+        std::remove("test_output.png");
+        std::remove("test_output.jpg");
     }
 
-    unsigned char* image_data;
     int width;
     int height;
-    MockImageWriter mock_writer;
+    double north;
+    double south;
+    double east;
+    double west;
 };
 
-// Test WriteImage for PNG output
-TEST_F(ImageOutputTest, WriteImagePNGOutput) {
-    // Mock the PNG writing function
-    EXPECT_CALL(mock_writer, write_png(testing::_, testing::_, testing::_))
-        .WillOnce(testing::Return(0));
-
-    // Call WriteImage with PNG format (default)
-    int result = WriteImage("test.png", image_data, width, height); // Adjust parameters as needed
-    EXPECT_EQ(result, 0) << "WriteImage should succeed for PNG output";
+// Test ImageWriter construction for PPM output
+TEST_F(ImageWriterTest, ConstructPPMWriter) {
+    EXPECT_NO_THROW({
+        ImageWriter writer("test_output.ppm", IMAGETYPE_PPM, width, height, north, south, east, west);
+    }) << "ImageWriter construction should succeed for PPM format";
 }
 
-// Test WriteImage for JPEG output
-TEST_F(ImageOutputTest, WriteImageJPEGOutput) {
-    // Mock the JPEG writing function
-    EXPECT_CALL(mock_writer, write_jpeg(testing::_, testing::_, testing::_))
-        .WillOnce(testing::Return(0));
-
-    // Call WriteImage with JPEG format
-    int result = WriteImage("test.jpg", image_data, width, height); // Adjust parameters as needed
-    EXPECT_EQ(result, 0) << "WriteImage should succeed for JPEG output";
+// Test ImageWriter construction with invalid filename
+TEST_F(ImageWriterTest, ConstructWithInvalidFilename) {
+    EXPECT_THROW({
+        ImageWriter writer("/invalid/path/test.ppm", IMAGETYPE_PPM, width, height, north, south, east, west);
+    }, std::invalid_argument) << "ImageWriter should throw on invalid filename";
 }
 
-// Test WriteImage for PPM output
-TEST_F(ImageOutputTest, WriteImagePPMOutput) {
-    // Mock the PPM writing function
-    EXPECT_CALL(mock_writer, write_ppm(testing::_, testing::_, testing::_))
-        .WillOnce(testing::Return(0));
+// Test writing a simple PPM image
+TEST_F(ImageWriterTest, WritePPMImage) {
+    ImageWriter writer("test_output.ppm", IMAGETYPE_PPM, width, height, north, south, east, west);
 
-    // Call WriteImage with PPM format
-    int result = WriteImage("test.ppm", image_data, width, height); // Adjust parameters as needed
-    EXPECT_EQ(result, 0) << "WriteImage should succeed for PPM output";
+    // Write some pixel data
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            // Create a simple gradient pattern (RGB pixel)
+            Pixel pixel = (255 << 24) | ((x * 255 / width) << 16) | ((y * 255 / height) << 8) | 128;
+            writer.AppendPixel(pixel);
+        }
+        writer.EmitLine();
+    }
+
+    writer.Finish();
+
+    // Verify file was created
+    std::ifstream file("test_output.ppm");
+    EXPECT_TRUE(file.good()) << "Output file should exist";
+    file.close();
 }
 
-// Test WriteImage with invalid filename
-TEST_F(ImageOutputTest, WriteImageInvalidFilename) {
-    // Mock the PNG writing function to simulate failure
-    EXPECT_CALL(mock_writer, write_png(testing::_, testing::_, testing::_))
-        .WillOnce(testing::Return(-1));
+// Test writing pixels with AppendPixel and EmitLine
+TEST_F(ImageWriterTest, AppendPixelAndEmitLine) {
+    ImageWriter writer("test_output.ppm", IMAGETYPE_PPM, 10, 10, north, south, east, west);
 
-    // Call WriteImage with an invalid filename
-    int result = WriteImage("", image_data, width, height); // Empty filename
-    EXPECT_NE(result, 0) << "WriteImage should fail with invalid filename";
+    // Write one line of pixels
+    for (int x = 0; x < 10; x++) {
+        Pixel pixel = 0xFF000000; // Black pixel
+        writer.AppendPixel(pixel);
+    }
+    writer.EmitLine();
+
+    writer.Finish();
+
+    // Verify file exists
+    std::ifstream file("test_output.ppm");
+    EXPECT_TRUE(file.good());
+    file.close();
 }
 
-// Test WriteImageSS for PNG output
-TEST_F(ImageOutputTest, WriteImageSSPNGOutput) {
-    // Mock the PNG writing function
-    EXPECT_CALL(mock_writer, write_png(testing::_, testing::_, testing::_))
-        .WillOnce(testing::Return(0));
-
-    // Call WriteImageSS with PNG format
-    int result = WriteImageSS("test_ss.png", image_data, width, height); // Adjust parameters
-    EXPECT_EQ(result, 0) << "WriteImageSS should succeed for PNG output";
+// Test that initialized flag is set correctly
+TEST_F(ImageWriterTest, InitializationFlag) {
+    ImageWriter writer("test_output.ppm", IMAGETYPE_PPM, width, height, north, south, east, west);
+    EXPECT_TRUE(writer.m_initialized) << "ImageWriter should be initialized after construction";
 }
 
 // Parameterized test for different image sizes
-class ImageOutputSizeTest : public ImageOutputTest, public ::testing::WithParamInterface<std::tuple<int, int>> {
+class ImageWriterSizeTest : public ImageWriterTest,
+                            public ::testing::WithParamInterface<std::tuple<int, int>> {
 protected:
     void SetUp() override {
-        ImageOutputTest::SetUp();
+        ImageWriterTest::SetUp();
         width = std::get<0>(GetParam());
         height = std::get<1>(GetParam());
-        delete[] image_data; // Clean up base class data
-        image_data = new unsigned char[width * height * 3]; // Resize image data
-        for (int i = 0; i < width * height * 3; ++i) {
-            image_data[i] = static_cast<unsigned char>(i % 256);
-        }
     }
 };
 
-// Test WriteImage with various image sizes
-TEST_P(ImageOutputSizeTest, WriteImageVariousSizes) {
-    // Mock the PNG writing function
-    EXPECT_CALL(mock_writer, write_png(testing::_, testing::_, testing::_))
-        .WillOnce(testing::Return(0));
+// Test ImageWriter with various image sizes
+TEST_P(ImageWriterSizeTest, VariousImageSizes) {
+    EXPECT_NO_THROW({
+        ImageWriter writer("test_output.ppm", IMAGETYPE_PPM, width, height, north, south, east, west);
 
-    // Call WriteImage with varying sizes
-    int result = WriteImage("test_size.png", image_data, width, height);
-    EXPECT_EQ(result, 0) << "WriteImage should succeed for size " << width << "x" << height;
+        // Write a simple image
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                Pixel pixel = 0xFFFFFFFF; // White pixel
+                writer.AppendPixel(pixel);
+            }
+            writer.EmitLine();
+        }
+        writer.Finish();
+    }) << "ImageWriter should handle size " << width << "x" << height;
+
+    std::remove("test_output.ppm");
 }
 
 // Instantiate parameterized test with different image sizes
 INSTANTIATE_TEST_SUITE_P(
     ImageSizes,
-    ImageOutputSizeTest,
+    ImageWriterSizeTest,
     ::testing::Values(
-        std::make_tuple(1, 1),    // Minimal size
-        std::make_tuple(100, 100), // Standard size
-        std::make_tuple(1920, 1080) // HD size
+        std::make_tuple(1, 1),       // Minimal size
+        std::make_tuple(10, 10),     // Small size
+        std::make_tuple(100, 100),   // Standard size
+        std::make_tuple(256, 256)    // Larger size
     ));
-
-// Test for null image data
-TEST_F(ImageOutputTest, WriteImageNullData) {
-    // Mock the PNG writing function (should not be called)
-    EXPECT_CALL(mock_writer, write_png(testing::_, testing::_, testing::_)).Times(0);
-
-    // Call WriteImage with null image data
-    int result = WriteImage("test_null.png", nullptr, width, height);
-    EXPECT_NE(result, 0) << "WriteImage should fail with null image data";
-}
-
-int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}

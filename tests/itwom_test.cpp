@@ -236,7 +236,3 @@ INSTANTIATE_TEST_SUITE_P(
         std::make_tuple(500.0, 20000.0) // Very long distance, max frequency
     ));
 
-int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
