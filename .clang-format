@@ -1,7 +1,24 @@
 ---
-BasedOnStyle:  LLVM
-Language:        Cpp
-Standard:        Cpp11
-IndentWidth:     4
-UseTab:          Never
-...
+BasedOnStyle: LLVM
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+PointerAlignment: Right
+ReferenceAlignment: Right
+QualifierAlignment: Left
+SpaceBeforeParens: ControlStatements
+SpaceInEmptyBlock: true
+SpacesInParentheses: false
+SpacesInAngles: false
+SpacesInSquareBrackets: false
+SpaceAfterCStyleCast: true
+SpaceAfterLogicalNot: true
+SpaceBeforeAssignmentOperators: true
+SpacesBeforeTrailingComments: 2
+NamespaceIndentation: Inner
+PackConstructorInitializers: CurrentLine
+ColumnLimit: 80
+MaxEmptyLinesToKeep: 1
+LineEnding: LF
+ReflowComments: false
+---
