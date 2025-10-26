@@ -34,7 +34,7 @@ splat
        -R modify default range for -c or -L (miles/kilometers)
        -v N verbosity level. Default is 1. Set to 0 to quiet everything.
       -st use a single CPU thread (classic mode)
-      -hd Use High Definition mode. Requires 1-deg SDF files.
+      -hd Use High Definition mode (3600 ppd vs 1200 ppd). Requires SRTM-1 SDF files.
       -sc display smooth rather than quantized contour levels
       -db threshold beyond which contours will not be displayed
       -nf do not plot Fresnel zones in height plots
@@ -242,7 +242,35 @@ The number and type of switches passed to **SPLAT!** determine its mode of opera
 -olditm invoke older ITM propagation model rather than the newer ITWOM
 ```
 
-The command-line options for `splat` and `splat-hd` are identical. The `-log` command line switch causes all invoked command line options to be logged to a file of your choosing (`logfile.txt`):
+The command-line options for `splat` and `splat-hd` are identical.
+
+### High Definition Mode
+
+**SPLAT!** can operate in High Definition (HD) mode by using the `-hd` command-line switch. HD mode provides significantly higher terrain resolution by using 3600 pixels per degree instead of the standard 1200 pixels per degree. This corresponds to 1 arc-second resolution versus the standard 3 arc-second resolution.
+
+**Key characteristics of HD mode:**
+
+- **Resolution**: 1 arc-second (approximately 30 meters at the equator) vs. 3 arc-second (approximately 90 meters) in standard mode
+- **Data requirements**: Requires high-resolution SDF files generated from SRTM-1 data using the `srtm2sdf-hd` utility
+- **File naming**: HD mode SDF files are named with an `-hd` suffix (e.g., `N40W074-hd.sdf` or `N40W074-hd.sdf.bz2`)
+- **Memory usage**: HD mode requires significantly more memory due to the 3x increase in resolution (9x more data points per square degree)
+- **Accuracy**: Provides more accurate terrain analysis, particularly important for short-range links and detailed obstruction analysis
+- **Compatibility**: Output files from HD mode are not compatible with standard mode and vice versa due to resolution differences
+
+**Example usage:**
+
+```bash
+splat -t tx_site.qth -r rx_site.qth -hd
+```
+
+**Important notes:**
+
+- When using `-maxpages 1`, HD mode is required (standard mode requires `-maxpages` to be at least 4)
+- User-defined terrain features in HD mode are interpreted as 1 arc-second in size, compared to 3 arc-seconds in standard mode
+- All analysis types (point-to-point, coverage, path loss) are supported in HD mode
+- Alphanumeric output files generated in one mode cannot be imported into the other mode
+
+The `-log` command line switch causes all invoked command line options to be logged to a file of your choosing (`logfile.txt`):
 
 ```bash
 splat -t tx_site -r rx_site -s nj_cities -o topo_map -log logfile.txt

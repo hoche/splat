@@ -71,6 +71,10 @@ splat
 [-imperial]
 .br
 [-olditm]
+.br
+[-hd]
+.br
+[-st]
 .SH DESCRIPTION
 \fBSPLAT!\fP is a powerful terrestrial RF propagation and terrain
 analysis tool for the spectrum between 20 MHz and 20 GHz.
@@ -464,8 +468,54 @@ line will return a summary of \fBSPLAT!\fP's command line options:
 .br
 -olditm invoke older ITM propagation model rather than the newer ITWOM
 .br
+     -hd Use High Definition mode (3600 ppd vs 1200 ppd). Requires SRTM-1 SDF files.
+.br
+     -st use a single CPU thread (classic mode)
+.br
 \fR
 The command-line options for \fCsplat\fR and \fCsplat-hd\fR are identical.
+.SS High Definition Mode
+\fBSPLAT!\fP can operate in High Definition (HD) mode by using the \fC-hd\fR
+command-line switch. HD mode provides significantly higher terrain resolution by
+using 3600 pixels per degree instead of the standard 1200 pixels per degree.
+This corresponds to 1 arc-second resolution versus the standard 3 arc-second resolution.
+.PP
+\fBKey characteristics of HD mode:\fP
+.IP \(bu 3
+\fBResolution:\fP 1 arc-second (approximately 30 meters at the equator) vs.
+3 arc-second (approximately 90 meters) in standard mode
+.IP \(bu 3
+\fBData requirements:\fP Requires high-resolution SDF files generated from
+SRTM-1 data using the \fCsrtm2sdf-hd\fR utility
+.IP \(bu 3
+\fBFile naming:\fP HD mode SDF files are named with an \fC-hd\fR suffix
+(e.g., \fCN40W074-hd.sdf\fR or \fCN40W074-hd.sdf.bz2\fR)
+.IP \(bu 3
+\fBMemory usage:\fP HD mode requires significantly more memory due to the 3x
+increase in resolution (9x more data points per square degree)
+.IP \(bu 3
+\fBAccuracy:\fP Provides more accurate terrain analysis, particularly important
+for short-range links and detailed obstruction analysis
+.IP \(bu 3
+\fBCompatibility:\fP Output files from HD mode are not compatible with standard
+mode and vice versa due to resolution differences
+.PP
+\fBExample usage:\fP
+.PP
+\fCsplat -t tx_site.qth -r rx_site.qth -hd\fR
+.PP
+\fBImportant notes:\fP
+.IP \(bu 3
+When using \fC-maxpages 1\fR, HD mode is required (standard mode requires
+\fC-maxpages\fR to be at least 4)
+.IP \(bu 3
+User-defined terrain features in HD mode are interpreted as 1 arc-second in size,
+compared to 3 arc-seconds in standard mode
+.IP \(bu 3
+All analysis types (point-to-point, coverage, path loss) are supported in HD mode
+.IP \(bu 3
+Alphanumeric output files generated in one mode cannot be imported into the other mode
+.PP
 The \fC-log\fR command line switch causes all invoked command line options
 to be logged to a file of your choosing  (\fIlogfile.txt\fP):
 .PP
