@@ -187,6 +187,11 @@ ImageWriter::ImageWriter(const std::string &filename, ImageType imagetype,
 };
 
 ImageWriter::~ImageWriter() {
+    delete[] m_imgline_signal;
+    delete[] m_imgline_red;
+    delete[] m_imgline_green;
+    delete[] m_imgline_blue;
+    delete[] m_imgline_alpha;
     delete[] m_imgline;
 
     // close file
