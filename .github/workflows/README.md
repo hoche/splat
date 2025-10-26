@@ -9,8 +9,8 @@ This directory contains GitHub Actions workflows for continuous integration, tes
 **Purpose**: Build and test SPLAT! on all supported platforms.
 
 **Triggers**:
-- Push to main/master/develop/v2.0.0-b1 branches
-- Pull requests to main/master/develop/v2.0.0-b1 branches
+- Push to main
+- Pull requests to main
 - Manual workflow dispatch
 
 **Platforms Tested**:
@@ -138,8 +138,11 @@ cd build-coverage
 ./splat_tests
 
 # Generate coverage report
-lcov --capture --directory . --output-file coverage.info
-lcov --remove coverage.info '/usr/*' '*/tests/*' '*/_deps/*' --output-file coverage.info
+lcov --capture --directory . --output-file coverage.info \
+  --rc geninfo_unexecuted_blocks=1 \
+  --ignore-errors mismatch,negative,inconsistent
+lcov --remove coverage.info '/usr/*' '*/tests/*' '*/_deps/*' --output-file coverage.info \
+  --ignore-errors unused
 genhtml coverage.info --output-directory coverage_html
 
 # View in browser
