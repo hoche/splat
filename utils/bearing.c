@@ -252,7 +252,11 @@ struct site LoadQTH(char *filename) {
 
     if (fd != NULL) {
         /* Site Name */
-        fgets(string, 49, fd);
+        if (fgets(string, 49, fd) == NULL) {
+            fprintf(stderr, "*** Error reading site name from %s\n", qthfile);
+            fclose(fd);
+            return tempsite;
+        }
 
         /* Strip <CR> and/or <LF> from end of site name */
 
@@ -263,11 +267,19 @@ struct site LoadQTH(char *filename) {
         tempsite.name[x] = 0;
 
         /* Site Latitude */
-        fgets(string, 49, fd);
+        if (fgets(string, 49, fd) == NULL) {
+            fprintf(stderr, "*** Error reading latitude from %s\n", qthfile);
+            fclose(fd);
+            return tempsite;
+        }
         tempsite.lat = ReadBearing(string);
 
         /* Site Longitude */
-        fgets(string, 49, fd);
+        if (fgets(string, 49, fd) == NULL) {
+            fprintf(stderr, "*** Error reading longitude from %s\n", qthfile);
+            fclose(fd);
+            return tempsite;
+        }
         tempsite.lon = ReadBearing(string);
 
         fclose(fd);
