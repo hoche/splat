@@ -22,7 +22,5 @@
 #include <string>
 #include <vector>
 
-using namespace std;
-
 const std::string SplatRun::splat_name = "SPLAT!";
 const std::string SplatRun::splat_version = "2.0-alpha";

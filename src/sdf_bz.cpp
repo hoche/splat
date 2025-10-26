@@ -9,10 +9,10 @@
  */
 
 #include "sdf_bz.h"
+#include "antenna_pattern.h"
 #include "dem.h"
 #include "elevation_map.h"
 #include "lrp.h"
-#include "antenna_pattern.h"
 #include "path.h"
 #include "sdf.h"
 #include "site.h"
@@ -24,8 +24,6 @@
 #include <iostream>
 #include <string>
 #include <vector>
-
-using namespace std;
 
 #define BZBUFFER 65536
 
@@ -44,7 +42,8 @@ char *SdfBz::BZfgets(BZFILE *bzfd, unsigned length) {
 
     static int x, y, nBuf;
     static char buffer[BZBUFFER + 1], output[BZBUFFER + 1];
-    bool done = false, opened = false;
+    static bool opened = false;  // Must be static to persist across calls
+    bool done = false;
 
     if (opened != 1 && bzerror == BZ_OK) {
         /* First time through.  Initialize everything! */
@@ -70,7 +69,7 @@ char *SdfBz::BZfgets(BZFILE *bzfd, unsigned length) {
 
         output[y] = buffer[x];
 
-        if (output[y] == '\n' || output[y] == 0 || y == (int)length - 1) {
+        if (output[y] == '\n' || output[y] == 0 || y == (int) length - 1) {
             output[y + 1] = 0;
             done = 1;
             y = 0;
@@ -88,10 +87,19 @@ char *SdfBz::BZfgets(BZFILE *bzfd, unsigned length) {
     return (output);
 }
 
-char *SdfBz::GetString() { return BZfgets(bzfd, 255); }
+bool SdfBz::GetString() {
+    char *result = BZfgets(bzfd, 255);
+    if (result && result[0] != 0) {
+        line = result;
+        return true;
+    }
+    return false;
+}
 
-bool SdfBz::OpenFile(string path) {
-    if (!Sdf::OpenFile(path)) {
+bool SdfBz::OpenFile(std::string path) {
+    // For bzip2 files, we need to use FILE* instead of ifstream
+    fd = fopen(path.c_str(), "rb");
+    if (fd == NULL) {
         return false;
     }
 
@@ -102,6 +110,8 @@ bool SdfBz::OpenFile(string path) {
 
 void SdfBz::CloseFile() {
     BZ2_bzReadClose(&bzerror, bzfd);
-
-    Sdf::CloseFile();
+    if (fd != NULL) {
+        fclose(fd);
+        fd = NULL;
+    }
 }

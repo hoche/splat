@@ -9,10 +9,10 @@
  */
 
 #include "sdf.h"
+#include "antenna_pattern.h"
 #include "dem.h"
 #include "elevation_map.h"
 #include "lrp.h"
-#include "antenna_pattern.h"
 #include "path.h"
 #include "sdf_bz.h"
 #include "site.h"
@@ -20,10 +20,9 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <sstream>
 #include <string>
 #include <vector>
-
-using namespace std;
 
 /// This function reads a SPLAT Data File containing digital elevation model
 /// data into memory.  Elevation data, maximum and minimum elevations, and
@@ -38,10 +37,10 @@ using namespace std;
 /// @param maxlat The maximum lattitude value
 /// @param minlon The minimum longitude value
 /// @param maxlon The maximum longitude value
-int Sdf::LoadSDF(ElevationMap &em, const string &name, int minlat, int maxlat,
-                 int minlon, int maxlon) {
+int Sdf::LoadSDF(ElevationMap &em, const std::string &name, int minlat,
+                 int maxlat, int minlon, int maxlon) {
     int x, y, data, indx;
-    char *string;
+    std::stringstream ss;
 
     std::string path_plus_name;
     std::string sdf_file = name + suffix;
@@ -55,13 +54,13 @@ int Sdf::LoadSDF(ElevationMap &em, const string &name, int minlat, int maxlat,
 
     /* Search for SDF file in current working directory first */
     path_plus_name = sdf_file;
-    if (!OpenFile(path_plus_name)) {
+    if (! OpenFile(path_plus_name)) {
         /* Next, try loading SDF file from path specified
          in $HOME/.splat_path file or by -d argument */
         path_plus_name = sdf_path + sdf_file;
 
         // Stop here if the file couldn't be opened
-        if (!OpenFile(path_plus_name)) {
+        if (! OpenFile(path_plus_name)) {
             return -1;
         }
     }
@@ -70,25 +69,45 @@ int Sdf::LoadSDF(ElevationMap &em, const string &name, int minlat, int maxlat,
             indx + 1);
     fflush(stdout);
 
-    sscanf(GetString(), "%d", &dem->max_west);
-    sscanf(GetString(), "%d", &dem->min_north);
-    sscanf(GetString(), "%d", &dem->min_west);
-    sscanf(GetString(), "%d", &dem->max_north);
+    // Read header values
+    if (GetString()) {
+        ss.clear();
+        ss.str(line);
+        ss >> dem->max_west;
+    }
+    if (GetString()) {
+        ss.clear();
+        ss.str(line);
+        ss >> dem->min_north;
+    }
+    if (GetString()) {
+        ss.clear();
+        ss.str(line);
+        ss >> dem->min_west;
+    }
+    if (GetString()) {
+        ss.clear();
+        ss.str(line);
+        ss >> dem->max_north;
+    }
 
     for (x = 0; x < sr.ippd; x++) {
         for (y = 0; y < sr.ippd; y++) {
-            string = GetString();
-            data = atoi(string);
+            if (GetString()) {
+                ss.clear();
+                ss.str(line);
+                ss >> data;
 
-            dem->data[x * sr.ippd + y] = data;
-            dem->signal[x * sr.ippd + y] = 0;
-            dem->mask[x * sr.ippd + y] = 0;
+                dem->data[x * sr.ippd + y] = data;
+                dem->signal[x * sr.ippd + y] = 0;
+                dem->mask[x * sr.ippd + y] = 0;
 
-            if (data > dem->max_el)
-                dem->max_el = data;
+                if (data > dem->max_el)
+                    dem->max_el = data;
 
-            if (data < dem->min_el)
-                dem->min_el = data;
+                if (data < dem->min_el)
+                    dem->min_el = data;
+            }
         }
     }
 
@@ -162,10 +181,10 @@ char Sdf::LoadSDF(ElevationMap &em, int minlat, int maxlat, int minlon,
                   int maxlon) {
     int x, y, indx;
     int return_value = -1;
-    string name = "" + to_string(minlat) + sr.sdf_delimiter +
-                  to_string(maxlat) + sr.sdf_delimiter + to_string(minlon) +
-                  sr.sdf_delimiter + to_string(maxlon) +
-                  (sr.hd_mode ? "-hd" : "");
+    std::string name = "" + std::to_string(minlat) + sr.sdf_delimiter +
+                       std::to_string(maxlat) + sr.sdf_delimiter +
+                       std::to_string(minlon) + sr.sdf_delimiter +
+                       std::to_string(maxlon) + (sr.hd_mode ? "-hd" : "");
 
     // Try to load an uncompressed SDF first.
     // Stop here if we successfully loaded the file
@@ -289,15 +308,11 @@ Dem *Sdf::FindEmptyDem(ElevationMap &em, int minlat, int maxlat, int minlon,
     return NULL;
 }
 
-char *Sdf::GetString() { return fgets(line, sizeof(line) - 1, fd); }
+bool Sdf::GetString() { return static_cast<bool>(std::getline(infile, line)); }
 
-bool Sdf::OpenFile(string path) {
-    fd = fopen(path.c_str(), "rb");
-
-    return (fd != NULL);
+bool Sdf::OpenFile(std::string path) {
+    infile.open(path);
+    return infile.is_open();
 }
 
-void Sdf::CloseFile() {
-    fclose(fd);
-    fd = NULL;
-}
+void Sdf::CloseFile() { infile.close(); }

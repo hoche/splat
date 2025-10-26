@@ -9,10 +9,10 @@
  */
 
 #include "path.h"
+#include "antenna_pattern.h"
 #include "dem.h"
 #include "elevation_map.h"
 #include "lrp.h"
-#include "antenna_pattern.h"
 #include "sdf.h"
 #include "site.h"
 #include "splat_run.h"
@@ -21,8 +21,6 @@
 #include <cmath>
 #include <string>
 #include <vector>
-
-using namespace std;
 
 void Path::ReadPath(const Site &source, const Site &destination,
                     const ElevationMap &em) {
@@ -85,7 +83,7 @@ void Path::ReadPath(const Site &source, const Site &destination,
     for (distance_scalar = 0.0, c = 0;
          (total_distance != 0.0 && distance_scalar <= total_distance &&
           c < arraysize);
-         c++, distance_scalar = miles_per_sample * (double)c) {
+         c++, distance_scalar = miles_per_sample * (double) c) {
         beta = distance_scalar / 3959.0;
         lat2 =
             asin(sin(lat1) * cos(beta) + cos(azimuth) * sin(beta) * cos(lat1));
@@ -142,4 +140,4 @@ void Path::ReadPath(const Site &source, const Site &destination,
         length = arraysize - 1;
 }
 
-Path::~Path() {}
+Path::~Path() { }

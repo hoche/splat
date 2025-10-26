@@ -8,15 +8,14 @@
  * This file is covered by the LICENSE.md file in the root of this project.
  */
 
-#ifndef json_h
-#define json_h
+#pragma once
 
 #include "elevation_map.h"
 #include "path.h"
 #include "splat_run.h"
 #include <map>
 
-typedef std::map<std::string,std::string> arg_t;
+typedef std::map<std::string, std::string> arg_t;
 
 class Json {
   private:
@@ -28,6 +27,3 @@ class Json {
     Json(const ElevationMap &em, const SplatRun &sr);
     void WriteJSON(arg_t, Site, Lrp, std::string);
 };
-
-
-#endif /* json_h */

@@ -8,14 +8,13 @@
  * This file is covered by the LICENSE.md file in the root of this project.
  */
 
-#ifndef gnuplot_h
-#define gnuplot_h
+#pragma once
 
-#include "splat_run.h"
-#include "path.h"
-#include "site.h"
 #include "elevation_map.h"
 #include "lrp.h"
+#include "path.h"
+#include "site.h"
+#include "splat_run.h"
 
 #include <stdio.h>
 
@@ -25,7 +24,7 @@ class GnuPlot {
     Path path;
 
   public:
-    GnuPlot(const SplatRun &sr) : sr(sr), path(sr.arraysize, sr.ppd) {}
+    GnuPlot(const SplatRun &sr) : sr(sr), path(sr.arraysize, sr.ppd) { }
 
     void GraphTerrain(const Site &source, const Site &destination,
                       const std::string &name, const ElevationMap &em);
@@ -37,5 +36,3 @@ class GnuPlot {
                      const std::string &name, bool fresnel_plot,
                      bool normalized, const ElevationMap &em, const Lrp &lrp);
 };
-
-#endif /* gnuplot_h */

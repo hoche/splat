@@ -8,8 +8,7 @@
  * This file is covered by the LICENSE.md file in the root of this project.
  */
 
-#ifndef dem_h
-#define dem_h
+#pragma once
 
 #include <vector>
 
@@ -27,12 +26,15 @@ class Dem {
 
   public:
     Dem(int size)
-        : min_north(0), max_north(0), min_west(0), max_west(0), max_el(0),
-          min_el(0), data(std::vector<short>(size * size)),
+        : min_north(0),
+          max_north(0),
+          min_west(0),
+          max_west(0),
+          max_el(0),
+          min_el(0),
+          data(std::vector<short>(size * size)),
           mask(std::vector<unsigned char>(size * size)),
-          signal(std::vector<unsigned char>(size * size)) {}
+          signal(std::vector<unsigned char>(size * size)) { }
 
     ~Dem();
 };
-
-#endif /* dem_h */

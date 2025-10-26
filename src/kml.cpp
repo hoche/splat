@@ -16,27 +16,29 @@
 #include "utilities.h"
 
 Kml::Kml(const ElevationMap &em, const SplatRun &sr)
-    : path(sr.arraysize, sr.ppd), em(em), sr(sr) {}
+    : path(sr.arraysize, sr.ppd),
+      em(em),
+      sr(sr) { }
 
 void Kml::WriteKML(const Site &source, const Site &destination) {
     int x, y;
-    char block, report_name[80];
+    char block;
+    std::string report_name;
     double distance, rx_alt, tx_alt, cos_xmtr_angle, azimuth, cos_test_angle,
         test_alt;
     FILE *fd = NULL;
 
     path.ReadPath(source, destination, em);
 
-    sprintf(report_name, "%s-to-%s.kml", source.name.c_str(),
-            destination.name.c_str());
+    report_name = source.name + "-to-" + destination.name + ".kml";
 
-    for (x = 0; report_name[x] != 0; x++)
-        if (report_name[x] == 32 || report_name[x] == 17 ||
-            report_name[x] == 92 || report_name[x] == 42 ||
-            report_name[x] == 47)
-            report_name[x] = '_';
+    for (size_t i = 0; i < report_name.length(); i++)
+        if (report_name[i] == 32 || report_name[i] == 17 ||
+            report_name[i] == 92 || report_name[i] == 42 ||
+            report_name[i] == 47)
+            report_name[i] = '_';
 
-    fd = fopen(report_name, "w");
+    fd = fopen(report_name.c_str(), "w");
 
     fprintf(fd, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
     fprintf(fd, "<kml xmlns=\"http://earth.google.com/kml/2.0\">\n");
@@ -248,7 +250,7 @@ void Kml::WriteKML(const Site &source, const Site &destination) {
 
     fclose(fd);
 
-    fprintf(stdout, "\nKML file written to: \"%s\"", report_name);
+    fprintf(stdout, "\nKML file written to: \"%s\"", report_name.c_str());
 
     fflush(stdout);
 }

@@ -11,4 +11,4 @@
 #include "dem.h"
 #include <vector>
 
-Dem::~Dem() {}
+Dem::~Dem() { }

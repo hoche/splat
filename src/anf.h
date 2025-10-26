@@ -8,13 +8,12 @@
  * This file is covered by the LICENSE.md file in the root of this project.
  */
 
-#ifndef anf_h
-#define anf_h
+#pragma once
 
-#include "splat_run.h"
+#include "elevation_map.h"
 #include "lrp.h"
 #include "sdf.h"
-#include "elevation_map.h"
+#include "splat_run.h"
 
 #include <string>
 
@@ -27,9 +26,7 @@ class Anf {
     /// <#Description#>
     /// @param lrp <#lrp description#>
     /// @param sr <#sr description#>
-    Anf(const Lrp &lrp, const SplatRun &sr) : lrp(lrp), sr(sr) {}
+    Anf(const Lrp &lrp, const SplatRun &sr) : lrp(lrp), sr(sr) { }
 
     int LoadANO(const std::string &filename, Sdf &sdf, ElevationMap &em);
 };
-
-#endif /* anf_h */

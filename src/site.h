@@ -8,8 +8,7 @@
  * This file is covered by the LICENSE.md file in the root of this project.
  */
 
-#ifndef site_h
-#define site_h
+#pragma once
 
 #include <string>
 
@@ -40,5 +39,3 @@ class Site {
      */
     void LoadQTH(const std::string &filename);
 };
-
-#endif /* site_h */

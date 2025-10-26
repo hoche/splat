@@ -8,8 +8,7 @@
  * This file is covered by the LICENSE.md file in the root of this project.
  */
 
-#ifndef region_h
-#define region_h
+#pragma once
 
 #include "site.h"
 
@@ -23,5 +22,3 @@ class Region {
     void LoadDBMColors(const Site &xmtr);
     void LoadSignalColors(const Site &xmtr);
 };
-
-#endif /* region_h */

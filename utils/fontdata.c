@@ -29,64 +29,59 @@
 *****************************************************************************/
 
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #include <zlib.h>
 
-int main(argc,argv)
+int main(argc, argv)
 int argc;
 char *argv[];
 {
-	int x, input;
-	unsigned char line;
-	FILE *outfile;
-	gzFile *infile=Z_NULL;
-	
-	if (argc==2)
-		*infile=gzopen(argv[1],"rb");
+    int x, input;
+    unsigned char line;
+    FILE *outfile;
+    gzFile *infile = Z_NULL;
 
-	else
-	{	
-		fprintf(stderr,"Usage: fontdata fontfile.gz\n");
-		exit(-1);
-	}
+    if (argc == 2)
+        *infile = gzopen(argv[1], "rb");
 
-	if (infile!=Z_NULL)
-	{
-		outfile=fopen("fontdata.h","wb");
+    else {
+        fprintf(stderr, "Usage: fontdata fontfile.gz\n");
+        exit(-1);
+    }
 
-		fprintf(outfile,"static unsigned char fontdata[] = {\n  ");
+    if (infile != Z_NULL) {
+        outfile = fopen("fontdata.h", "wb");
 
-		for (x=0, line=0; x<4096; x++)
-		{
-			input=gzgetc((gzFile)infile);
-			
-			fprintf(outfile," 0x%.2x",(unsigned char)input);
-	   		line++;
+        fprintf(outfile, "static unsigned char fontdata[] = {\n  ");
 
-			if (x<4095)
-				fprintf(outfile,",");
+        for (x = 0, line = 0; x < 4096; x++) {
+            input = gzgetc((gzFile) infile);
 
-			if (line==12)
-			{
-				fprintf(outfile,"\n  ");
-				line=0;
-			}
-		}
+            fprintf(outfile, " 0x%.2x", (unsigned char) input);
+            line++;
 
-	 	fprintf(outfile," };\n");
+            if (x < 4095)
+                fprintf(outfile, ",");
 
-		gzclose((gzFile)infile);
-		fclose(outfile);
+            if (line == 12) {
+                fprintf(outfile, "\n  ");
+                line = 0;
+            }
+        }
 
-		printf("fontdata.h successfully written!\n");
-	}
+        fprintf(outfile, " };\n");
 
-	else
-	{
-		fprintf(stderr,"%c*** Error: %c%s%c Not Found!\n",7,34,argv[1],34);
-		exit(-1);
-	}
+        gzclose((gzFile) infile);
+        fclose(outfile);
 
-	exit(0);
+        printf("fontdata.h successfully written!\n");
+    }
+
+    else {
+        fprintf(stderr, "%c*** Error: %c%s%c Not Found!\n", 7, 34, argv[1], 34);
+        exit(-1);
+    }
+
+    exit(0);
 }
