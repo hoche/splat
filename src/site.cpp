@@ -15,11 +15,9 @@
 #include <fstream>
 #include <string>
 
-Site::Site() { }
+Site::Site() : amsl_flag(false) {  }
 
-Site::Site() { amsl_flag = false; }
-
-Site::Site(const string &filename) { LoadQTH(filename); }
+Site::Site(const std::string &filename) : amsl_flag(false)  { LoadQTH(filename); }
 
 double Site::Distance(const Site &site2) const {
     /* This function returns the great circle distance
@@ -164,18 +162,15 @@ void Site::LoadQTH(const std::string &filename) {
             alt = std::stof(line);
         }
     }
-    infile.close();
 
     /* Whether height is MSL or AGL */
-    amsl_flag = false;
-    if (!feof(fd)) {
-        fgets(string, 49, fd);
-	if (string[0] == 'M' || string[0] == 'm') {
-	    amsl_flag = true;
+	if (std::getline(infile, line)) {
+		if (line.find('M') != std::string::npos || line.find('m') != std::string::npos) {		
+	    	amsl_flag = true;
+		}
 	}
-    }
 
-    fclose(fd);
+    infile.close();
     
     this->filename = qthfile;
 }
