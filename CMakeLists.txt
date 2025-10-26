@@ -14,6 +14,7 @@ find_package(JPEG REQUIRED)
 find_package(GDAL REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(BZip2 REQUIRED)
+find_package(Threads REQUIRED)
 
 # Explicitly list all source files for the main executable
 # This is preferred over GLOB_RECURSE because CMake will automatically
@@ -66,6 +67,7 @@ target_link_libraries(splat PRIVATE
     ${GDAL_LIBRARIES}
     ${ZLIB_LIBRARIES}
     ${BZIP2_LIBRARIES}
+    Threads::Threads
 )
 
 # Installation
@@ -147,6 +149,7 @@ target_link_libraries(splat_tests PRIVATE
     ${GDAL_LIBRARIES}
     ${ZLIB_LIBRARIES}
     ${BZIP2_LIBRARIES}
+    Threads::Threads
 )
 
 # Include directories for tests
