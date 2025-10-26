@@ -55,6 +55,15 @@ ImageWriter::ImageWriter(const std::string &filename, ImageType imagetype,
       m_east(east),
       m_west(west) {
 
+    // XXX TODO: error handling - throw exceptions
+    // Get rid of those allocated arrays below - they should
+    // be std::make_unique<unsigned char[]>(size) .
+    // Then exceptions will cause them to get cleaned up.
+
+    if ((m_fp = fopen(filename.c_str(), "wb")) == NULL) {
+        throw std::invalid_argument("Invalid filename");
+    }
+
     m_imgline_signal = new unsigned char[m_width];
     m_imgline_red = new unsigned char[m_width];
     m_imgline_green = new unsigned char[m_width];
@@ -63,11 +72,6 @@ ImageWriter::ImageWriter(const std::string &filename, ImageType imagetype,
 
     m_imgline = new unsigned char[3 * m_width];
 
-    if ((m_fp = fopen(filename.c_str(), "wb")) == NULL) {
-        throw std::invalid_argument("Invalid filename");
-    }
-
-    // XXX TODO: error handling - throw exceptions
     switch (m_imagetype) {
     default:
 #ifdef HAVE_LIBPNG
