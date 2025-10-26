@@ -24,6 +24,9 @@ jobs:
           ninja-build \
           libbz2-dev \
           zlib1g-dev \
+          libpng-dev \
+          libjpeg-dev \
+          libgdal-dev \
           lcov \
           gcovr
 

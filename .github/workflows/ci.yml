@@ -36,7 +36,10 @@ jobs:
           cmake \
           ninja-build \
           libbz2-dev \
-          zlib1g-dev
+          zlib1g-dev \
+          libpng-dev \
+          libjpeg-dev \
+          libgdal-dev
 
     - name: Configure CMake
       env:
@@ -79,7 +82,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        brew install cmake ninja bzip2
+        brew install cmake ninja bzip2 zlib libpng jpeg gdal
 
     - name: Configure CMake
       run: |
@@ -117,7 +120,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        brew install cmake ninja bzip2
+        brew install cmake ninja bzip2 zlib libpng jpeg gdal
 
     - name: Configure CMake
       run: |
@@ -157,6 +160,12 @@ jobs:
       run: |
         choco install cmake ninja -y
 
+    - name: Setup vcpkg
+      run: |
+        git clone https://github.com/Microsoft/vcpkg.git
+        .\vcpkg\bootstrap-vcpkg.bat
+        .\vcpkg\vcpkg install bzip2:x64-windows zlib:x64-windows libpng:x64-windows libjpeg-turbo:x64-windows gdal:x64-windows
+
     - name: Setup MSVC
       uses: microsoft/setup-msbuild@v2
 
@@ -165,7 +174,8 @@ jobs:
         cmake -B build `
           -G "Visual Studio 17 2022" `
           -A x64 `
-          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} `
+          -DCMAKE_TOOLCHAIN_FILE="${PWD}/vcpkg/scripts/buildsystems/vcpkg.cmake"
 
     - name: Build
       run: cmake --build build --config ${{ matrix.build_type }}
@@ -203,7 +213,7 @@ jobs:
         shell: bash
         run: |
           # Install dependencies
-          sudo pkg install -y cmake ninja bzip2 googletest
+          sudo pkg install -y cmake ninja bzip2 googletest png jpeg-turbo gdal
 
           # Configure
           cmake -B build \

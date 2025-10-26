@@ -20,7 +20,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake ninja-build libbz2-dev zlib1g-dev
+        sudo apt-get install -y cmake ninja-build libbz2-dev zlib1g-dev libpng-dev libjpeg-dev libgdal-dev
 
     - name: Configure with ASan
       env:
@@ -56,7 +56,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake ninja-build libbz2-dev zlib1g-dev
+        sudo apt-get install -y cmake ninja-build libbz2-dev zlib1g-dev libpng-dev libjpeg-dev libgdal-dev
 
     - name: Configure with UBSan
       env:
@@ -92,7 +92,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake ninja-build libbz2-dev zlib1g-dev
+        sudo apt-get install -y cmake ninja-build libbz2-dev zlib1g-dev libpng-dev libjpeg-dev libgdal-dev
 
     - name: Configure with TSan
       env:
@@ -133,6 +133,9 @@ jobs:
           ninja-build \
           libbz2-dev \
           zlib1g-dev \
+          libpng-dev \
+          libjpeg-dev \
+          libgdal-dev \
           clang-tidy
 
     - name: Configure CMake
@@ -167,6 +170,9 @@ jobs:
           ninja-build \
           libbz2-dev \
           zlib1g-dev \
+          libpng-dev \
+          libjpeg-dev \
+          libgdal-dev \
           valgrind
 
     - name: Configure CMake

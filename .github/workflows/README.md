@@ -169,28 +169,40 @@ valgrind --leak-check=full ./build/splat_tests
 - C++17 compatible compiler
 - libbz2-dev (bzip2 development headers)
 - zlib1g-dev (zlib development headers)
+- libpng-dev (PNG image library)
+- libjpeg-dev (JPEG image library)
+- libgdal-dev (Geospatial Data Abstraction Library)
 - GoogleTest (fetched automatically by CMake)
 
 ### Platform-Specific Notes
 
 #### Linux
 ```bash
-sudo apt-get install cmake ninja-build libbz2-dev zlib1g-dev
+sudo apt-get install cmake ninja-build libbz2-dev zlib1g-dev libpng-dev libjpeg-dev libgdal-dev
 ```
 
 #### macOS
 ```bash
-brew install cmake ninja bzip2
+brew install cmake ninja bzip2 zlib libpng jpeg gdal
 ```
 
 #### Windows
 ```powershell
+# Install basic build tools
 choco install cmake ninja
+
+# Install dependencies via vcpkg
+git clone https://github.com/Microsoft/vcpkg.git
+.\vcpkg\bootstrap-vcpkg.bat
+.\vcpkg\vcpkg install bzip2:x64-windows zlib:x64-windows libpng:x64-windows libjpeg-turbo:x64-windows gdal:x64-windows
+
+# Configure CMake with vcpkg
+cmake -B build -DCMAKE_TOOLCHAIN_FILE="./vcpkg/scripts/buildsystems/vcpkg.cmake"
 ```
 
 #### FreeBSD
 ```bash
-sudo pkg install cmake ninja bzip2 googletest
+sudo pkg install cmake ninja bzip2 googletest png jpeg-turbo gdal
 ```
 
 ## Troubleshooting
