@@ -31,7 +31,6 @@
  *
  *
  * @author Michel Hoche-Mong
- * Contact: hoche@grok.com
  *
  */
 

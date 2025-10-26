@@ -4,11 +4,18 @@ A Terrestrial RF Path and Terrain Analysis Tool for Unix/Linux
 
 ## About
 
-This version is a work in progress. It consists of a refactoring of the code in 1.5, 
-along with some enhancements to support GDAL. It otherwise does exactly the same calculations,
-and has the bugfixed and enhancements of 1.5, including multithreading and GDAL support.
+This version is a refactoring of the code in 1.5, along with some enhancements to support GDAL.
+It otherwise does exactly the same calculations, and has the bugfixed and enhancements of 1.5,
+including multithreading and GDAL support.
 
-Future enhancements will appear on this branch.
+The "classic" SPLAT version 1.5 is also available as a separate branch. It is based off John
+Magliacane's 1.4.2 release, but with a few bugfixes.
+However, we recommend this 2.0 branch for both stability and performance.
+
+Future version may either use OpenCL or Vulkan to hand computation off to a graphics
+card in the hopes of even more speed improvements. In preparation for this, itwom3.0 was
+made fully C99-compliant, as all the current implementations of OpenCL drivers require
+that. (Later versions of OpenCL allow C++, but none of the common GPU drivers support that).
 
 ## Building
 
@@ -30,7 +37,12 @@ You can generally get these via system packages. For instance:
 
 `yum install cmake bzip2-devel zlib-devel libpng-devel libjpeg-turbo-devel libgdal-devel gnuplot`
 
-### Debian (Buster) and Ubuntu (18.04 LTS):
+### Debian and Ubuntu
+
+Debian Trixie and Ubuntu 24.04 LTS
+Debian Bookworm and Ubuntu 22.04 LTS
+Debian Bullseye and Ubuntu 20.04 LTS
+Debian Buster and Ubuntu 18.04 LTS
 
 `apt-get install cmake libbz2-dev zlib1g-dev libjpeg-dev libpng-dev libgdal-dev gnuplot`
 
@@ -43,13 +55,12 @@ You can generally get these via system packages. For instance:
 #### MacPorts
 `port install cmake jpeg libpng libgdal gnuplot`
 
-### Example Build on Ubuntu 18.04 LTS and 22.04 LTS
-As an example, a build on Ubuntu 18.04 LTS might look like this:
+### Example Build on Ubuntu 24.04 LTS
+As an example, a build on Ubuntu 24.04 LTS might look like this after installing packages as indicated above:
 
 ```
-sudo apt install git cmake
 git clone https://github.com/hoche/splat.git
-sudo apt install libbz2-dev zlib1g-dev libjpeg-dev libpng-dev libgdal-dev gnuplot
+mkdir splat/build
 cd splat/build
 cmake ..
 make
