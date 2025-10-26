@@ -241,21 +241,31 @@ void ImageWriter::EmitLine() {
 #endif
 #ifdef HAVE_LIBGDAL
     case IMAGETYPE_GEOTIFF:
-        poDstDS->GetRasterBand(1)->RasterIO(GF_Write, 0, m_linenumber, m_width,
-                                            1, m_imgline_red.get(), m_width, 1,
-                                            GDT_Byte, 0, 0);
-        poDstDS->GetRasterBand(2)->RasterIO(GF_Write, 0, m_linenumber, m_width,
-                                            1, m_imgline_green.get(), m_width, 1,
-                                            GDT_Byte, 0, 0);
-        poDstDS->GetRasterBand(3)->RasterIO(GF_Write, 0, m_linenumber, m_width,
-                                            1, m_imgline_blue.get(), m_width, 1,
-                                            GDT_Byte, 0, 0);
-        poDstDS->GetRasterBand(4)->RasterIO(GF_Write, 0, m_linenumber, m_width,
-                                            1, m_imgline_alpha.get(), m_width, 1,
-                                            GDT_Byte, 0, 0);
-        poDstDS->GetRasterBand(5)->RasterIO(GF_Write, 0, m_linenumber, m_width,
-                                            1, m_imgline_signal.get(), m_width, 1,
-                                            GDT_Byte, 0, 0);
+        if (poDstDS->GetRasterBand(1)->RasterIO(
+                GF_Write, 0, m_linenumber, m_width, 1, m_imgline_red.get(),
+                m_width, 1, GDT_Byte, 0, 0) != CE_None) {
+            throw std::runtime_error("Failed to write red band to GeoTIFF");
+        }
+        if (poDstDS->GetRasterBand(2)->RasterIO(
+                GF_Write, 0, m_linenumber, m_width, 1, m_imgline_green.get(),
+                m_width, 1, GDT_Byte, 0, 0) != CE_None) {
+            throw std::runtime_error("Failed to write green band to GeoTIFF");
+        }
+        if (poDstDS->GetRasterBand(3)->RasterIO(
+                GF_Write, 0, m_linenumber, m_width, 1, m_imgline_blue.get(),
+                m_width, 1, GDT_Byte, 0, 0) != CE_None) {
+            throw std::runtime_error("Failed to write blue band to GeoTIFF");
+        }
+        if (poDstDS->GetRasterBand(4)->RasterIO(
+                GF_Write, 0, m_linenumber, m_width, 1, m_imgline_alpha.get(),
+                m_width, 1, GDT_Byte, 0, 0) != CE_None) {
+            throw std::runtime_error("Failed to write alpha band to GeoTIFF");
+        }
+        if (poDstDS->GetRasterBand(5)->RasterIO(
+                GF_Write, 0, m_linenumber, m_width, 1, m_imgline_signal.get(),
+                m_width, 1, GDT_Byte, 0, 0) != CE_None) {
+            throw std::runtime_error("Failed to write signal band to GeoTIFF");
+        }
         break;
 #endif
 #ifdef HAVE_LIBJPEG
