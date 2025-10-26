@@ -25,4 +25,5 @@ class Kml {
   public:
     Kml(const ElevationMap &em, const SplatRun &sr);
     void WriteKML(const Site &source, const Site &destination);
+    void WriteKMZ(const Site &source, const Site &destination);
 };
