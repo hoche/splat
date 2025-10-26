@@ -55,22 +55,18 @@ ImageWriter::ImageWriter(const std::string &filename, ImageType imagetype,
       m_east(east),
       m_west(west) {
 
-    // XXX TODO: error handling - throw exceptions
-    // Get rid of those allocated arrays below - they should
-    // be std::make_unique<unsigned char[]>(size) .
-    // Then exceptions will cause them to get cleaned up.
+    // Allocate arrays using smart pointers for automatic cleanup
+    m_imgline_signal = std::make_unique<unsigned char[]>(m_width);
+    m_imgline_red = std::make_unique<unsigned char[]>(m_width);
+    m_imgline_green = std::make_unique<unsigned char[]>(m_width);
+    m_imgline_blue = std::make_unique<unsigned char[]>(m_width);
+    m_imgline_alpha = std::make_unique<unsigned char[]>(m_width);
+    m_imgline = std::make_unique<unsigned char[]>(3 * m_width);
 
+    // Open file after memory allocation to avoid leaks if fopen fails
     if ((m_fp = fopen(filename.c_str(), "wb")) == NULL) {
         throw std::invalid_argument("Invalid filename");
     }
-
-    m_imgline_signal = new unsigned char[m_width];
-    m_imgline_red = new unsigned char[m_width];
-    m_imgline_green = new unsigned char[m_width];
-    m_imgline_blue = new unsigned char[m_width];
-    m_imgline_alpha = new unsigned char[m_width];
-
-    m_imgline = new unsigned char[3 * m_width];
 
     switch (m_imagetype) {
     default:
@@ -191,12 +187,7 @@ ImageWriter::ImageWriter(const std::string &filename, ImageType imagetype,
 };
 
 ImageWriter::~ImageWriter() {
-    delete[] m_imgline_signal;
-    delete[] m_imgline_red;
-    delete[] m_imgline_green;
-    delete[] m_imgline_blue;
-    delete[] m_imgline_alpha;
-    delete[] m_imgline;
+    // Smart pointers automatically clean up the arrays
 
     // close file
     if (m_fp) {
@@ -245,35 +236,37 @@ void ImageWriter::EmitLine() {
     default:
 #ifdef HAVE_LIBPNG
     case IMAGETYPE_PNG:
-        png_write_row(m_png_ptr, (png_bytep) (m_imgline));
+        png_write_row(m_png_ptr, (png_bytep) (m_imgline.get()));
         break;
 #endif
 #ifdef HAVE_LIBGDAL
     case IMAGETYPE_GEOTIFF:
         poDstDS->GetRasterBand(1)->RasterIO(GF_Write, 0, m_linenumber, m_width,
-                                            1, m_imgline_red, m_width, 1,
+                                            1, m_imgline_red.get(), m_width, 1,
                                             GDT_Byte, 0, 0);
         poDstDS->GetRasterBand(2)->RasterIO(GF_Write, 0, m_linenumber, m_width,
-                                            1, m_imgline_green, m_width, 1,
+                                            1, m_imgline_green.get(), m_width, 1,
                                             GDT_Byte, 0, 0);
         poDstDS->GetRasterBand(3)->RasterIO(GF_Write, 0, m_linenumber, m_width,
-                                            1, m_imgline_blue, m_width, 1,
+                                            1, m_imgline_blue.get(), m_width, 1,
                                             GDT_Byte, 0, 0);
         poDstDS->GetRasterBand(4)->RasterIO(GF_Write, 0, m_linenumber, m_width,
-                                            1, m_imgline_alpha, m_width, 1,
+                                            1, m_imgline_alpha.get(), m_width, 1,
                                             GDT_Byte, 0, 0);
         poDstDS->GetRasterBand(5)->RasterIO(GF_Write, 0, m_linenumber, m_width,
-                                            1, m_imgline_signal, m_width, 1,
+                                            1, m_imgline_signal.get(), m_width, 1,
                                             GDT_Byte, 0, 0);
         break;
 #endif
 #ifdef HAVE_LIBJPEG
-    case IMAGETYPE_JPG:
-        jpeg_write_scanlines(&m_cinfo, &m_imgline, 1);
+    case IMAGETYPE_JPG: {
+        unsigned char* imgline_ptr = m_imgline.get();
+        jpeg_write_scanlines(&m_cinfo, &imgline_ptr, 1);
         break;
+    }
 #endif
     case IMAGETYPE_PPM:
-        fwrite(m_imgline, 3, m_width, m_fp);
+        fwrite(m_imgline.get(), 3, m_width, m_fp);
         break;
     }
     m_xoffset = 0;

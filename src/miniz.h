@@ -1354,10 +1354,8 @@ typedef unsigned char mz_validate_uint64[sizeof(mz_uint64) == 8 ? 1 : -1];
 #define MZ_MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MZ_CLEAR_OBJ(obj) memset(&(obj), 0, sizeof(obj))
 
-#if MINIZ_USE_UNALIGNED_LOADS_AND_STORES && MINIZ_LITTLE_ENDIAN
-#define MZ_READ_LE16(p) *((const mz_uint16 *) (p))
-#define MZ_READ_LE32(p) *((const mz_uint32 *) (p))
-#else
+/* Always use byte-wise reads to avoid UBSan errors on unaligned access */
+/* Even though x86 supports unaligned loads, it's undefined behavior in C */
 #define MZ_READ_LE16(p)                                                        \
     ((mz_uint32) (((const mz_uint8 *) (p))[0]) |                               \
      ((mz_uint32) (((const mz_uint8 *) (p))[1]) << 8U))
@@ -1366,7 +1364,6 @@ typedef unsigned char mz_validate_uint64[sizeof(mz_uint64) == 8 ? 1 : -1];
      ((mz_uint32) (((const mz_uint8 *) (p))[1]) << 8U) |                       \
      ((mz_uint32) (((const mz_uint8 *) (p))[2]) << 16U) |                      \
      ((mz_uint32) (((const mz_uint8 *) (p))[3]) << 24U))
-#endif
 
 #define MZ_READ_LE64(p)                                                        \
     (((mz_uint64) MZ_READ_LE32(p)) |                                           \
@@ -2372,10 +2369,9 @@ tinfl_status tinfl_decompress(tinfl_decompressor *r,
                 else if ((counter >= 9) && (counter <= dist)) {
                     const mz_uint8 *pSrc_end = pSrc + (counter & ~7);
                     do {
-                        ((mz_uint32 *) pOut_buf_cur)[0] =
-                            ((const mz_uint32 *) pSrc)[0];
-                        ((mz_uint32 *) pOut_buf_cur)[1] =
-                            ((const mz_uint32 *) pSrc)[1];
+                        /* Use memcpy to avoid UBSan errors on unaligned access */
+                        memcpy(pOut_buf_cur, pSrc, 4);
+                        memcpy(pOut_buf_cur + 4, pSrc + 4, 4);
                         pOut_buf_cur += 8;
                     } while ((pSrc += 8) < pSrc_end);
                     if ((counter &= 7) < 3) {
@@ -3023,8 +3019,9 @@ static mz_bool tdefl_compress_lz_codes(tdefl_compressor *d) {
 
         if (flags & 1) {
             mz_uint s0, s1, n0, n1, sym, num_extra_bits;
-            mz_uint match_len = pLZ_codes[0],
-                    match_dist = *(const mz_uint16 *) (pLZ_codes + 1);
+            mz_uint match_len = pLZ_codes[0];
+            /* Safe unaligned 16-bit read to avoid UBSan error */
+            mz_uint match_dist = (pLZ_codes[1] | (pLZ_codes[2] << 8));
             pLZ_codes += 3;
 
             MZ_ASSERT(d->m_huff_code_sizes[0][s_tdefl_len_sym[match_len]]);
@@ -3074,7 +3071,8 @@ static mz_bool tdefl_compress_lz_codes(tdefl_compressor *d) {
         if (pOutput_buf >= d->m_pOutput_buf_end)
             return MZ_FALSE;
 
-        *(mz_uint64 *) pOutput_buf = bit_buffer;
+        /* Use memcpy to avoid UBSan error on unaligned 64-bit write */
+        memcpy(pOutput_buf, &bit_buffer, sizeof(mz_uint64));
         pOutput_buf += (bits_in >> 3);
         bit_buffer >>= (bits_in & ~7);
         bits_in &= 7;
@@ -3297,7 +3295,7 @@ tdefl_find_match(tdefl_compressor *d, mz_uint lookahead_pos, mz_uint max_dist,
     mz_uint num_probes_left = d->m_max_probes[match_len >= 32];
     const mz_uint16 *s = (const mz_uint16 *) (d->m_dict + pos), *p, *q;
     mz_uint16 c01 = TDEFL_READ_UNALIGNED_WORD(&d->m_dict[pos + match_len - 1]),
-              s01 = *s;
+              s01 = TDEFL_READ_UNALIGNED_WORD(&d->m_dict[pos]);
     MZ_ASSERT(max_match_len <= TDEFL_MAX_MATCH_LEN);
     if (max_match_len <= match_len)
         return;
@@ -3321,13 +3319,33 @@ tdefl_find_match(tdefl_compressor *d, mz_uint lookahead_pos, mz_uint max_dist,
         if (! dist)
             break;
         q = (const mz_uint16 *) (d->m_dict + probe_pos);
-        if (*q != s01)
+        if (TDEFL_READ_UNALIGNED_WORD(&d->m_dict[probe_pos]) != s01)
             continue;
-        p = s;
-        probe_len = 32;
-        do {
-        } while ((*(++p) == *(++q)) && (*(++p) == *(++q)) &&
-                 (*(++p) == *(++q)) && (*(++p) == *(++q)) && (--probe_len > 0));
+        /* Use byte-based comparison to avoid UBSan errors on unaligned access */
+        {
+            mz_uint pos_offset = 0;
+            mz_uint probe_offset = 0;
+            probe_len = 32;
+            do {
+                pos_offset += 2;
+                probe_offset += 2;
+            } while (
+                (TDEFL_READ_UNALIGNED_WORD(&d->m_dict[pos + pos_offset]) ==
+                 TDEFL_READ_UNALIGNED_WORD(&d->m_dict[probe_pos + probe_offset])) &&
+                (pos_offset += 2, probe_offset += 2,
+                 TDEFL_READ_UNALIGNED_WORD(&d->m_dict[pos + pos_offset]) ==
+                 TDEFL_READ_UNALIGNED_WORD(&d->m_dict[probe_pos + probe_offset])) &&
+                (pos_offset += 2, probe_offset += 2,
+                 TDEFL_READ_UNALIGNED_WORD(&d->m_dict[pos + pos_offset]) ==
+                 TDEFL_READ_UNALIGNED_WORD(&d->m_dict[probe_pos + probe_offset])) &&
+                (pos_offset += 2, probe_offset += 2,
+                 TDEFL_READ_UNALIGNED_WORD(&d->m_dict[pos + pos_offset]) ==
+                 TDEFL_READ_UNALIGNED_WORD(&d->m_dict[probe_pos + probe_offset])) &&
+                (--probe_len > 0));
+            /* Reconstruct p and q pointers for the rest of the code */
+            p = (const mz_uint16 *)(d->m_dict + pos + pos_offset);
+            q = (const mz_uint16 *)(d->m_dict + probe_pos + probe_offset);
+        }
         if (! probe_len) {
             *pMatch_dist = dist;
             *pMatch_len = MZ_MIN(max_match_len, TDEFL_MAX_MATCH_LEN);

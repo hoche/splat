@@ -15,30 +15,32 @@
 #include "splat_run.h"
 #include "utilities.h"
 
+extern "C" {
+#include "zip.h"
+}
+
 Kml::Kml(const ElevationMap &em, const SplatRun &sr)
     : path(sr.arraysize, sr.ppd),
       em(em),
       sr(sr) { }
 
-void Kml::WriteKML(const Site &source, const Site &destination) {
+std::string Kml::SanitizeFilename(const std::string &filename) {
+    std::string sanitized = filename;
+    for (size_t i = 0; i < sanitized.length(); i++) {
+        if (sanitized[i] == 32 || sanitized[i] == 17 ||
+            sanitized[i] == 92 || sanitized[i] == 42 ||
+            sanitized[i] == 47)
+            sanitized[i] = '_';
+    }
+    return sanitized;
+}
+
+void Kml::GenerateKMLContent(FILE *fd, const Site &source, const Site &destination,
+                             double azimuth, double distance) {
     int x, y;
     char block;
-    std::string report_name;
-    double distance, rx_alt, tx_alt, cos_xmtr_angle, azimuth, cos_test_angle,
-        test_alt;
-    FILE *fd = NULL;
-
-    path.ReadPath(source, destination, em);
-
-    report_name = source.name + "-to-" + destination.name + ".kml";
-
-    for (size_t i = 0; i < report_name.length(); i++)
-        if (report_name[i] == 32 || report_name[i] == 17 ||
-            report_name[i] == 92 || report_name[i] == 42 ||
-            report_name[i] == 47)
-            report_name[i] = '_';
-
-    fd = fopen(report_name.c_str(), "w");
+    double rx_alt, tx_alt, cos_xmtr_angle, cos_test_angle, test_alt;
+    double local_distance;
 
     fprintf(fd, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
     fprintf(fd, "<kml xmlns=\"http://earth.google.com/kml/2.0\">\n");
@@ -64,9 +66,6 @@ void Kml::WriteKML(const Site &source, const Site &destination) {
 
     fprintf(fd, "       <BR>%s West</BR>\n",
             Utilities::dec2dms(source.lon).c_str());
-
-    azimuth = source.Azimuth(destination);
-    distance = source.Distance(destination);
 
     if (sr.metric)
         fprintf(fd, "       <BR>%.2f km", distance * KM_PER_MILE);
@@ -192,7 +191,7 @@ void Kml::WriteKML(const Site &source, const Site &destination) {
     /* Walk across the "path", indentifying obstructions along the way */
 
     for (y = 0; y < path.length; y++) {
-        distance = 5280.0 * path.distance[y];
+        local_distance = 5280.0 * path.distance[y];
         tx_alt = sr.earthradius + source.alt + path.elevation[0];
         rx_alt = sr.earthradius + destination.alt + path.elevation[y];
 
@@ -200,16 +199,16 @@ void Kml::WriteKML(const Site &source, const Site &destination) {
          transmitter as seen at the temp rx point. */
 
         cos_xmtr_angle =
-            ((rx_alt * rx_alt) + (distance * distance) - (tx_alt * tx_alt)) /
-            (2.0 * rx_alt * distance);
+            ((rx_alt * rx_alt) + (local_distance * local_distance) - (tx_alt * tx_alt)) /
+            (2.0 * rx_alt * local_distance);
 
         for (x = y, block = 0; x >= 0 && block == 0; x--) {
-            distance = 5280.0 * (path.distance[y] - path.distance[x]);
+            local_distance = 5280.0 * (path.distance[y] - path.distance[x]);
             test_alt = sr.earthradius + path.elevation[x];
 
-            cos_test_angle = ((rx_alt * rx_alt) + (distance * distance) -
+            cos_test_angle = ((rx_alt * rx_alt) + (local_distance * local_distance) -
                               (test_alt * test_alt)) /
-                             (2.0 * rx_alt * distance);
+                             (2.0 * rx_alt * local_distance);
 
             /* Compare these two angles to determine if
              an obstruction exists.  Since we're comparing
@@ -247,10 +246,72 @@ void Kml::WriteKML(const Site &source, const Site &destination) {
 
     fprintf(fd, "</Folder>\n");
     fprintf(fd, "</kml>\n");
+}
+
+void Kml::WriteKML(const Site &source, const Site &destination) {
+    std::string report_name;
+    double distance, azimuth;
+    FILE *fd = NULL;
+
+    path.ReadPath(source, destination, em);
+
+    report_name = SanitizeFilename(source.name + "-to-" + destination.name + ".kml");
+    azimuth = source.Azimuth(destination);
+    distance = source.Distance(destination);
+
+    fd = fopen(report_name.c_str(), "w");
+    if (!fd) {
+        fprintf(stderr, "\nError: Unable to create KML file\n");
+        return;
+    }
+
+    GenerateKMLContent(fd, source, destination, azimuth, distance);
 
     fclose(fd);
 
     fprintf(stdout, "\nKML file written to: \"%s\"", report_name.c_str());
+    fflush(stdout);
+}
+
+void Kml::WriteKMZ(const Site &source, const Site &destination) {
+    std::string kmz_name, kml_temp_name;
+    double distance, azimuth;
+    FILE *fd = NULL;
+    struct zip_t *zip = NULL;
+
+    path.ReadPath(source, destination, em);
+
+    kmz_name = SanitizeFilename(source.name + "-to-" + destination.name + ".kmz");
+    kml_temp_name = SanitizeFilename(source.name + "-to-" + destination.name + "_temp.kml");
+    azimuth = source.Azimuth(destination);
+    distance = source.Distance(destination);
+
+    // Write KML content to temporary file
+    fd = fopen(kml_temp_name.c_str(), "w");
+    if (!fd) {
+        fprintf(stderr, "\nError: Unable to create temporary KML file\n");
+        return;
+    }
+
+    GenerateKMLContent(fd, source, destination, azimuth, distance);
+    fclose(fd);
+
+    // Create KMZ (zipped KML) file
+    zip = zip_open(kmz_name.c_str(), ZIP_DEFAULT_COMPRESSION_LEVEL, 'w');
+    if (zip) {
+        // Add the KML file as "doc.kml" (standard name for KMZ)
+        zip_entry_open(zip, "doc.kml");
+        zip_entry_fwrite(zip, kml_temp_name.c_str());
+        zip_entry_close(zip);
+        zip_close(zip);
+
+        // Remove temporary KML file
+        remove(kml_temp_name.c_str());
+
+        fprintf(stdout, "\nKMZ file written to: \"%s\"", kmz_name.c_str());
+    } else {
+        fprintf(stderr, "\nError: Unable to create KMZ file\n");
+    }
 
     fflush(stdout);
 }

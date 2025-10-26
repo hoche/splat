@@ -9,12 +9,36 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_BUILD_TYPE "Debug")
 
 # Find required libraries
-find_package(PNG REQUIRED)
-find_package(JPEG REQUIRED)
-find_package(GDAL REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(BZip2 REQUIRED)
 find_package(Threads REQUIRED)
+
+# Find optional libraries for graphics support
+find_package(PNG)
+find_package(JPEG)
+find_package(GDAL)
+
+# Define preprocessor macros for conditional compilation based on what was found
+if(PNG_FOUND)
+    add_compile_definitions(HAVE_LIBPNG)
+    message(STATUS "PNG support enabled")
+else()
+    message(STATUS "PNG support disabled - libpng not found")
+endif()
+
+if(JPEG_FOUND)
+    add_compile_definitions(HAVE_LIBJPEG)
+    message(STATUS "JPEG support enabled")
+else()
+    message(STATUS "JPEG support disabled - libjpeg not found")
+endif()
+
+if(GDAL_FOUND)
+    add_compile_definitions(HAVE_LIBGDAL)
+    message(STATUS "GDAL support enabled")
+else()
+    message(STATUS "GDAL support disabled - libgdal not found")
+endif()
 
 # Explicitly list all source files for the main executable
 # This is preferred over GLOB_RECURSE because CMake will automatically
@@ -53,22 +77,38 @@ add_executable(splat ${SPLAT_SOURCES})
 
 # Use target-specific include directories instead of global include_directories
 target_include_directories(splat PRIVATE
-    ${PNG_INCLUDE_DIRS}
-    ${JPEG_INCLUDE_DIRS}
-    ${GDAL_INCLUDE_DIRS}
     ${ZLIB_INCLUDE_DIRS}
     ${BZIP2_INCLUDE_DIRS}
 )
 
+# Add optional library includes if found
+if(PNG_FOUND)
+    target_include_directories(splat PRIVATE ${PNG_INCLUDE_DIRS})
+endif()
+if(JPEG_FOUND)
+    target_include_directories(splat PRIVATE ${JPEG_INCLUDE_DIRS})
+endif()
+if(GDAL_FOUND)
+    target_include_directories(splat PRIVATE ${GDAL_INCLUDE_DIRS})
+endif()
+
 # Link libraries to the executable
 target_link_libraries(splat PRIVATE
-    ${PNG_LIBRARIES}
-    ${JPEG_LIBRARIES}
-    ${GDAL_LIBRARIES}
     ${ZLIB_LIBRARIES}
     ${BZIP2_LIBRARIES}
     Threads::Threads
 )
+
+# Link optional libraries if found
+if(PNG_FOUND)
+    target_link_libraries(splat PRIVATE ${PNG_LIBRARIES})
+endif()
+if(JPEG_FOUND)
+    target_link_libraries(splat PRIVATE ${JPEG_LIBRARIES})
+endif()
+if(GDAL_FOUND)
+    target_link_libraries(splat PRIVATE ${GDAL_LIBRARIES})
+endif()
 
 # Installation
 install(TARGETS splat DESTINATION bin)
@@ -104,6 +144,7 @@ set(TEST_SOURCES
     tests/lrp_test.cpp
     tests/sdf_test.cpp
     tests/sdf_bz_test.cpp
+    tests/kml_test.cpp
 )
 
 # List source files needed by tests (excluding main.cpp)
@@ -144,23 +185,39 @@ add_executable(splat_tests ${TEST_SOURCES} ${TEST_REQUIRED_SOURCES})
 target_link_libraries(splat_tests PRIVATE
     GTest::gtest_main
     GTest::gmock_main
-    ${PNG_LIBRARIES}
-    ${JPEG_LIBRARIES}
-    ${GDAL_LIBRARIES}
     ${ZLIB_LIBRARIES}
     ${BZIP2_LIBRARIES}
     Threads::Threads
 )
 
+# Link optional libraries to tests if found
+if(PNG_FOUND)
+    target_link_libraries(splat_tests PRIVATE ${PNG_LIBRARIES})
+endif()
+if(JPEG_FOUND)
+    target_link_libraries(splat_tests PRIVATE ${JPEG_LIBRARIES})
+endif()
+if(GDAL_FOUND)
+    target_link_libraries(splat_tests PRIVATE ${GDAL_LIBRARIES})
+endif()
+
 # Include directories for tests
 target_include_directories(splat_tests PRIVATE
     src
-    ${PNG_INCLUDE_DIRS}
-    ${JPEG_INCLUDE_DIRS}
-    ${GDAL_INCLUDE_DIRS}
     ${ZLIB_INCLUDE_DIRS}
     ${BZIP2_INCLUDE_DIRS}
 )
+
+# Add optional library includes to tests if found
+if(PNG_FOUND)
+    target_include_directories(splat_tests PRIVATE ${PNG_INCLUDE_DIRS})
+endif()
+if(JPEG_FOUND)
+    target_include_directories(splat_tests PRIVATE ${JPEG_INCLUDE_DIRS})
+endif()
+if(GDAL_FOUND)
+    target_include_directories(splat_tests PRIVATE ${GDAL_INCLUDE_DIRS})
+endif()
 
 # Discover and register tests with CTest
 include(GoogleTest)

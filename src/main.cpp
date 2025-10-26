@@ -171,6 +171,7 @@ int main(int argc, const char *argv[]) {
                "     -ani name of alphanumeric input file\n"
                "     -udt name of user defined terrain input file\n"
                "     -kml generate Google Earth (.kml) compatible output\n"
+               "     -kmz generate Google Earth compressed (.kmz) output\n"
                "     -geo generate an Xastir .geo georeference file (with "
                "image output)\n"
                "     -dbm plot signal power level contours rather than field "
@@ -420,6 +421,9 @@ int main(int argc, const char *argv[]) {
 
         if (strcmp(argv[x], "-kml") == 0)
             sr.kml = true;
+
+        if (strcmp(argv[x], "-kmz") == 0)
+            sr.kmz = true;
 
         if (strcmp(argv[x], "-json") == 0)
             sr.json = true;
@@ -1063,6 +1067,11 @@ int main(int argc, const char *argv[]) {
             if (sr.kml) {
                 Kml kml(*em_p, sr);
                 kml.WriteKML(tx_site[x], rx_site);
+            }
+
+            if (sr.kmz) {
+                Kml kml(*em_p, sr);
+                kml.WriteKMZ(tx_site[x], rx_site);
             }
 
             // If there's more than one TX site, put a dash-tx_site_number on
