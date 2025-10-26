@@ -2,9 +2,9 @@ name: Static Analysis and Sanitizers
 
 on:
   push:
-    branches: [ main, master, develop, v2.0.0-b1 ]
+    branches: [ main, master, 2.0-develop ]
   pull_request:
-    branches: [ main, master, develop, v2.0.0-b1 ]
+    branches: [ main, master, 2.0-develop ]
   workflow_dispatch:
 
 jobs:
