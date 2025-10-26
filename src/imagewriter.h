@@ -38,6 +38,7 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 #include <string>
 
 #ifdef HAVE_LIBPNG
@@ -108,12 +109,12 @@ class ImageWriter {
     int m_xoffset_rgb = 0;
     int m_linenumber = 0;
 
-    unsigned char *m_imgline = NULL;
-    unsigned char *m_imgline_signal = NULL;
-    unsigned char *m_imgline_red = NULL;
-    unsigned char *m_imgline_green = NULL;
-    unsigned char *m_imgline_blue = NULL;
-    unsigned char *m_imgline_alpha = NULL;
+    std::unique_ptr<unsigned char[]> m_imgline;
+    std::unique_ptr<unsigned char[]> m_imgline_signal;
+    std::unique_ptr<unsigned char[]> m_imgline_red;
+    std::unique_ptr<unsigned char[]> m_imgline_green;
+    std::unique_ptr<unsigned char[]> m_imgline_blue;
+    std::unique_ptr<unsigned char[]> m_imgline_alpha;
 
 #ifdef HAVE_LIBPNG
 #define PNG_NTEXT 4
