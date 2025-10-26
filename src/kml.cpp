@@ -24,25 +24,23 @@ Kml::Kml(const ElevationMap &em, const SplatRun &sr)
       em(em),
       sr(sr) { }
 
-void Kml::WriteKML(const Site &source, const Site &destination) {
+std::string Kml::SanitizeFilename(const std::string &filename) {
+    std::string sanitized = filename;
+    for (size_t i = 0; i < sanitized.length(); i++) {
+        if (sanitized[i] == 32 || sanitized[i] == 17 ||
+            sanitized[i] == 92 || sanitized[i] == 42 ||
+            sanitized[i] == 47)
+            sanitized[i] = '_';
+    }
+    return sanitized;
+}
+
+void Kml::GenerateKMLContent(FILE *fd, const Site &source, const Site &destination,
+                             double azimuth, double distance) {
     int x, y;
     char block;
-    std::string report_name;
-    double distance, rx_alt, tx_alt, cos_xmtr_angle, azimuth, cos_test_angle,
-        test_alt;
-    FILE *fd = NULL;
-
-    path.ReadPath(source, destination, em);
-
-    report_name = source.name + "-to-" + destination.name + ".kml";
-
-    for (size_t i = 0; i < report_name.length(); i++)
-        if (report_name[i] == 32 || report_name[i] == 17 ||
-            report_name[i] == 92 || report_name[i] == 42 ||
-            report_name[i] == 47)
-            report_name[i] = '_';
-
-    fd = fopen(report_name.c_str(), "w");
+    double rx_alt, tx_alt, cos_xmtr_angle, cos_test_angle, test_alt;
+    double local_distance;
 
     fprintf(fd, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
     fprintf(fd, "<kml xmlns=\"http://earth.google.com/kml/2.0\">\n");
@@ -68,9 +66,6 @@ void Kml::WriteKML(const Site &source, const Site &destination) {
 
     fprintf(fd, "       <BR>%s West</BR>\n",
             Utilities::dec2dms(source.lon).c_str());
-
-    azimuth = source.Azimuth(destination);
-    distance = source.Distance(destination);
 
     if (sr.metric)
         fprintf(fd, "       <BR>%.2f km", distance * KM_PER_MILE);
@@ -196,7 +191,7 @@ void Kml::WriteKML(const Site &source, const Site &destination) {
     /* Walk across the "path", indentifying obstructions along the way */
 
     for (y = 0; y < path.length; y++) {
-        distance = 5280.0 * path.distance[y];
+        local_distance = 5280.0 * path.distance[y];
         tx_alt = sr.earthradius + source.alt + path.elevation[0];
         rx_alt = sr.earthradius + destination.alt + path.elevation[y];
 
@@ -204,16 +199,16 @@ void Kml::WriteKML(const Site &source, const Site &destination) {
          transmitter as seen at the temp rx point. */
 
         cos_xmtr_angle =
-            ((rx_alt * rx_alt) + (distance * distance) - (tx_alt * tx_alt)) /
-            (2.0 * rx_alt * distance);
+            ((rx_alt * rx_alt) + (local_distance * local_distance) - (tx_alt * tx_alt)) /
+            (2.0 * rx_alt * local_distance);
 
         for (x = y, block = 0; x >= 0 && block == 0; x--) {
-            distance = 5280.0 * (path.distance[y] - path.distance[x]);
+            local_distance = 5280.0 * (path.distance[y] - path.distance[x]);
             test_alt = sr.earthradius + path.elevation[x];
 
-            cos_test_angle = ((rx_alt * rx_alt) + (distance * distance) -
+            cos_test_angle = ((rx_alt * rx_alt) + (local_distance * local_distance) -
                               (test_alt * test_alt)) /
-                             (2.0 * rx_alt * distance);
+                             (2.0 * rx_alt * local_distance);
 
             /* Compare these two angles to determine if
              an obstruction exists.  Since we're comparing
@@ -251,43 +246,45 @@ void Kml::WriteKML(const Site &source, const Site &destination) {
 
     fprintf(fd, "</Folder>\n");
     fprintf(fd, "</kml>\n");
+}
+
+void Kml::WriteKML(const Site &source, const Site &destination) {
+    std::string report_name;
+    double distance, azimuth;
+    FILE *fd = NULL;
+
+    path.ReadPath(source, destination, em);
+
+    report_name = SanitizeFilename(source.name + "-to-" + destination.name + ".kml");
+    azimuth = source.Azimuth(destination);
+    distance = source.Distance(destination);
+
+    fd = fopen(report_name.c_str(), "w");
+    if (!fd) {
+        fprintf(stderr, "\nError: Unable to create KML file\n");
+        return;
+    }
+
+    GenerateKMLContent(fd, source, destination, azimuth, distance);
 
     fclose(fd);
 
     fprintf(stdout, "\nKML file written to: \"%s\"", report_name.c_str());
-
     fflush(stdout);
 }
 
 void Kml::WriteKMZ(const Site &source, const Site &destination) {
-    int x, y;
-    char block;
     std::string kmz_name, kml_temp_name;
-    double distance, rx_alt, tx_alt, cos_xmtr_angle, azimuth, cos_test_angle,
-        test_alt;
+    double distance, azimuth;
     FILE *fd = NULL;
     struct zip_t *zip = NULL;
 
     path.ReadPath(source, destination, em);
 
-    // Create KMZ filename
-    kmz_name = source.name + "-to-" + destination.name + ".kmz";
-
-    // Create temporary KML filename
-    kml_temp_name = source.name + "-to-" + destination.name + "_temp.kml";
-
-    // Sanitize filenames
-    for (size_t i = 0; i < kmz_name.length(); i++)
-        if (kmz_name[i] == 32 || kmz_name[i] == 17 ||
-            kmz_name[i] == 92 || kmz_name[i] == 42 ||
-            kmz_name[i] == 47)
-            kmz_name[i] = '_';
-
-    for (size_t i = 0; i < kml_temp_name.length(); i++)
-        if (kml_temp_name[i] == 32 || kml_temp_name[i] == 17 ||
-            kml_temp_name[i] == 92 || kml_temp_name[i] == 42 ||
-            kml_temp_name[i] == 47)
-            kml_temp_name[i] = '_';
+    kmz_name = SanitizeFilename(source.name + "-to-" + destination.name + ".kmz");
+    kml_temp_name = SanitizeFilename(source.name + "-to-" + destination.name + "_temp.kml");
+    azimuth = source.Azimuth(destination);
+    distance = source.Distance(destination);
 
     // Write KML content to temporary file
     fd = fopen(kml_temp_name.c_str(), "w");
@@ -296,214 +293,7 @@ void Kml::WriteKMZ(const Site &source, const Site &destination) {
         return;
     }
 
-    fprintf(fd, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-    fprintf(fd, "<kml xmlns=\"http://earth.google.com/kml/2.0\">\n");
-    fprintf(fd, "<!-- Generated by %s Version %s -->\n",
-            SplatRun::splat_name.c_str(), SplatRun::splat_version.c_str());
-    fprintf(fd, "<Folder>\n");
-    fprintf(fd, "<name>SPLAT! Path</name>\n");
-    fprintf(fd, "<open>1</open>\n");
-    fprintf(fd, "<description>Path Between %s and %s</description>\n",
-            source.name.c_str(), destination.name.c_str());
-
-    fprintf(fd, "<Placemark>\n");
-    fprintf(fd, "    <name>%s</name>\n", source.name.c_str());
-    fprintf(fd, "    <description>\n");
-    fprintf(fd, "       Transmit Site\n");
-
-    if (source.lat >= 0.0)
-        fprintf(fd, "       <BR>%s North</BR>\n",
-                Utilities::dec2dms(source.lat).c_str());
-    else
-        fprintf(fd, "       <BR>%s South</BR>\n",
-                Utilities::dec2dms(source.lat).c_str());
-
-    fprintf(fd, "       <BR>%s West</BR>\n",
-            Utilities::dec2dms(source.lon).c_str());
-
-    azimuth = source.Azimuth(destination);
-    distance = source.Distance(destination);
-
-    if (sr.metric)
-        fprintf(fd, "       <BR>%.2f km", distance * KM_PER_MILE);
-    else
-        fprintf(fd, "       <BR>%.2f miles", distance);
-
-    fprintf(fd, " to %s</BR>\n       <BR>toward an azimuth of %.2f%c</BR>\n",
-            destination.name.c_str(), azimuth, 176);
-
-    fprintf(fd, "    </description>\n");
-    fprintf(fd, "    <visibility>1</visibility>\n");
-    fprintf(fd, "    <Style>\n");
-    fprintf(fd, "      <IconStyle>\n");
-    fprintf(fd, "        <Icon>\n");
-    fprintf(fd, "          <href>root://icons/palette-5.png</href>\n");
-    fprintf(fd, "          <x>224</x>\n");
-    fprintf(fd, "          <y>224</y>\n");
-    fprintf(fd, "          <w>32</w>\n");
-    fprintf(fd, "          <h>32</h>\n");
-    fprintf(fd, "        </Icon>\n");
-    fprintf(fd, "      </IconStyle>\n");
-    fprintf(fd, "    </Style>\n");
-    fprintf(fd, "    <Point>\n");
-    fprintf(fd, "      <extrude>1</extrude>\n");
-    fprintf(fd, "      <altitudeMode>relativeToGround</altitudeMode>\n");
-    fprintf(fd, "      <coordinates>%f,%f,30</coordinates>\n",
-            (source.lon < 180.0 ? -source.lon : 360.0 - source.lon),
-            source.lat);
-    fprintf(fd, "    </Point>\n");
-    fprintf(fd, "</Placemark>\n");
-
-    fprintf(fd, "<Placemark>\n");
-    fprintf(fd, "    <name>%s</name>\n", destination.name.c_str());
-    fprintf(fd, "    <description>\n");
-    fprintf(fd, "       Receive Site\n");
-
-    if (destination.lat >= 0.0)
-        fprintf(fd, "       <BR>%s North</BR>\n",
-                Utilities::dec2dms(destination.lat).c_str());
-    else
-        fprintf(fd, "       <BR>%s South</BR>\n",
-                Utilities::dec2dms(destination.lat).c_str());
-
-    fprintf(fd, "       <BR>%s West</BR>\n",
-            Utilities::dec2dms(destination.lon).c_str());
-
-    if (sr.metric)
-        fprintf(fd, "       <BR>%.2f km", distance * KM_PER_MILE);
-    else
-        fprintf(fd, "       <BR>%.2f miles", distance);
-
-    fprintf(fd, " to %s</BR>\n       <BR>toward an azimuth of %.2f%c</BR>\n",
-            source.name.c_str(), destination.Azimuth(source), 176);
-
-    fprintf(fd, "    </description>\n");
-    fprintf(fd, "    <visibility>1</visibility>\n");
-    fprintf(fd, "    <Style>\n");
-    fprintf(fd, "      <IconStyle>\n");
-    fprintf(fd, "        <Icon>\n");
-    fprintf(fd, "          <href>root://icons/palette-5.png</href>\n");
-    fprintf(fd, "          <x>224</x>\n");
-    fprintf(fd, "          <y>224</y>\n");
-    fprintf(fd, "          <w>32</w>\n");
-    fprintf(fd, "          <h>32</h>\n");
-    fprintf(fd, "        </Icon>\n");
-    fprintf(fd, "      </IconStyle>\n");
-    fprintf(fd, "    </Style>\n");
-    fprintf(fd, "    <Point>\n");
-    fprintf(fd, "      <extrude>1</extrude>\n");
-    fprintf(fd, "      <altitudeMode>relativeToGround</altitudeMode>\n");
-    fprintf(
-        fd, "      <coordinates>%f,%f,30</coordinates>\n",
-        (destination.lon < 180.0 ? -destination.lon : 360.0 - destination.lon),
-        destination.lat);
-    fprintf(fd, "    </Point>\n");
-    fprintf(fd, "</Placemark>\n");
-
-    fprintf(fd, "<Placemark>\n");
-    fprintf(fd, "<name>Point-to-Point Path</name>\n");
-    fprintf(fd, "  <visibility>1</visibility>\n");
-    fprintf(fd, "  <open>0</open>\n");
-    fprintf(fd, "  <Style>\n");
-    fprintf(fd, "    <LineStyle>\n");
-    fprintf(fd, "      <color>7fffffff</color>\n");
-    fprintf(fd, "    </LineStyle>\n");
-    fprintf(fd, "    <PolyStyle>\n");
-    fprintf(fd, "       <color>7fffffff</color>\n");
-    fprintf(fd, "    </PolyStyle>\n");
-    fprintf(fd, "  </Style>\n");
-    fprintf(fd, "  <LineString>\n");
-    fprintf(fd, "    <extrude>1</extrude>\n");
-    fprintf(fd, "    <tessellate>1</tessellate>\n");
-    fprintf(fd, "    <altitudeMode>relativeToGround</altitudeMode>\n");
-    fprintf(fd, "    <coordinates>\n");
-
-    for (x = 0; x < path.length; x++)
-        fprintf(fd, "      %f,%f,5\n",
-                (path.lon[x] < 180.0 ? -path.lon[x] : 360.0 - path.lon[x]),
-                path.lat[x]);
-
-    fprintf(fd, "    </coordinates>\n");
-    fprintf(fd, "   </LineString>\n");
-    fprintf(fd, "</Placemark>\n");
-
-    fprintf(fd, "<Placemark>\n");
-    fprintf(fd, "<name>Line-of-Sight Path</name>\n");
-    fprintf(fd, "  <visibility>1</visibility>\n");
-    fprintf(fd, "  <open>0</open>\n");
-    fprintf(fd, "  <Style>\n");
-    fprintf(fd, "    <LineStyle>\n");
-    fprintf(fd, "      <color>ff00ff00</color>\n");
-    fprintf(fd, "    </LineStyle>\n");
-    fprintf(fd, "    <PolyStyle>\n");
-    fprintf(fd, "       <color>7f00ff00</color>\n");
-    fprintf(fd, "    </PolyStyle>\n");
-    fprintf(fd, "  </Style>\n");
-    fprintf(fd, "  <LineString>\n");
-    fprintf(fd, "    <extrude>1</extrude>\n");
-    fprintf(fd, "    <tessellate>1</tessellate>\n");
-    fprintf(fd, "    <altitudeMode>relativeToGround</altitudeMode>\n");
-    fprintf(fd, "    <coordinates>\n");
-
-    /* Walk across the "path", indentifying obstructions along the way */
-
-    for (y = 0; y < path.length; y++) {
-        distance = 5280.0 * path.distance[y];
-        tx_alt = sr.earthradius + source.alt + path.elevation[0];
-        rx_alt = sr.earthradius + destination.alt + path.elevation[y];
-
-        /* Calculate the cosine of the elevation of the
-         transmitter as seen at the temp rx point. */
-
-        cos_xmtr_angle =
-            ((rx_alt * rx_alt) + (distance * distance) - (tx_alt * tx_alt)) /
-            (2.0 * rx_alt * distance);
-
-        for (x = y, block = 0; x >= 0 && block == 0; x--) {
-            distance = 5280.0 * (path.distance[y] - path.distance[x]);
-            test_alt = sr.earthradius + path.elevation[x];
-
-            cos_test_angle = ((rx_alt * rx_alt) + (distance * distance) -
-                              (test_alt * test_alt)) /
-                             (2.0 * rx_alt * distance);
-
-            /* Compare these two angles to determine if
-             an obstruction exists.  Since we're comparing
-             the cosines of these angles rather than
-             the angles themselves, the following "if"
-             statement is reversed from what it would
-             be if the actual angles were compared. */
-
-            if (cos_xmtr_angle >= cos_test_angle)
-                block = 1;
-        }
-
-        if (block)
-            fprintf(fd, "      %f,%f,-30\n",
-                    (path.lon[y] < 180.0 ? -path.lon[y] : 360.0 - path.lon[y]),
-                    path.lat[y]);
-        else
-            fprintf(fd, "      %f,%f,5\n",
-                    (path.lon[y] < 180.0 ? -path.lon[y] : 360.0 - path.lon[y]),
-                    path.lat[y]);
-    }
-
-    fprintf(fd, "    </coordinates>\n");
-    fprintf(fd, "  </LineString>\n");
-    fprintf(fd, "</Placemark>\n");
-
-    fprintf(fd, "    <LookAt>\n");
-    fprintf(fd, "      <longitude>%f</longitude>\n",
-            (source.lon < 180.0 ? -source.lon : 360.0 - source.lon));
-    fprintf(fd, "      <latitude>%f</latitude>\n", source.lat);
-    fprintf(fd, "      <range>300.0</range>\n");
-    fprintf(fd, "      <tilt>45.0</tilt>\n");
-    fprintf(fd, "      <heading>%f</heading>\n", azimuth);
-    fprintf(fd, "    </LookAt>\n");
-
-    fprintf(fd, "</Folder>\n");
-    fprintf(fd, "</kml>\n");
-
+    GenerateKMLContent(fd, source, destination, azimuth, distance);
     fclose(fd);
 
     // Create KMZ (zipped KML) file
