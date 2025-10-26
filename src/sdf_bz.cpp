@@ -42,7 +42,8 @@ char *SdfBz::BZfgets(BZFILE *bzfd, unsigned length) {
 
     static int x, y, nBuf;
     static char buffer[BZBUFFER + 1], output[BZBUFFER + 1];
-    bool done = false, opened = false;
+    static bool opened = false;  // Must be static to persist across calls
+    bool done = false;
 
     if (opened != 1 && bzerror == BZ_OK) {
         /* First time through.  Initialize everything! */
