@@ -70,6 +70,8 @@ splat
 .br
 [-imperial]
 .br
+[-msl]
+.br
 [-olditm]
 .SH DESCRIPTION
 \fBSPLAT!\fP is a powerful terrestrial RF propagation and terrain
@@ -185,12 +187,14 @@ sites analyzed by the program from ASCII files having a \fI.qth\fP extension.
 QTH files contain the site's name, the site's latitude (positive if North
 of the equator, negative if South), the site's longitude (in degrees West,
 0 to 360 degrees, or degrees East 0 to -360 degrees), and the site's
-antenna height above ground level (AGL), each separated by a single
-line-feed character.  The antenna height is assumed to be specified in
-feet unless followed by the letter \fIm\fP or the word \fImeters\fP in
-either upper or lower case.  Latitude and longitude information may be
-expressed in either decimal format (74.6864) or degree, minute, second
-(DMS) format (74 41 11.0).
+antenna height, interpreted by default as  above ground level (AGL),
+each separated by a single line-feed character.  The antenna height is
+assumed to be specified in feet unless followed by the letter \fIm\fP or
+the word \fImeters\fP in either upper or lower case.  You can optionally
+add a single line following the altitude containing either \fMSL\f or
+\fAGL\f to indicate that the altitude is measured from sea level or ground
+level.  Latitude and longitude information may be expressed in either
+decimal format (74.6864) or degree, minute, second (DMS) format (74 41 11.0).
 .PP
 For example, a site location file describing television station WNJT-DT,
 Trenton, NJ (\fIwnjt-dt.qth\fP) might read as follows:
@@ -461,6 +465,8 @@ line will return a summary of \fBSPLAT!\fP's command line options:
  -gpsav preserve gnuplot temporary working files after SPLAT! execution
 .br
 -imperial employ imperial rather than metric units for all user I/O
+.br
+-msl assume TX and RX site altitudes are referenced from MSL instead of AGL
 .br
 -olditm invoke older ITM propagation model rather than the newer ITWOM
 .br
