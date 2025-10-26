@@ -3074,7 +3074,8 @@ static mz_bool tdefl_compress_lz_codes(tdefl_compressor *d) {
         if (pOutput_buf >= d->m_pOutput_buf_end)
             return MZ_FALSE;
 
-        *(mz_uint64 *) pOutput_buf = bit_buffer;
+        /* Use memcpy to avoid UBSan error on unaligned 64-bit write */
+        memcpy(pOutput_buf, &bit_buffer, sizeof(mz_uint64));
         pOutput_buf += (bits_in >> 3);
         bit_buffer >>= (bits_in & ~7);
         bits_in &= 7;
