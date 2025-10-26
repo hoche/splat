@@ -213,7 +213,7 @@ jobs:
         shell: bash
         run: |
           # Install dependencies
-          sudo pkg install -y cmake ninja bzip2 googletest png jpeg-turbo gdal
+          sudo pkg install -y git cmake ninja bzip2 googletest png jpeg-turbo gdal
 
           # Configure
           cmake -B build \

@@ -202,7 +202,7 @@ cmake -B build -DCMAKE_TOOLCHAIN_FILE="./vcpkg/scripts/buildsystems/vcpkg.cmake"
 
 #### FreeBSD
 ```bash
-sudo pkg install cmake ninja bzip2 googletest png jpeg-turbo gdal
+sudo pkg install git cmake ninja bzip2 googletest png jpeg-turbo gdal
 ```
 
 ## Troubleshooting
