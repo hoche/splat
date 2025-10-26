@@ -19,8 +19,9 @@
 extern "C" {
 #endif
 
-#if !defined(_SSIZE_T_DEFINED) && !defined(_SSIZE_T_DEFINED_) &&               \
-    !defined(_SSIZE_T) && !defined(_SSIZE_T_) && !defined(__ssize_t_defined)
+#if ! defined(_SSIZE_T_DEFINED) && ! defined(_SSIZE_T_DEFINED_) &&             \
+    ! defined(_SSIZE_T) && ! defined(_SSIZE_T_) &&                             \
+    ! defined(__ssize_t_defined)
 #define _SSIZE_T
 // 64-bit Windows is the only mainstream platform
 // where sizeof(long) != sizeof(void*)

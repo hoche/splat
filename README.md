@@ -37,7 +37,12 @@ You can generally get these via system packages. For instance:
 
 `yum install cmake bzip2-devel zlib-devel libpng-devel libjpeg-turbo-devel libgdal-devel gnuplot`
 
-### Debian (Buster) and Ubuntu (18.04 LTS):
+### Debian and Ubuntu
+
+- Debian Trixie and Ubuntu 24.04 LTS
+- Debian Bookworm and Ubuntu 22.04 LTS
+- Debian Bullseye and Ubuntu 20.04 LTS
+- Debian Buster and Ubuntu 18.04 LTS
 
 `apt-get install cmake libbz2-dev zlib1g-dev libjpeg-dev libpng-dev libgdal-dev gnuplot`
 
@@ -47,16 +52,12 @@ You can generally get these via system packages. For instance:
 
 `brew install cmake jpeg libpng libgdal gnuplot`
 
-#### MacPorts
-`port install cmake jpeg libpng libgdal gnuplot`
-
-### Example Build on Ubuntu 18.04 LTS
-As an example, a build on Ubuntu 18.04 LTS might look like this:
+### Example Build on Ubuntu 24.04 LTS
+As an example, a build on Ubuntu 24.04 LTS might look like this after installing packages as indicated above:
 
 ```
-sudo apt install git cmake
 git clone https://github.com/hoche/splat.git
-sudo apt install libbz2-dev zlib1g-dev libjpeg-dev libpng-dev libgdal-dev gnuplot
+mkdir splat/build
 cd splat/build
 cmake ..
 make
@@ -174,6 +175,15 @@ The build system has been converted to CMake.
 * Since we have to link to zlib for the pngs, we might as well create kmz files if asked.
 * More code cleanup.
 * Reformat tabs to four spaces.
+
+## Note about lrp files
+
+vim will try to interpret these as "Linux Router Project" files. You can disablethis by setting:
+
+	let g:loaded_tarPlugin = 1
+	let g:loaded_tar = 1
+
+in your ~/.vimrc.
 
 ## Acknowledgements
 This project and code is based on the original SPLAT! version 1.4.2 by John A. Magliacane, KD2BD:

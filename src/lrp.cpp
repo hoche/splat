@@ -13,13 +13,13 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <fstream>
 #include <iostream>
+#include <sstream>
 #include <string>
 
-using namespace std;
-
 char Lrp::ReadLRParm(const Site &txsite, char forced_read, bool &loadPat,
-                     string &filenameOut) {
+                     std::string &filenameOut) {
     /* This function reads ITM parameter data for the transmitter
      site.  The file name is the same as the txsite, except the
      filename extension is .lrp.  If the needed file is not found,
@@ -29,9 +29,25 @@ char Lrp::ReadLRParm(const Site &txsite, char forced_read, bool &loadPat,
      into this function to be used and written to "splat.lrp". */
 
     double din;
-    char filename[255], string[80], *pointer = NULL, return_value = 0;
-    int iin = 0, ok = 0, x;
-    FILE *fd = NULL, *outfile = NULL;
+    std::string filename;
+    std::string line;
+    char return_value = 0;
+    int iin = 0;
+    bool ok = true;
+    FILE *outfile = NULL;
+
+    // Helper lambda to read line and strip comments
+    auto read_and_strip = [](std::ifstream &file, std::string &line) -> bool {
+        if (std::getline(file, line)) {
+            // Strip comments (everything after ';')
+            size_t comment_pos = line.find(';');
+            if (comment_pos != std::string::npos) {
+                line = line.substr(0, comment_pos);
+            }
+            return true;
+        }
+        return false;
+    };
 
     /* Default parameters */
 
@@ -47,139 +63,136 @@ char Lrp::ReadLRParm(const Site &txsite, char forced_read, bool &loadPat,
 
     /* Generate .lrp filename from txsite filename. */
 
-    for (x = 0; txsite.filename[x] != '.' && txsite.filename[x] != 0 && x < 250;
-         x++)
-        filename[x] = txsite.filename[x];
-
-    filename[x] = '.';
-    filename[x + 1] = 'l';
-    filename[x + 2] = 'r';
-    filename[x + 3] = 'p';
-    filename[x + 4] = 0;
-
-    fd = fopen(filename, "r");
-
-    if (fd == NULL) {
-        /* Load default "splat.lrp" file */
-
-        strncpy(filename, "splat.lrp\0", 10);
-        fd = fopen(filename, "r");
+    std::string base = txsite.filename;
+    size_t dot_pos = base.find('.');
+    if (dot_pos != std::string::npos) {
+        filename = base.substr(0, dot_pos) + ".lrp";
+    } else {
+        filename = base + ".lrp";
     }
 
-    if (fd != NULL) {
-        fgets(string, 80, fd);
+    std::ifstream infile(filename);
 
-        pointer = strchr(string, ';');
+    if (! infile.is_open()) {
+        /* Load default "splat.lrp" file */
+        filename = "splat.lrp";
+        infile.open(filename);
+    }
 
-        if (pointer != NULL)
-            *pointer = 0;
+    if (infile.is_open()) {
+        std::stringstream ss;
 
-        ok = sscanf(string, "%lf", &din);
-
-        if (ok) {
-            eps_dielect = din;
-
-            fgets(string, 80, fd);
-
-            pointer = strchr(string, ';');
-
-            if (pointer != NULL)
-                *pointer = 0;
-
-            ok = sscanf(string, "%lf", &din);
+        // Read eps_dielect
+        if (read_and_strip(infile, line)) {
+            ss.clear();
+            ss.str(line);
+            if (ss >> din) {
+                eps_dielect = din;
+            } else {
+                ok = false;
+            }
+        } else {
+            ok = false;
         }
 
-        if (ok) {
-            sgm_conductivity = din;
-
-            fgets(string, 80, fd);
-
-            pointer = strchr(string, ';');
-
-            if (pointer != NULL)
-                *pointer = 0;
-
-            ok = sscanf(string, "%lf", &din);
+        // Read sgm_conductivity
+        if (ok && read_and_strip(infile, line)) {
+            ss.clear();
+            ss.str(line);
+            if (ss >> din) {
+                sgm_conductivity = din;
+            } else {
+                ok = false;
+            }
+        } else {
+            ok = false;
         }
 
-        if (ok) {
-            eno_ns_surfref = din;
-
-            fgets(string, 80, fd);
-
-            pointer = strchr(string, ';');
-
-            if (pointer != NULL)
-                *pointer = 0;
-
-            ok = sscanf(string, "%lf", &din);
+        // Read eno_ns_surfref
+        if (ok && read_and_strip(infile, line)) {
+            ss.clear();
+            ss.str(line);
+            if (ss >> din) {
+                eno_ns_surfref = din;
+            } else {
+                ok = false;
+            }
+        } else {
+            ok = false;
         }
 
-        if (ok) {
-            frq_mhz = din;
-
-            fgets(string, 80, fd);
-
-            pointer = strchr(string, ';');
-
-            if (pointer != NULL)
-                *pointer = 0;
-
-            ok = sscanf(string, "%d", &iin);
+        // Read frq_mhz
+        if (ok && read_and_strip(infile, line)) {
+            ss.clear();
+            ss.str(line);
+            if (ss >> din) {
+                frq_mhz = din;
+            } else {
+                ok = false;
+            }
+        } else {
+            ok = false;
         }
 
-        if (ok) {
-            radio_climate = iin;
-
-            fgets(string, 80, fd);
-
-            pointer = strchr(string, ';');
-
-            if (pointer != NULL)
-                *pointer = 0;
-
-            ok = sscanf(string, "%d", &iin);
+        // Read radio_climate
+        if (ok && read_and_strip(infile, line)) {
+            ss.clear();
+            ss.str(line);
+            if (ss >> iin) {
+                radio_climate = iin;
+            } else {
+                ok = false;
+            }
+        } else {
+            ok = false;
         }
 
-        if (ok) {
-            pol = iin;
-
-            fgets(string, 80, fd);
-
-            pointer = strchr(string, ';');
-
-            if (pointer != NULL)
-                *pointer = 0;
-
-            ok = sscanf(string, "%lf", &din);
+        // Read pol
+        if (ok && read_and_strip(infile, line)) {
+            ss.clear();
+            ss.str(line);
+            if (ss >> iin) {
+                pol = iin;
+            } else {
+                ok = false;
+            }
+        } else {
+            ok = false;
         }
 
-        if (ok) {
-            conf = din;
-
-            fgets(string, 80, fd);
-
-            pointer = strchr(string, ';');
-
-            if (pointer != NULL)
-                *pointer = 0;
-
-            ok = sscanf(string, "%lf", &din);
+        // Read conf
+        if (ok && read_and_strip(infile, line)) {
+            ss.clear();
+            ss.str(line);
+            if (ss >> din) {
+                conf = din;
+            } else {
+                ok = false;
+            }
+        } else {
+            ok = false;
         }
 
-        if (ok) {
-            rel = din;
-            din = 0.0;
-            return_value = 1;
+        // Read rel
+        if (ok && read_and_strip(infile, line)) {
+            ss.clear();
+            ss.str(line);
+            if (ss >> din) {
+                rel = din;
+                return_value = 1;
+            } else {
+                ok = false;
+            }
+        } else {
+            ok = false;
+        }
 
-            if (fgets(string, 80, fd) != NULL) {
-                pointer = strchr(string, ';');
-
-                if (pointer != NULL)
-                    *pointer = 0;
-
-                if (sscanf(string, "%lf", &din))
-                    erp = din;
+        // Read erp (optional)
+        if (ok && read_and_strip(infile, line)) {
+            ss.clear();
+            ss.str(line);
+            if (ss >> din) {
+                erp = din;
 
                 /* ERP in SPLAT! is referenced to 1 Watt
                  into a dipole (0 dBd).  If ERP is
@@ -187,13 +200,14 @@ char Lrp::ReadLRParm(const Site &txsite, char forced_read, bool &loadPat,
                  0 dBi radiator), convert dBm in EIRP
                  to ERP.  */
 
-                if ((strstr(string, "dBm") != NULL) ||
-                    (strstr(string, "dbm") != NULL))
+                if (line.find("dBm") != std::string::npos ||
+                    line.find("dbm") != std::string::npos) {
                     erp = (pow(10.0, (erp - 32.14) / 10.0));
+                }
             }
         }
 
-        fclose(fd);
+        infile.close();
 
         if (forced_erp != -1.0)
             erp = forced_erp;
@@ -207,7 +221,7 @@ char Lrp::ReadLRParm(const Site &txsite, char forced_read, bool &loadPat,
         }
     }
 
-    if (fd == NULL && forced_read) {
+    if (! infile.is_open() && forced_read) {
         /* Assign some default parameters
          for use in this run. */
 
@@ -254,13 +268,13 @@ char Lrp::ReadLRParm(const Site &txsite, char forced_read, bool &loadPat,
                 "\n\n%c*** There were problems reading your \"%s\" file! "
                 "***\nA \"splat.lrp\" file was written to your directory with "
                 "default data.\n",
-                7, filename);
+                7, filename.c_str());
     }
 
     else if (forced_read == 0)
         return_value = 0;
 
-    if (forced_read && (fd == NULL || ok == 0)) {
+    if (forced_read && (! ok)) {
         eps_dielect = 15.0;
         sgm_conductivity = 0.005;
         eno_ns_surfref = 301.0;

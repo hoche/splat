@@ -12,9 +12,10 @@
 #include "utilities.h"
 #include <cmath>
 #include <cstdio>
+#include <fstream>
 #include <string>
 
-using namespace std;
+Site::Site() { }
 
 Site::Site() { amsl_flag = false; }
 
@@ -98,12 +99,11 @@ double Site::Azimuth(const Site &destination) const {
  or 'm', or by the word "meters" or "Meters", in which
  case meters is assumed, and is handled accordingly
  */
-void Site::LoadQTH(const string &filename) {
+void Site::LoadQTH(const std::string &filename) {
     /* . */
 
-    string qthfile;
-    char string[50];
-    FILE *fd = NULL;
+    std::string qthfile;
+    std::string line;
 
     size_t x = filename.size();
     qthfile = filename;
@@ -117,59 +117,54 @@ void Site::LoadQTH(const string &filename) {
     lon = 361.0;
     alt = 0.0;
 
-    fd = fopen(qthfile.c_str(), "r");
+    std::ifstream infile(qthfile);
 
     // Early out if we can't open the file. TODO: Shouldn't we WARN?
-    if (fd == NULL)
+    if (! infile.is_open())
         return;
 
     /* Site Name */
-    fgets(string, 49, fd);
-
-    /* Strip <CR> and/or <LF> from end of site name */
-    name = string;
-    Utilities::Chomp(name);
+    if (std::getline(infile, line)) {
+        name = line;
+        Utilities::Chomp(name);
+    }
 
     /* Site Latitude */
-    fgets(string, 49, fd);
-    lat = Utilities::ReadBearing(string);
+    if (std::getline(infile, line)) {
+        lat = Utilities::ReadBearing(line);
+    }
 
     /* Site Longitude */
-    fgets(string, 49, fd);
-    lon = Utilities::ReadBearing(string);
+    if (std::getline(infile, line)) {
+        lon = Utilities::ReadBearing(line);
+    }
 
     if (lon < 0.0)
         lon += 360.0;
 
     /* Antenna Height */
-    fgets(string, 49, fd);
+    if (std::getline(infile, line)) {
+        Utilities::Chomp(line);
 
-    /* Remove <CR> and/or <LF> from antenna height string */
-    for (x = 0; string[x] != 13 && string[x] != 10 && string[x] != 0; x++)
-        ;
+        /* Antenna height may either be in feet or meters.
+         If the letter 'M' or 'm' is discovered in
+         the string, then this is an indication that
+         the value given is expressed in meters, and
+         must be converted to feet before exiting. */
 
-    string[x] = 0;
-
-    /* Antenna height may either be in feet or meters.
-     If the letter 'M' or 'm' is discovered in
-     the string, then this is an indication that
-     the value given is expressed in meters, and
-     must be converted to feet before exiting. */
-
-    for (x = 0;
-         string[x] != 'M' && string[x] != 'm' && string[x] != 0 && x < 48; x++)
-        ;
-
-    if (string[x] == 'M' || string[x] == 'm') {
-        string[x] = 0;
-        sscanf(string, "%f", &alt);
-        alt *= 3.28084;
+        if (line.find('M') != std::string::npos ||
+            line.find('m') != std::string::npos) {
+            // Remove the 'M' or 'm' and convert from meters to feet
+            size_t m_pos = line.find_first_of("Mm");
+            if (m_pos != std::string::npos) {
+                line = line.substr(0, m_pos);
+            }
+            alt = std::stof(line) * 3.28084f;
+        } else {
+            alt = std::stof(line);
+        }
     }
-
-    else {
-        string[x] = 0;
-        sscanf(string, "%f", &alt);
-    }
+    infile.close();
 
     /* Whether height is MSL or AGL */
     amsl_flag = false;

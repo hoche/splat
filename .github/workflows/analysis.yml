@@ -1,0 +1,231 @@
+name: Static Analysis and Sanitizers
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  # Address Sanitizer
+  asan:
+    name: AddressSanitizer
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build libbz2-dev zlib1g-dev libpng-dev libjpeg-dev libgdal-dev
+
+    - name: Configure with ASan
+      env:
+        CC: clang
+        CXX: clang++
+      run: |
+        cmake -B build \
+          -G Ninja \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DCMAKE_CXX_FLAGS="-fsanitize=address -fno-omit-frame-pointer -g" \
+          -DCMAKE_C_FLAGS="-fsanitize=address -fno-omit-frame-pointer -g" \
+          -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address"
+
+    - name: Build
+      run: cmake --build build -j
+
+    - name: Run tests with ASan
+      env:
+        ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
+      run: |
+        cd build
+        ./splat_tests
+
+  # Undefined Behavior Sanitizer
+  ubsan:
+    name: UndefinedBehaviorSanitizer
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build libbz2-dev zlib1g-dev libpng-dev libjpeg-dev libgdal-dev
+
+    - name: Configure with UBSan
+      env:
+        CC: clang
+        CXX: clang++
+      run: |
+        cmake -B build \
+          -G Ninja \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DCMAKE_CXX_FLAGS="-fsanitize=undefined -fno-omit-frame-pointer -g" \
+          -DCMAKE_C_FLAGS="-fsanitize=undefined -fno-omit-frame-pointer -g" \
+          -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=undefined"
+
+    - name: Build
+      run: cmake --build build -j
+
+    - name: Run tests with UBSan
+      env:
+        UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=1
+      run: |
+        cd build
+        ./splat_tests
+
+  # Thread Sanitizer
+  tsan:
+    name: ThreadSanitizer
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build libbz2-dev zlib1g-dev libpng-dev libjpeg-dev libgdal-dev
+
+    - name: Configure with TSan
+      env:
+        CC: clang
+        CXX: clang++
+      run: |
+        cmake -B build \
+          -G Ninja \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DCMAKE_CXX_FLAGS="-fsanitize=thread -fno-omit-frame-pointer -g" \
+          -DCMAKE_C_FLAGS="-fsanitize=thread -fno-omit-frame-pointer -g" \
+          -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=thread"
+
+    - name: Build
+      run: cmake --build build -j
+
+    - name: Run tests with TSan
+      env:
+        TSAN_OPTIONS: halt_on_error=1:second_deadlock_stack=1
+      run: |
+        cd build
+        ./splat_tests
+
+  # Static Analysis with clang-tidy
+  clang-tidy:
+    name: Clang-Tidy Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          cmake \
+          ninja-build \
+          libbz2-dev \
+          zlib1g-dev \
+          libpng-dev \
+          libjpeg-dev \
+          libgdal-dev \
+          clang-tidy
+
+    - name: Configure CMake
+      env:
+        CC: clang
+        CXX: clang++
+      run: |
+        cmake -B build \
+          -G Ninja \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+    - name: Run clang-tidy
+      run: |
+        find src -name '*.cpp' -o -name '*.h' | \
+        xargs clang-tidy -p build --warnings-as-errors='' || true
+
+  # Valgrind Memory Check
+  valgrind:
+    name: Valgrind Memory Check
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          cmake \
+          ninja-build \
+          libbz2-dev \
+          zlib1g-dev \
+          libpng-dev \
+          libjpeg-dev \
+          libgdal-dev \
+          valgrind
+
+    - name: Configure CMake
+      env:
+        CC: gcc
+        CXX: g++
+      run: |
+        cmake -B build \
+          -G Ninja \
+          -DCMAKE_BUILD_TYPE=Debug
+
+    - name: Build
+      run: cmake --build build -j
+
+    - name: Run tests with Valgrind
+      run: |
+        cd build
+        valgrind \
+          --leak-check=full \
+          --show-leak-kinds=all \
+          --track-origins=yes \
+          --verbose \
+          --error-exitcode=1 \
+          ./splat_tests || true
+
+  # cppcheck static analysis
+  cppcheck:
+    name: Cppcheck Static Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install cppcheck
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cppcheck
+
+    - name: Run cppcheck
+      run: |
+        cppcheck \
+          --enable=all \
+          --inconclusive \
+          --std=c++17 \
+          --suppress=missingIncludeSystem \
+          --inline-suppr \
+          --xml \
+          --xml-version=2 \
+          src/ 2> cppcheck-report.xml || true
+
+    - name: Upload cppcheck results
+      uses: actions/upload-artifact@v4
+      with:
+        name: cppcheck-report
+        path: cppcheck-report.xml

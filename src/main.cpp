@@ -41,9 +41,7 @@
 #include <string>
 #include <vector>
 
-using namespace std;
-
-void check_allocation(void *ptr, string name, const SplatRun &sr);
+void check_allocation(void *ptr, std::string name, const SplatRun &sr);
 
 int main(int argc, const char *argv[]) {
     size_t x, y, z = 0;
@@ -51,13 +49,14 @@ int main(int argc, const char *argv[]) {
         west_min, west_max, north_min, north_max;
 
     char *env = NULL;
-    string mapfile, elevation_file, height_file, longley_file, terrain_file,
-        udt_file, ani_filename, ano_filename, logfile, maxpages_str, proj;
+    std::string mapfile, elevation_file, height_file, longley_file,
+        terrain_file, udt_file, ani_filename, ano_filename, logfile,
+        maxpages_str, proj;
 
-    vector<std::string> city_file;
-    vector<std::string> boundary_file;
+    std::vector<std::string> city_file;
+    std::vector<std::string> boundary_file;
 
-    vector<Site> tx_site;
+    std::vector<Site> tx_site;
     Site rx_site;
 
     SplatRun sr;
@@ -65,7 +64,7 @@ int main(int argc, const char *argv[]) {
     sr.maxpages = 16;
     sr.arraysize = -1;
 
-	sr.propagation_model = PROP_ITM;
+    sr.propagation_model = PROP_ITM;
     sr.hd_mode = false;
     sr.coverage = false;
     sr.LRmap = false;
@@ -113,17 +112,17 @@ int main(int argc, const char *argv[]) {
 #else
     sr.imagetype = IMAGETYPE_PPM;
 #endif
-	sr.projection = PROJ_EPSG_4326;
+    sr.projection = PROJ_EPSG_4326;
     sr.multithread = true;
-    sr.verbose = 1;    
+    sr.verbose = 1;
     sr.sdf_delimiter = "_";
-    
-    if (argc == 1) {
-        cout
+   
+    if (argc == 1 || (argc == 2 && strcmp(argv[1], "--help") == 0)) {
+        std::cout
             << "\n\t\t --==[ " << SplatRun::splat_name << " v"
             << SplatRun::splat_version
             << " Available Options... ]==--\n\n"
-               "       -t txsite(s).qth (max of 4 with -c, max of 30 with -L)\n"
+               "       -t txsite(s).qth\n"
                "       -r sr.rxsite.qth\n"
                "       -c plot LOS coverage of TX(s) with an RX antenna at X "
                "feet/meters AGL\n"
@@ -176,7 +175,7 @@ int main(int argc, const char *argv[]) {
                "image output)\n"
                "     -dbm plot signal power level contours rather than field "
                "strength\n"
-               "     -log copy command line string to this output file\n"
+               "     -log copy command line std::string to this output file\n"
                "     -json create JSON file containing configuration \n"
                "   -gpsav preserve gnuplot temporary working files after "
                "SPLAT! execution\n"
@@ -197,7 +196,6 @@ int main(int argc, const char *argv[]) {
 
         return 1;
     }
-
 
     /* Scan for command line arguments */
     y = argc - 1;
@@ -236,7 +234,7 @@ int main(int argc, const char *argv[]) {
         if (strcmp(argv[x], "-v") == 0) {
             z = x + 1;
 
-            if (z < (size_t)argc && argv[z][0] && argv[z][0] != '-') {
+            if (z < (size_t) argc && argv[z][0] && argv[z][0] != '-') {
                 int verbose;
                 sscanf(argv[z], "%d", &verbose);
                 sr.verbose = verbose != 0;
@@ -341,11 +339,13 @@ int main(int argc, const char *argv[]) {
             sr.norm = strcmp(argv[x], "-H") == 0 ? true : false;
         }
 
-		bool imagetype_set = false;
+        bool imagetype_set = false;
 #ifdef HAVE_LIBPNG
         if (strcmp(argv[x], "-ppm") == 0) {
             if (imagetype_set && sr.imagetype != IMAGETYPE_PPM) {
-                fprintf(stdout, "-jpg and -ppm are exclusive options, ignoring -ppm.\n");
+                fprintf(
+                    stdout,
+                    "-jpg and -ppm are exclusive options, ignoring -ppm.\n");
             } else {
                 sr.imagetype = IMAGETYPE_PPM;
                 imagetype_set = true;
@@ -355,7 +355,9 @@ int main(int argc, const char *argv[]) {
 #ifdef HAVE_LIBGDAL
         if (strcmp(argv[x], "-tif") == 0) {
             if (imagetype_set && sr.imagetype != IMAGETYPE_PPM) {
-                fprintf(stdout, "-tif and -ppm are exclusive options, ignoring -ppm.\n");
+                fprintf(
+                    stdout,
+                    "-tif and -ppm are exclusive options, ignoring -ppm.\n");
             } else {
                 sr.imagetype = IMAGETYPE_GEOTIFF;
                 imagetype_set = true;
@@ -366,9 +368,13 @@ int main(int argc, const char *argv[]) {
         if (strcmp(argv[x], "-jpg") == 0) {
             if (imagetype_set && sr.imagetype != IMAGETYPE_JPG) {
 #ifdef HAVE_LIBPNG
-                fprintf(stdout, "-jpg and -ppm are exclusive options, ignoring -jpg.\n");
+                fprintf(
+                    stdout,
+                    "-jpg and -ppm are exclusive options, ignoring -jpg.\n");
 #else
-                fprintf(stdout, "-jpg and -png are exclusive options, ignoring -jpg.\n");
+                fprintf(
+                    stdout,
+                    "-jpg and -png are exclusive options, ignoring -jpg.\n");
 #endif
             } else {
                 sr.imagetype = IMAGETYPE_JPG;
@@ -379,19 +385,23 @@ int main(int argc, const char *argv[]) {
 
 #ifdef HAVE_LIBGDAL
         if (strcmp(argv[x], "-proj") == 0) {
-            if (sr.imagetype == IMAGETYPE_GEOTIFF || sr.imagetype == IMAGETYPE_PNG || sr.imagetype == IMAGETYPE_JPG) {
-				z = x + 1;
-				if (z <= y && argv[z][0] && argv[z][0] != '-') {
-					if(strcmp(argv[z], "epsg:3857") == 0) {
-						sr.projection = PROJ_EPSG_3857;
-					} else if(strcmp(argv[z], "epsg:4326") == 0) {
-						sr.projection = PROJ_EPSG_4326;
-					} else {
-						cerr << "Ignoring unknown projection " << argv[z] << " and taking epsg:4326 instead.\n";
-					}
-				}	
+            if (sr.imagetype == IMAGETYPE_GEOTIFF ||
+                sr.imagetype == IMAGETYPE_PNG ||
+                sr.imagetype == IMAGETYPE_JPG) {
+                z = x + 1;
+                if (z <= y && argv[z][0] && argv[z][0] != '-') {
+                    if (strcmp(argv[z], "epsg:3857") == 0) {
+                        sr.projection = PROJ_EPSG_3857;
+                    } else if (strcmp(argv[z], "epsg:4326") == 0) {
+                        sr.projection = PROJ_EPSG_4326;
+                    } else {
+                        std::cerr << "Ignoring unknown projection " << argv[z]
+                                  << " and taking epsg:4326 instead.\n";
+                    }
+                }
             } else {
-                cerr << "-proj supports only gdal output formats. Please use -png, -tif or -jpg.\n";
+                std::cerr << "-proj supports only gdal output formats. Please "
+                             "use -png, -tif or -jpg.\n";
             }
         }
 #endif
@@ -410,7 +420,7 @@ int main(int argc, const char *argv[]) {
 
         if (strcmp(argv[x], "-kml") == 0)
             sr.kml = true;
-            
+
         if (strcmp(argv[x], "-json") == 0)
             sr.json = true;
 
@@ -452,8 +462,9 @@ int main(int argc, const char *argv[]) {
 
             z = x + 1;
 
-            while (z <= y && argv[z][0] && argv[z][0] != '-' && tx_site.size() < 30) {
-                string txfile = argv[z];
+            while (z <= y && argv[z][0] && argv[z][0] != '-' &&
+                   tx_site.size() < 30) {
+                std::string txfile = argv[z];
                 tx_site.push_back(Site(txfile));
                 z++;
             }
@@ -471,7 +482,8 @@ int main(int argc, const char *argv[]) {
                 sr.area_mode = true;
 
                 if (sr.coverage)
-                    fprintf(stdout,"c and L are exclusive options, ignoring L.\n");
+                    fprintf(stdout,
+                            "c and L are exclusive options, ignoring L.\n");
             }
         }
 
@@ -491,7 +503,7 @@ int main(int argc, const char *argv[]) {
             z = x + 1;
 
             if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                string rxfile = argv[z];
+                std::string rxfile = argv[z];
                 rx_site.LoadQTH(rxfile);
                 sr.rxsite = true;
                 sr.pt2pt_mode = true;
@@ -569,9 +581,9 @@ int main(int argc, const char *argv[]) {
             if (z <= y && argv[z][0] && argv[z][0] != '-') {
                 maxpages_str = argv[z];
                 if (sscanf(maxpages_str.c_str(), "%d", &sr.maxpages) != 1) {
-                    cerr << "\n"
-                         << 7 << "*** ERROR: Could not parse maxpages: "
-                         << maxpages_str << "\n\n";
+                    std::cerr << "\n"
+                              << 7 << "*** ERROR: Could not parse maxpages: "
+                              << maxpages_str << "\n\n";
                     exit(-1);
                 }
             }
@@ -590,20 +602,21 @@ int main(int argc, const char *argv[]) {
         }
     } /* end of command line argument scanning */
 
-
     /* Perform some error checking on the arguments
      and switches parsed from the command-line.
      If an error is encountered, print a message
      and exit gracefully. */
 
     if (tx_site.size() == 0) {
-        fprintf(stderr, "\n%c*** ERROR: No transmitter site(s) specified!\n\n", 7);
+        fprintf(stderr, "\n%c*** ERROR: No transmitter site(s) specified!\n\n",
+                7);
         exit(-1);
     }
 
     for (x = 0, y = 0; x < tx_site.size(); x++) {
         if (tx_site[x].lat == 91.0 && tx_site[x].lon == 361.0) {
-            fprintf(stderr, "\n*** ERROR: Transmitter site #%lu not found!", x + 1);
+            fprintf(stderr, "\n*** ERROR: Transmitter site #%lu not found!",
+                    x + 1);
             y++;
         }
     }
@@ -613,14 +626,16 @@ int main(int argc, const char *argv[]) {
         exit(-1);
     }
 
-    if (!sr.coverage && !sr.LRmap && ani_filename.empty() &&
+    if (! sr.coverage && ! sr.LRmap && ani_filename.empty() &&
         rx_site.lat == 91.0 && rx_site.lon == 361.0) {
         if (sr.max_range != 0.0 && tx_site.size() != 0) {
             /* Plot topographic map of radius "sr.max_range" */
             sr.map = false;
             sr.topomap = true;
         } else {
-            fprintf(stderr, "\n%c*** ERROR: No receiver site found or specified!\n\n", 7);
+            fprintf(stderr,
+                    "\n%c*** ERROR: No receiver site found or specified!\n\n",
+                    7);
             exit(-1);
         }
     }
@@ -635,15 +650,16 @@ int main(int argc, const char *argv[]) {
     
     /* check if the output map should have a bottom legend */
     // TODO: PVW: LOS maps don't use a legend. Does sr.coverage detect those correctly?
-    if (sr.kml || sr.geo || (sr.imagetype == IMAGETYPE_GEOTIFF) || sr.coverage) {
-		sr.bottom_legend = false;
-	} else {
-		sr.bottom_legend = true;
-	}
+    if (sr.kml || sr.geo || (sr.imagetype == IMAGETYPE_GEOTIFF) ||
+        sr.coverage) {
+        sr.bottom_legend = false;
+    } else {
+        sr.bottom_legend = true;
+    }
 
     switch (sr.maxpages) {
     case 1:
-        if (!sr.hd_mode) {
+        if (! sr.hd_mode) {
             fprintf(
                 stderr,
                 "\n%c*** ERROR: -maxpages must be >= 4 if not in HD mode!\n\n",
@@ -689,15 +705,18 @@ int main(int argc, const char *argv[]) {
 
     sr.ippd = sr.hd_mode ? 3600 : 1200; /* pixels per degree (integer) */
 
-    int degrees = (int)sqrt((int)sr.maxpages);
+    int degrees = (int) sqrt((int) sr.maxpages);
 
-    cout << "This invocation of " << SplatRun::splat_name
-         << " supports analysis over a region of " << degrees << " square \n" << ((degrees == 1) ? "degree" : "degrees")
-		 << " of terrain, and computes signal levels using ITWOM Version " << ITWOMVersion() << ".\n\n";
+    std::cout << "This invocation of " << SplatRun::splat_name
+              << " supports analysis over a region of " << degrees
+              << " square \n"
+              << ((degrees == 1) ? "degree" : "degrees")
+              << " of terrain, and computes signal levels using ITWOM Version "
+              << ITWOMVersion() << ".\n\n";
 
-    sr.ppd = (double)sr.ippd; /* pixels per degree (double)  */
-    sr.dpp = 1.0 / sr.ppd;    /* degrees per pixel */
-    sr.mpi = sr.ippd - 1;     /* maximum pixel index per degree */
+    sr.ppd = (double) sr.ippd; /* pixels per degree (double)  */
+    sr.dpp = 1.0 / sr.ppd;     /* degrees per pixel */
+    sr.mpi = sr.ippd - 1;      /* maximum pixel index per degree */
 
     /* No major errors were detected.  Whew!  :-) */
 
@@ -720,8 +739,8 @@ int main(int argc, const char *argv[]) {
         env = getenv("HOME");
         std::string config_path = env;
         config_path += "/.splat_path";
-        fstream fs;
-        fs.open(config_path.c_str(), fstream::in);
+        std::fstream fs;
+        fs.open(config_path.c_str(), std::fstream::in);
 
         if (fs) {
             getline(fs, sr.sdf_path);
@@ -731,14 +750,14 @@ int main(int argc, const char *argv[]) {
 
     /* Ensure a trailing '/' is present in sr.sdf_path */
 
-    if (!sr.sdf_path.empty() && (*sr.sdf_path.rbegin() != '/')) {
+    if (! sr.sdf_path.empty() && (*sr.sdf_path.rbegin() != '/')) {
         sr.sdf_path += '/';
     }
     Sdf sdf(sr.sdf_path, sr);
 
     // Now print the header:
-    cout << "\n\t\t--==[ Welcome To " << SplatRun::splat_name << " v"
-         << SplatRun::splat_version << " ]==--\n\n";
+    std::cout << "\n\t\t--==[ Welcome To " << SplatRun::splat_name << " v"
+              << SplatRun::splat_version << " ]==--\n\n";
 
     elev_t *elev = new elev_t[sr.arraysize + 10];
     check_allocation(elev, "elev", sr);
@@ -751,17 +770,18 @@ int main(int argc, const char *argv[]) {
     CityFile cf;
     Region region;
 
-    if (!ani_filename.empty()) {
-	/* read alphanumeric output file from previous simulations if given */
-	
+    if (! ani_filename.empty()) {
+        /* read alphanumeric output file from previous simulations if given */
+
         // TODO: Here's an instance where reading the LRParms may say to load
         // a PAT file but it's never used. Refactor this.
         AntennaPattern pat = AntennaPattern();
 
         // TODO: Why only the first TX site?
         bool loadPat;
-        string patFilename;
-        lrp.ReadLRParm(tx_site[0], 0, loadPat, patFilename); /* Get ERP status */
+        std::string patFilename;
+        lrp.ReadLRParm(tx_site[0], 0, loadPat,
+                       patFilename); /* Get ERP status */
         if (loadPat) {
             pat.LoadAntennaPattern(patFilename);
         }
@@ -778,7 +798,7 @@ int main(int argc, const char *argv[]) {
         if (boundary_file.size() > 0) {
             for (x = 0; x < boundary_file.size(); x++) {
                 bf.LoadBoundaries(boundary_file[x], *em_p);
-			}
+            }
             fprintf(stdout, "\n");
             fflush(stdout);
         }
@@ -786,7 +806,7 @@ int main(int argc, const char *argv[]) {
         if (city_file.size() > 0) {
             for (x = 0; x < city_file.size(); x++) {
                 cf.LoadCities(city_file[x], *em_p);
-			}
+            }
             fprintf(stdout, "\n");
             fflush(stdout);
         }
@@ -803,7 +823,7 @@ int main(int argc, const char *argv[]) {
 
         exit(0);
     }
-    
+
     /* proceed for normal simulation */
 
     x = 0;
@@ -812,12 +832,12 @@ int main(int argc, const char *argv[]) {
     min_lat = 90;
     max_lat = -90;
 
-    min_lon = (int)floor(tx_site[0].lon);
-    max_lon = (int)floor(tx_site[0].lon);
+    min_lon = (int) floor(tx_site[0].lon);
+    max_lon = (int) floor(tx_site[0].lon);
 
     for (y = 0, z = 0; z < tx_site.size(); z++) {
-        txlat = (int)floor(tx_site[z].lat);
-        txlon = (int)floor(tx_site[z].lon);
+        txlat = (int) floor(tx_site[z].lat);
+        txlon = (int) floor(tx_site[z].lon);
 
         if (txlat < min_lat)
             min_lat = txlat;
@@ -833,8 +853,8 @@ int main(int argc, const char *argv[]) {
     }
 
     if (sr.rxsite) {
-        rxlat = (int)floor(rx_site.lat);
-        rxlon = (int)floor(rx_site.lon);
+        rxlat = (int) floor(rx_site.lat);
+        rxlon = (int) floor(rx_site.lon);
 
         if (rxlat < min_lat)
             min_lat = rxlat;
@@ -857,13 +877,14 @@ int main(int argc, const char *argv[]) {
             /* "Ball park" estimates used to load any additional
              SDF files required to conduct this analysis. */
 
-            sr.tx_range = sqrt(1.5 * (tx_site[z].alt + em_p->GetElevation(tx_site[z])));
+            sr.tx_range =
+                sqrt(1.5 * (tx_site[z].alt + em_p->GetElevation(tx_site[z])));
 
             if (sr.LRmap) {
                 sr.rx_range = sqrt(1.5 * sr.altitudeLR);
             } else {
                 sr.rx_range = sqrt(1.5 * sr.altitude);
-			}
+            }
 
             /* sr.deg_range determines the maximum
              amount of topo data we read */
@@ -880,7 +901,7 @@ int main(int argc, const char *argv[]) {
 
             if (sr.max_range == 0.0) {
                 sr.max_range = sr.tx_range + sr.rx_range;
-			}
+            }
             sr.deg_range = sr.max_range / 57.0;
 
             /* Prevent the demand for a really wide coverage
@@ -929,8 +950,8 @@ int main(int argc, const char *argv[]) {
                 sr.deg_range_lon = sr.deg_range / cos(DEG2RAD * tx_site[z].lat);
             } else {
                 sr.deg_range_lon = sr.deg_range / cos(DEG2RAD * 70.0);
-			}
-			
+            }
+
             /* Correct for squares in degrees not being square in miles */
             if (sr.deg_range > sr.deg_limit)
                 sr.deg_range = sr.deg_limit;
@@ -938,10 +959,10 @@ int main(int argc, const char *argv[]) {
             if (sr.deg_range_lon > sr.deg_limit)
                 sr.deg_range_lon = sr.deg_limit;
 
-            north_min = (int)floor(tx_site[z].lat - sr.deg_range);
-            north_max = (int)floor(tx_site[z].lat + sr.deg_range);
+            north_min = (int) floor(tx_site[z].lat - sr.deg_range);
+            north_max = (int) floor(tx_site[z].lat + sr.deg_range);
 
-            west_min = (int)floor(tx_site[z].lon - sr.deg_range_lon);
+            west_min = (int) floor(tx_site[z].lon - sr.deg_range_lon);
 
             while (west_min < 0)
                 west_min += 360;
@@ -949,7 +970,7 @@ int main(int argc, const char *argv[]) {
             while (west_min >= 360)
                 west_min -= 360;
 
-            west_max = (int)floor(tx_site[z].lon + sr.deg_range_lon);
+            west_max = (int) floor(tx_site[z].lon + sr.deg_range_lon);
 
             while (west_max < 0)
                 west_max += 360;
@@ -974,7 +995,7 @@ int main(int argc, const char *argv[]) {
         em_p->LoadTopoData(max_lon, min_lon, max_lat, min_lat, sdf);
     }
 
-    if (!udt_file.empty()) {
+    if (! udt_file.empty()) {
         Udt udt(sr);
         udt.LoadUDT(udt_file, *em_p);
     }
@@ -986,7 +1007,7 @@ int main(int argc, const char *argv[]) {
     if (sr.pt2pt_mode) {
         em_p->PlaceMarker(rx_site);
 
-        string ext;
+        std::string ext;
         if (sr.terrain_plot) {
             /* Extract extension (if present)
              from "terrain_file" */
@@ -1017,7 +1038,7 @@ int main(int argc, const char *argv[]) {
         for (x = 0; x < tx_site.size() && x < 4; x++) {
             em_p->PlaceMarker(tx_site[x]);
 
-            if (!sr.nolospath) {
+            if (! sr.nolospath) {
                 switch (x) {
                 case 0:
                     em_p->PlotPath(tx_site[x], rx_site, 1);
@@ -1036,7 +1057,7 @@ int main(int argc, const char *argv[]) {
                 }
             }
 
-            if (!sr.nositereports)
+            if (! sr.nositereports)
                 report.SiteReport(tx_site[x]);
 
             if (sr.kml) {
@@ -1053,12 +1074,12 @@ int main(int argc, const char *argv[]) {
             oss << "." << ext;
 
             AntennaPattern pat;
-            if (!sr.nositereports) {
+            if (! sr.nositereports) {
                 filename = longley_file + oss.str();
-                bool longly_file_exists = !longley_file.empty();
+                bool longly_file_exists = ! longley_file.empty();
 
                 bool loadPat;
-                string patFilename;
+                std::string patFilename;
                 lrp.ReadLRParm(tx_site[x], longly_file_exists, loadPat,
                                patFilename);
                 if (loadPat) {
@@ -1068,7 +1089,7 @@ int main(int argc, const char *argv[]) {
                                   longly_file_exists, elev, pat, lrp);
             } else {
                 bool loadPat;
-                string patFilename;
+                std::string patFilename;
                 lrp.ReadLRParm(tx_site[x], 1, loadPat, patFilename);
                 if (loadPat) {
                     pat.LoadAntennaPattern(patFilename);
@@ -1097,7 +1118,7 @@ int main(int argc, const char *argv[]) {
         }
     }
 
-    if (sr.area_mode && !sr.topomap) {
+    if (sr.area_mode && ! sr.topomap) {
         // Allocate the antenna pattern on the heap because it has a huge array
         // of floats that would otherwise be on the stack.
         AntennaPattern *p_pat = new AntennaPattern();
@@ -1107,14 +1128,15 @@ int main(int argc, const char *argv[]) {
                 em_p->PlotLOSMap(tx_site[x], sr.altitude);
             } else {
                 bool loadPat;
-                string patFilename;
+                std::string patFilename;
                 char flag = lrp.ReadLRParm(tx_site[x], 1, loadPat, patFilename);
                 if (loadPat) {
                     p_pat->LoadAntennaPattern(patFilename);
                 }
 
                 if (flag) {
-                    em_p->PlotLRMap(tx_site[x], sr.altitudeLR, ano_filename, *p_pat, lrp);
+                    em_p->PlotLRMap(tx_site[x], sr.altitudeLR, ano_filename,
+                                    *p_pat, lrp);
                 }
             }
 
@@ -1126,7 +1148,7 @@ int main(int argc, const char *argv[]) {
     if (sr.map || sr.topomap) {
         /* Label the map */
 
-        if (!(sr.kml || sr.imagetype == IMAGETYPE_GEOTIFF)) {
+        if (! (sr.kml || sr.imagetype == IMAGETYPE_GEOTIFF)) {
             for (x = 0; x < tx_site.size(); x++)
                 em_p->PlaceMarker(tx_site[x]);
         }
@@ -1167,35 +1189,36 @@ int main(int argc, const char *argv[]) {
             else
                 image.WriteCoverageMap(MAPTYPE_DBUVM, sr.imagetype, region);
         }
-    }    
+    }
 
-    if (sr.command_line_log && !logfile.empty()) {
-        fstream fs;
-        fs.open(logfile.c_str(), fstream::out);
+    if (sr.command_line_log && ! logfile.empty()) {
+        std::fstream fs;
+        fs.open(logfile.c_str(), std::fstream::out);
 
         // TODO: Should we fail silently if we can't open the logfile. Shouldn't
         // we WARN?
         if (fs) {
-            for (x = 0; x < (size_t)argc; x++) {
+            for (x = 0; x < (size_t) argc; x++) {
                 fs << argv[x] << " ";
-			}
-            fs << endl;
+            }
+            fs << std::endl;
             fs.close();
 
-            cout << "\nCommand-line parameter log written to: \"" << logfile << "\"\n";
+            std::cout << "\nCommand-line parameter log written to: \""
+                      << logfile << "\"\n";
         }
     }
 
-    cout << endl;
-    
+    std::cout << std::endl;
+
     /* json input/output must be somewhere else, but this is how it goes: 
     //================
     arg_t args;
 	
-	string curr_arg = "";
+	std::string curr_arg = "";
 	int curr_arg_i = 0;
 	for(int i=0; i<argc; i++) {		// step through argv[] array
-		string arg = argv[i];
+		std::string arg = argv[i];
 		if(arg.find("-") == 0) {	// check if current argument has leading "-"
 			curr_arg = arg.erase(0,1);	// remove leading "-" and save as new array entry
 			curr_arg_i = i;		// save position for multiple parameters
@@ -1234,10 +1257,10 @@ int main(int argc, const char *argv[]) {
     return 0;
 }
 
-void check_allocation(void *ptr, string name, const SplatRun &sr) {
+void check_allocation(void *ptr, std::string name, const SplatRun &sr) {
     if (ptr == NULL) {
-        cerr << "\n\a*** ERROR: Could not allocate memory for " << name
-             << " with -maxpages == " << sr.maxpages << "\n\n";
+        std::cerr << "\n\a*** ERROR: Could not allocate memory for " << name
+                  << " with -maxpages == " << sr.maxpages << "\n\n";
         exit(-1);
     }
 }

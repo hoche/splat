@@ -8,8 +8,7 @@
  * This file is covered by the LICENSE.md file in the root of this project.
  */
 
-#ifndef boundary_file_h
-#define boundary_file_h
+#pragma once
 
 #include "elevation_map.h"
 #include "path.h"
@@ -25,5 +24,3 @@ class BoundaryFile {
 
     void LoadBoundaries(const std::string &filename, ElevationMap &em);
 };
-
-#endif /* boundary_file_hpp */

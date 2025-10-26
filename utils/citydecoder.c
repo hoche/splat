@@ -40,123 +40,186 @@
 *****************************************************************************/
 
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
-int main(argc,argv)
+int main(argc, argv)
 char argc, *argv[];
 {
-	int x, y, z;
-	long attributefile_id, coordinatefile_id;
-	char string[80], name[80], attributefilename[15], coordinatefilename[15];
-	double lat, lon;
-	FILE *attributefile=NULL, *coordinatefile=NULL;
+    int x, y, z;
+    long attributefile_id, coordinatefile_id;
+    char string[80], name[80], attributefilename[15], coordinatefilename[15];
+    double lat, lon;
+    FILE *attributefile = NULL, *coordinatefile = NULL;
 
-	if (argc==1)
-	{
-		fprintf(stderr,"\n*** Usage: citydecoder pl34 cs34 pl42 cs42 | sort > outputfile\n\n");
-		exit(1);
-	}
+    if (argc == 1) {
+        fprintf(stderr, "\n*** Usage: citydecoder pl34 cs34 pl42 cs42 | sort > "
+                        "outputfile\n\n");
+        exit(1);
+    }
 
-	for (z=1; z<argc; z++)
-	{
-		sprintf(attributefilename,"%s_d00a.dat",argv[z]);
-		sprintf(coordinatefilename,"%s_d00.dat",argv[z]);
+    for (z = 1; z < argc; z++) {
+        sprintf(attributefilename, "%s_d00a.dat", argv[z]);
+        sprintf(coordinatefilename, "%s_d00.dat", argv[z]);
 
-		attributefile=fopen(attributefilename,"r");
-		coordinatefile=fopen(coordinatefilename,"r");
+        attributefile = fopen(attributefilename, "r");
+        coordinatefile = fopen(coordinatefilename, "r");
 
-		if (attributefile!=NULL && coordinatefile!=NULL)
-		{
-			/* Skip First ASCII File Record (ID=0) */
+        if (attributefile != NULL && coordinatefile != NULL) {
+            /* Skip First ASCII File Record (ID=0) */
 
-			for (x=0; x<7; x++)
-				fgets(string,80,attributefile);
+            for (x = 0; x < 7; x++) {
+                if (fgets(string, 80, attributefile) == NULL) {
+                    fprintf(
+                        stderr,
+                        "*** Error reading attribute file header at line %d\n",
+                        x + 1);
+                    fclose(attributefile);
+                    fclose(coordinatefile);
+                    continue; /* Skip to next file */
+                }
+            }
 
-			/* Skip yet another line for "cs" files */
+            /* Skip yet another line for "cs" files */
 
-			if (argv[z][0]=='c' && argv[z][1]=='s')
-				fgets(string,80,attributefile);
-			do
-			{
-				string[0]=0;
-				fscanf(coordinatefile,"%ld", &coordinatefile_id);
+            if (argv[z][0] == 'c' && argv[z][1] == 's') {
+                if (fgets(string, 80, attributefile) == NULL) {
+                    fprintf(
+                        stderr,
+                        "*** Error reading attribute file extra header line\n");
+                    fclose(attributefile);
+                    fclose(coordinatefile);
+                    continue; /* Skip to next file */
+                }
+            }
+            do {
+                string[0] = 0;
+                if (fscanf(coordinatefile, "%ld", &coordinatefile_id) != 1) {
+                    if (feof(coordinatefile))
+                        break; /* End of file reached normally */
+                    fprintf(stderr, "*** Error reading coordinate file ID\n");
+                    break;
+                }
 
-				if (coordinatefile_id!=-99999)
-				{
-					name[0]=0;
+                if (coordinatefile_id != -99999) {
+                    name[0] = 0;
 
-					fscanf(coordinatefile,"%lf %lf",&lon, &lat);
+                    if (fscanf(coordinatefile, "%lf %lf", &lon, &lat) != 2) {
+                        fprintf(stderr,
+                                "*** Error reading coordinates (lon, lat)\n");
+                        break;
+                    }
 
-					/* Read ID Number From Attribute File */
+                    /* Read ID Number From Attribute File */
 
-					fgets(string,80,attributefile);
-					sscanf(string,"%ld",&attributefile_id);
+                    if (fgets(string, 80, attributefile) == NULL) {
+                        fprintf(stderr,
+                                "*** Error reading attribute file ID line\n");
+                        break;
+                    }
+                    if (sscanf(string, "%ld", &attributefile_id) != 1) {
+                        fprintf(stderr,
+                                "*** Error parsing attribute file ID\n");
+                        continue; /* Try next record */
+                    }
 
-					/* Skip Several Strings in Attribute File */
+                    /* Skip Several Strings in Attribute File */
 
-					fgets(string,80,attributefile);
-					fgets(string,80,attributefile);
+                    if (fgets(string, 80, attributefile) == NULL ||
+                        fgets(string, 80, attributefile) == NULL) {
+                        fprintf(
+                            stderr,
+                            "*** Error reading attribute file data lines\n");
+                        break;
+                    }
 
-					/* Skip a third line for "cs" files */
+                    /* Skip a third line for "cs" files */
 
-					if (argv[z][0]=='c' && argv[z][1]=='s')
-						fgets(string,80,attributefile);
+                    if (argv[z][0] == 'c' && argv[z][1] == 's') {
+                        if (fgets(string, 80, attributefile) == NULL) {
+                            fprintf(
+                                stderr,
+                                "*** Error reading attribute file cs line\n");
+                            break;
+                        }
+                    }
 
-					/* Read City Name From Attribute File */
+                    /* Read City Name From Attribute File */
 
-					fgets(string,80,attributefile);
+                    if (fgets(string, 80, attributefile) == NULL) {
+                        fprintf(stderr, "*** Error reading city name from "
+                                        "attribute file\n");
+                        break;
+                    }
 
-					/* Strip "quote" characters from name */
+                    /* Strip "quote" characters from name */
 
-					for (x=2, y=0; string[x]!='"' && string[x]!=0; x++, y++)
-						name[y]=string[x];
+                    for (x = 2, y = 0; string[x] != '"' && string[x] != 0;
+                         x++, y++)
+                        name[y] = string[x];
 
-					name[y]=0;
+                    name[y] = 0;
 
-					/* Skip Two Strings in Attribute File */
+                    /* Skip Two Strings in Attribute File */
 
-					fgets(string,80,attributefile);
-					fgets(string,80,attributefile);
+                    if (fgets(string, 80, attributefile) == NULL ||
+                        fgets(string, 80, attributefile) == NULL) {
+                        fprintf(
+                            stderr,
+                            "*** Error reading attribute file tail lines\n");
+                        break;
+                    }
 
-					/* Skip blank line between records */
+                    /* Skip blank line between records */
 
-					fgets(string,80,attributefile);
+                    if (fgets(string, 80, attributefile) == NULL) {
+                        /* It's OK if this fails at end of file */
+                        if (! feof(attributefile))
+                            fprintf(stderr, "*** Error reading attribute file "
+                                            "blank line\n");
+                    }
 
-					if (name[0]!=0 && name[0]!=' ' && feof(attributefile)==0 && attributefile_id==coordinatefile_id)
-						printf("%s, %f, %f\n",name,lat,-lon);
-				}
+                    if (name[0] != 0 && name[0] != ' ' &&
+                        feof(attributefile) == 0 &&
+                        attributefile_id == coordinatefile_id)
+                        printf("%s, %f, %f\n", name, lat, -lon);
+                }
 
+                /* Read to the end of the current coordinatefile record */
 
-				/* Read to the end of the current coordinatefile record */
+                do {
+                    string[0] = 0;
+                    if (fscanf(coordinatefile, "%80s", string) != 1) {
+                        if (! feof(coordinatefile))
+                            fprintf(stderr, "*** Error reading coordinate file "
+                                            "END marker\n");
+                        break;
+                    }
 
-				do
-				{
-					string[0]=0;
-					fscanf(coordinatefile,"%80s",string);
+                } while (strncmp(string, "END", 3) != 0 &&
+                         feof(coordinatefile) == 0);
 
-				} while (strncmp(string,"END",3)!=0 && feof(coordinatefile)==0);
+            } while (feof(coordinatefile) == 0);
 
-			} while (feof(coordinatefile)==0);
+            fclose(attributefile);
+            fclose(coordinatefile);
+        }
 
-			fclose(attributefile);
-			fclose(coordinatefile);
-		}
+        else {
+            /* Houston, We Have A Problem... */
 
-		else
-		{
-			/* Houston, We Have A Problem... */
+            fprintf(stderr, "%c\n", 7);
 
-			fprintf(stderr,"%c\n",7);
+            if (coordinatefile == NULL)
+                fprintf(stderr, "*** Error opening coordinate file: \"%s\"!\n",
+                        coordinatefilename);
 
-			if (coordinatefile==NULL)
-				fprintf(stderr,"*** Error opening coordinate file: \"%s\"!\n",coordinatefilename);
+            if (attributefile == NULL)
+                fprintf(stderr, "*** Error opening attribute file : \"%s\"!\n",
+                        attributefilename);
+            fprintf(stderr, "\n");
+        }
+    }
 
-			if (attributefile==NULL)
-				fprintf(stderr,"*** Error opening attribute file : \"%s\"!\n",attributefilename);
-			fprintf(stderr,"\n");
-		}
-	}
-		
-	exit(0);
+    exit(0);
 }

@@ -8,23 +8,23 @@
  * This file is covered by the LICENSE.md file in the root of this project.
  */
 
-#ifndef elevation_map_h
-#define elevation_map_h
+#pragma once
 
 #include "itwom3.0.h"
 
-#include "splat_run.h"
-#include "path.h"
-#include "dem.h"
-#include "site.h"
-#include "lrp.h"
 #include "antenna_pattern.h"
+#include "dem.h"
+#include "lrp.h"
+#include "path.h"
+#include "site.h"
+#include "splat_run.h"
 
 #include <stdio.h>
 #include <string>
 #include <vector>
 
-class Sdf; // LoadTopoData requires an Sdf, but Sdfs need an ElevationMap to load into
+class
+    Sdf;  // LoadTopoData requires an Sdf, but Sdfs need an ElevationMap to load into
 
 class ElevationMap {
 
@@ -89,10 +89,8 @@ class ElevationMap {
 
   private:
     void PlotLRPath(const Site &source, const Site &destination,
-                    unsigned char mask_value, FILE *fd, const AntennaPattern &pat,
-                    const Lrp &lrp);
+                    unsigned char mask_value, FILE *fd,
+                    const AntennaPattern &pat, const Lrp &lrp);
 
     bool FindMask(double lat, double lon, int &x, int &y, int &indx) const;
 };
-
-#endif /* elevation_map_h */

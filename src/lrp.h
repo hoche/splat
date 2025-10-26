@@ -8,8 +8,7 @@
  * This file is covered by the LICENSE.md file in the root of this project.
  */
 
-#ifndef lrp_h
-#define lrp_h
+#pragma once
 
 #include "site.h"
 
@@ -22,7 +21,8 @@ class Lrp {
 
   public:
     Lrp(double forced_erp, double forced_freq)
-        : forced_erp(forced_erp), forced_freq(forced_freq) {}
+        : forced_erp(forced_erp),
+          forced_freq(forced_freq) { }
 
     double eps_dielect;
     double sgm_conductivity;
@@ -37,5 +37,3 @@ class Lrp {
     char ReadLRParm(const Site &txsite, char forced_read, bool &loadPat,
                     std::string &filename);
 };
-
-#endif /* lrp_h */

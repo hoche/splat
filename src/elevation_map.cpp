@@ -9,11 +9,11 @@
  */
 
 #include "elevation_map.h"
+#include "antenna_pattern.h"
 #include "dem.h"
 #include "fontdata.h"
 #include "itwom3.0.h"
 #include "lrp.h"
-#include "antenna_pattern.h"
 #include "path.h"
 #include "sdf.h"
 #include "site.h"
@@ -29,8 +29,6 @@
 #include <unistd.h>
 #include <vector>
 
-using namespace std;
-
 #define MAX_LINE_LEN 128
 #define NO_ANTENNA_DATA (-1.0)
 
@@ -39,13 +37,20 @@ using namespace std;
  */
 #define UPDATE_RUNNING_AVG(avg, latest, n)                                     \
     do {                                                                       \
-        (n) && ((avg) = (avg) + ((float)((latest) - (avg))) / (float)(n));     \
+        (n) && ((avg) = (avg) + ((float) ((latest) - (avg))) / (float) (n));   \
     } while (0)
 
 ElevationMap::ElevationMap(const SplatRun &sr)
-    : sr(sr), avgpathlen(0.0), totalpaths(0), dem(sr.maxpages, Dem(sr.ippd)),
-      min_north(90), max_north(-90), min_west(360), max_west(-1),
-      max_elevation(-32768), min_elevation(32768) {
+    : sr(sr),
+      avgpathlen(0.0),
+      totalpaths(0),
+      dem(sr.maxpages, Dem(sr.ippd)),
+      min_north(90),
+      max_north(-90),
+      min_west(360),
+      max_west(-1),
+      max_elevation(-32768),
+      min_elevation(32768) {
     for (int i = 0; i < sr.maxpages; i++) {
         dem[i].min_el = 32768;
         dem[i].max_el = -32768;
@@ -56,7 +61,7 @@ ElevationMap::ElevationMap(const SplatRun &sr)
     }
 }
 
-ElevationMap::~ElevationMap() {}
+ElevationMap::~ElevationMap() { }
 
 /* Lines, text, markings, and coverage areas are stored in a
  mask that is combined with topology data when topographic
@@ -67,12 +72,12 @@ int ElevationMap::PutMask(double lat, double lon, int value) {
     int x, y;
     Dem *dem;
 
-    dem = (Dem *)FindDEM(lat, lon, x, y);
-    if (!dem)
+    dem = (Dem *) FindDEM(lat, lon, x, y);
+    if (! dem)
         return -1;
 
     dem->mask[x * sr.ippd + y] = value;
-    return ((int)dem->mask[x * sr.ippd + y]);
+    return ((int) dem->mask[x * sr.ippd + y]);
 }
 
 /* Lines, text, markings, and coverage areas are stored in a
@@ -84,12 +89,12 @@ int ElevationMap::OrMask(double lat, double lon, int value) {
     int x, y;
     Dem *dem;
 
-    dem = (Dem *)FindDEM(lat, lon, x, y);
-    if (!dem)
+    dem = (Dem *) FindDEM(lat, lon, x, y);
+    if (! dem)
         return -1;
 
     dem->mask[x * sr.ippd + y] |= value;
-    return ((int)dem->mask[x * sr.ippd + y]);
+    return ((int) dem->mask[x * sr.ippd + y]);
 }
 
 /* Returns the mask bits based on the latitude and
@@ -100,10 +105,10 @@ int ElevationMap::GetMask(double lat, double lon) const {
     const Dem *dem;
 
     dem = FindDEM(lat, lon, x, y);
-    if (!dem)
+    if (! dem)
         return -1;
 
-    return ((int)dem->mask[x * sr.ippd + y]);
+    return ((int) dem->mask[x * sr.ippd + y]);
 }
 
 bool ElevationMap::FindMask(double lat, double lon, int &x, int &y,
@@ -112,9 +117,9 @@ bool ElevationMap::FindMask(double lat, double lon, int &x, int &y,
     bool found = false;
 
     for (indx = 0, found = false; indx < sr.maxpages && found == false;) {
-        x = (int)rint(sr.ppd * (lat - dem[indx].min_north));
+        x = (int) rint(sr.ppd * (lat - dem[indx].min_north));
         y = sr.mpi -
-            (int)rint(sr.ppd * (Utilities::LonDiff(dem[indx].max_west, lon)));
+            (int) rint(sr.ppd * (Utilities::LonDiff(dem[indx].max_west, lon)));
 
         if (x >= 0 && x <= sr.mpi && y >= 0 && y <= sr.mpi)
             found = true;
@@ -134,10 +139,10 @@ double ElevationMap::GetElevation(const Site &location) const {
     const Dem *dem;
 
     dem = FindDEM(location.lat, location.lon, x, y);
-    if (!dem)
+    if (! dem)
         return -5000.0;
 
-    return (3.28084 * (double)(dem->data[x * sr.ippd + y]));
+    return (3.28084 * (double) (dem->data[x * sr.ippd + y]));
 }
 
 /* This function adds a user-defined terrain feature
@@ -149,11 +154,11 @@ int ElevationMap::AddElevation(double lat, double lon, double height) {
     int x, y;
     Dem *dem;
 
-    dem = (Dem *)FindDEM(lat, lon, x, y);
-    if (!dem)
+    dem = (Dem *) FindDEM(lat, lon, x, y);
+    if (! dem)
         return 0;
 
-    dem->data[x * sr.ippd + y] += (short)rint(height);
+    dem->data[x * sr.ippd + y] += (short) rint(height);
     return 1;
 }
 
@@ -341,7 +346,7 @@ double ElevationMap::AverageTerrain(Path &path, const Site &source,
         if (samples == 0)
             terrain = -5000.0; /* No land */
         else
-            terrain = (terrain / (double)samples);
+            terrain = (terrain / (double) samples);
 
         return terrain;
     }
@@ -362,7 +367,7 @@ double ElevationMap::haat(Path &path, const Site &antenna) const {
      180, 225, 270, and 315 degrees. */
 
     for (c = 0, azi = 0; azi <= 315 && error == 0; azi += 45) {
-        terrain = AverageTerrain(path, antenna, (double)azi, 2.0, 10.0);
+        terrain = AverageTerrain(path, antenna, (double) azi, 2.0, 10.0);
 
         if (terrain < -9998.0) /* SDF data is missing */
             error = 1;
@@ -399,10 +404,10 @@ void ElevationMap::PlaceMarker(const Site &location) {
     double x, y, lat, lon, textx = 0.0, texty = 0.0, xmin, xmax, ymin, ymax, p1,
                            p3, p6, p8, p12, p16, p24, label_length;
 
-    xmin = (double)min_north;
-    xmax = (double)max_north;
-    ymin = (double)min_west;
-    ymax = (double)max_west;
+    xmin = (double) min_north;
+    xmax = (double) max_north;
+    ymin = (double) min_west;
+    ymax = (double) max_west;
     lat = location.lat;
     lon = location.lon;
 
@@ -435,7 +440,7 @@ void ElevationMap::PlaceMarker(const Site &location) {
             /* label_length=length in pixels.
              Each character is 8 pixels wide. */
 
-            label_length = p1 * (double)(location.name.size() << 3);
+            label_length = p1 * (double) (location.name.size() << 3);
 
             if ((Utilities::LonDiff(lon + label_length, ymax) <= 0.0) &&
                 (Utilities::LonDiff(lon - label_length, ymin) >= sr.dpp)) {
@@ -455,7 +460,7 @@ void ElevationMap::PlaceMarker(const Site &location) {
                      Text Or Other Markers? */
 
                     for (a = 0, occupied = 0; a < 16; a++) {
-                        for (b = 0; b < (int)location.name.size(); b++)
+                        for (b = 0; b < (int) location.name.size(); b++)
                             for (c = 0; c < 8; c++, y -= p1)
                                 occupied |= (GetMask(x, y) & 2);
                         x -= p1;
@@ -481,7 +486,7 @@ void ElevationMap::PlaceMarker(const Site &location) {
                      Text Or Other Markers? */
 
                     for (a = 0, occupied = 0; a < 16; a++) {
-                        for (b = 0; b < (int)location.name.size(); b++)
+                        for (b = 0; b < (int) location.name.size(); b++)
                             for (c = 0; c < 8; c++, y -= p1)
                                 occupied |= (GetMask(x, y) & 2);
                         x -= p1;
@@ -511,7 +516,7 @@ void ElevationMap::PlaceMarker(const Site &location) {
                      Text Or Other Markers? */
 
                     for (a = 0, occupied = 0; a < 16; a++) {
-                        for (b = 0; b < (int)location.name.size(); b++)
+                        for (b = 0; b < (int) location.name.size(); b++)
                             for (c = 0; c < 8; c++, y -= p1)
                                 occupied |= (GetMask(x, y) & 2);
                         x -= p1;
@@ -539,7 +544,7 @@ void ElevationMap::PlaceMarker(const Site &location) {
                      Text Or Other Markers? */
 
                     for (a = 0, occupied = 0; a < 16; a++) {
-                        for (b = 0; b < (int)location.name.size(); b++)
+                        for (b = 0; b < (int) location.name.size(); b++)
                             for (c = 0; c < 8; c++, y -= p1)
                                 occupied |= (GetMask(x, y) & 2);
                         x -= p1;
@@ -565,7 +570,7 @@ void ElevationMap::PlaceMarker(const Site &location) {
                 y = texty;
 
                 for (a = 0; a < 16; a++) {
-                    for (b = 0; b < (int)location.name.size(); b++) {
+                    for (b = 0; b < (int) location.name.size(); b++) {
                         byte = fontdata[16 * (location.name[b]) + a];
 
                         for (c = 128; c > 0; c = c >> 1, y -= p1)
@@ -676,8 +681,8 @@ void ElevationMap::PlotLOSMap(const Site &source, double altitude) {
     static unsigned char mask_value = 1;
     char symbol[4] = {'.', 'o', 'O', 'o'};
 
-    minwest = sr.dpp + (double)min_west;
-    maxnorth = (double)max_north - sr.dpp;
+    minwest = sr.dpp + (double) min_west;
+    maxnorth = (double) max_north - sr.dpp;
 
     count = 0;
 
@@ -705,7 +710,7 @@ void ElevationMap::PlotLOSMap(const Site &source, double altitude) {
 
     th = sr.ppd / 64.0;
 
-    z = (int)(th * Utilities::ReduceAngle(max_west - min_west));
+    z = (int) (th * Utilities::ReduceAngle(max_west - min_west));
 
     fprintf(stdout, "\n\n");
 
@@ -720,8 +725,8 @@ void ElevationMap::PlotLOSMap(const Site &source, double altitude) {
     }
 
     for (lon = minwest, x = 0, y = 0;
-         (Utilities::LonDiff(lon, (double)max_west) <= 0.0);
-         y++, lon = minwest + (sr.dpp * (double)y)) {
+         (Utilities::LonDiff(lon, (double) max_west) <= 0.0);
+         y++, lon = minwest + (sr.dpp * (double) y)) {
         if (lon >= 360.0)
             lon -= 360.0;
 
@@ -756,10 +761,10 @@ void ElevationMap::PlotLOSMap(const Site &source, double altitude) {
         fflush(stdout);
     }
 
-    z = (int)(th * (double)(max_north - min_north));
+    z = (int) (th * (double) (max_north - min_north));
 
-    for (lat = maxnorth, x = 0, y = 0; lat >= (double)min_north;
-         y++, lat = maxnorth - (sr.dpp * (double)y)) {
+    for (lat = maxnorth, x = 0, y = 0; lat >= (double) min_north;
+         y++, lat = maxnorth - (sr.dpp * (double) y)) {
         edge.lat = lat;
         edge.lon = min_west;
         edge.alt = altitude;
@@ -791,11 +796,11 @@ void ElevationMap::PlotLOSMap(const Site &source, double altitude) {
         fflush(stdout);
     }
 
-    z = (int)(th * Utilities::ReduceAngle(max_west - min_west));
+    z = (int) (th * Utilities::ReduceAngle(max_west - min_west));
 
     for (lon = minwest, x = 0, y = 0;
-         (Utilities::LonDiff(lon, (double)max_west) <= 0.0);
-         y++, lon = minwest + (sr.dpp * (double)y)) {
+         (Utilities::LonDiff(lon, (double) max_west) <= 0.0);
+         y++, lon = minwest + (sr.dpp * (double) y)) {
         if (lon >= 360.0)
             lon -= 360.0;
 
@@ -830,10 +835,10 @@ void ElevationMap::PlotLOSMap(const Site &source, double altitude) {
         fflush(stdout);
     }
 
-    z = (int)(th * (double)(max_north - min_north));
+    z = (int) (th * (double) (max_north - min_north));
 
-    for (lat = (double)min_north, x = 0, y = 0; lat < (double)max_north;
-         y++, lat = (double)min_north + (sr.dpp * (double)y)) {
+    for (lat = (double) min_north, x = 0, y = 0; lat < (double) max_north;
+         y++, lat = (double) min_north + (sr.dpp * (double) y)) {
         edge.lat = lat;
         edge.lon = max_west;
         edge.alt = altitude;
@@ -889,8 +894,8 @@ void ElevationMap::PlotLOSMap(const Site &source, double altitude) {
  * the WriteCoverageMap() function is later invoked.
  */
 void ElevationMap::PlotLRMap(const Site &source, double altitude,
-                             const string &plo_filename, const AntennaPattern &pat,
-                             const Lrp &lrp) {
+                             const std::string &plo_filename,
+                             const AntennaPattern &pat, const Lrp &lrp) {
     int y, z, count;
     Site edge;
     double lat, lon, minwest, maxnorth, th;
@@ -899,12 +904,12 @@ void ElevationMap::PlotLRMap(const Site &source, double altitude,
     FILE *fd = NULL;
     char symbol[4] = {'.', 'o', 'O', 'o'};
 
-    minwest = sr.dpp + (double)min_west;
-    maxnorth = (double)max_north - sr.dpp;
+    minwest = sr.dpp + (double) min_west;
+    maxnorth = (double) max_north - sr.dpp;
 
     count = 0;
 
-    if(sr.propagation_model == PROP_ITM)
+    if (sr.propagation_model == PROP_ITM)
         fprintf(stdout, "\nComputing ITM ");
     else
         fprintf(stdout, "\nComputing ITWOM ");
@@ -949,7 +954,7 @@ void ElevationMap::PlotLRMap(const Site &source, double altitude,
 
     th = sr.ppd / 64.0;
 
-    z = (int)(th * Utilities::ReduceAngle(max_west - min_west));
+    z = (int) (th * Utilities::ReduceAngle(max_west - min_west));
 
     fprintf(stdout, "\n\n");
 
@@ -964,8 +969,8 @@ void ElevationMap::PlotLRMap(const Site &source, double altitude,
     }
 
     for (lon = minwest, x = 0, y = 0;
-         (Utilities::LonDiff(lon, (double)max_west) <= 0.0);
-         y++, lon = minwest + (sr.dpp * (double)y)) {
+         (Utilities::LonDiff(lon, (double) max_west) <= 0.0);
+         y++, lon = minwest + (sr.dpp * (double) y)) {
         if (lon >= 360.0)
             lon -= 360.0;
 
@@ -1000,10 +1005,10 @@ void ElevationMap::PlotLRMap(const Site &source, double altitude,
         fflush(stdout);
     }
 
-    z = (int)(th * (double)(max_north - min_north));
+    z = (int) (th * (double) (max_north - min_north));
 
-    for (lat = maxnorth, x = 0, y = 0; lat >= (double)min_north;
-         y++, lat = maxnorth - (sr.dpp * (double)y)) {
+    for (lat = maxnorth, x = 0, y = 0; lat >= (double) min_north;
+         y++, lat = maxnorth - (sr.dpp * (double) y)) {
         edge.lat = lat;
         edge.lon = min_west;
         edge.alt = altitude;
@@ -1035,11 +1040,11 @@ void ElevationMap::PlotLRMap(const Site &source, double altitude,
         fflush(stdout);
     }
 
-    z = (int)(th * Utilities::ReduceAngle(max_west - min_west));
+    z = (int) (th * Utilities::ReduceAngle(max_west - min_west));
 
     for (lon = minwest, x = 0, y = 0;
-         (Utilities::LonDiff(lon, (double)max_west) <= 0.0);
-         y++, lon = minwest + (sr.dpp * (double)y)) {
+         (Utilities::LonDiff(lon, (double) max_west) <= 0.0);
+         y++, lon = minwest + (sr.dpp * (double) y)) {
         if (lon >= 360.0)
             lon -= 360.0;
 
@@ -1074,10 +1079,10 @@ void ElevationMap::PlotLRMap(const Site &source, double altitude,
         fflush(stdout);
     }
 
-    z = (int)(th * (double)(max_north - min_north));
+    z = (int) (th * (double) (max_north - min_north));
 
-    for (lat = (double)min_north, x = 0, y = 0; lat < (double)max_north;
-         y++, lat = (double)min_north + (sr.dpp * (double)y)) {
+    for (lat = (double) min_north, x = 0, y = 0; lat < (double) max_north;
+         y++, lat = (double) min_north + (sr.dpp * (double) y)) {
         edge.lat = lat;
         edge.lon = max_west;
         edge.alt = altitude;
@@ -1113,7 +1118,7 @@ void ElevationMap::PlotLRMap(const Site &source, double altitude,
         fprintf(
             stdout,
             "\nThere were %d paths with an average length of %d elements.\n",
-            totalpaths, (int)avgpathlen);
+            totalpaths, (int) avgpathlen);
         fflush(stdout);
     }
 
@@ -1155,15 +1160,15 @@ void ElevationMap::PlotLRPath(const Site &source, const Site &destination,
 
     for (x = 1; x < path.length - 1; x++)
         elev[x + 2] = (path.elevation[x] == 0.0
-                           ? (elev_t)(path.elevation[x] * METERS_PER_FOOT)
-                           : (elev_t)((sr.clutter + path.elevation[x]) *
-                                      METERS_PER_FOOT));
+                           ? (elev_t) (path.elevation[x] * METERS_PER_FOOT)
+                           : (elev_t) ((sr.clutter + path.elevation[x]) *
+                                       METERS_PER_FOOT));
 
     /* Copy ending points without clutter */
 
-    elev[2] = (elev_t)(path.elevation[0] * METERS_PER_FOOT);
+    elev[2] = (elev_t) (path.elevation[0] * METERS_PER_FOOT);
     elev[path.length + 1] =
-        (elev_t)(path.elevation[path.length - 1] * METERS_PER_FOOT);
+        (elev_t) (path.elevation[path.length - 1] * METERS_PER_FOOT);
 
     /* Since the only energy the propagation model considers
        reaching the destination is based on what is scattered
@@ -1261,12 +1266,12 @@ void ElevationMap::PlotLRPath(const Site &source, const Site &destination,
                shortest distance terrain can play a role in
                path loss. */
 
-            elev[0] = (elev_t)(y - 1); /* (number of points - 1) */
+            elev[0] = (elev_t) (y - 1); /* (number of points - 1) */
 
             /* Distance between elevation samples */
 
-            elev[1] = (elev_t)(METERS_PER_MILE *
-                               (path.distance[y] - path.distance[y - 1]));
+            elev[1] = (elev_t) (METERS_PER_MILE *
+                                (path.distance[y] - path.distance[y - 1]));
 
             if (sr.propagation_model == PROP_ITWOM)
 	        /* Convert MSL to AGL if needed, since that's what point_to_point expects */
@@ -1307,12 +1312,12 @@ void ElevationMap::PlotLRPath(const Site &source, const Site &destination,
 
             /* Substract the antenna's (log) gain from the overall path loss. */
 
-            x = (int)rint(10.0 * (10.0 - elevation));
+            x = (int) rint(10.0 * (10.0 - elevation));
 
             if (x >= 0 && x <= 1000) {
                 azimuth = rint(azimuth);
 
-                pattern = (double)pat.antenna_pattern[(int)azimuth][x];
+                pattern = (double) pat.antenna_pattern[(int) azimuth][x];
 
                 if (pattern > 0.0) {
                     pattern = 20.0 * log10(pattern);
@@ -1338,7 +1343,7 @@ void ElevationMap::PlotLRPath(const Site &source, const Site &destination,
 
                     /* Scale roughly between 0 and 255 */
 
-                    ifs = 200 + (int)rint(dBm);
+                    ifs = 200 + (int) rint(dBm);
 
                     if (ifs < 0)
                         ifs = 0;
@@ -1352,7 +1357,7 @@ void ElevationMap::PlotLRPath(const Site &source, const Site &destination,
                         ifs = ofs;
 
                     // writes to dem
-                    PutSignal(path.lat[y], path.lon[y], (unsigned char)ifs);
+                    PutSignal(path.lat[y], path.lon[y], (unsigned char) ifs);
                 }
 
                 else {
@@ -1360,7 +1365,7 @@ void ElevationMap::PlotLRPath(const Site &source, const Site &destination,
                         (139.4 + (20.0 * log10(lrp.frq_mhz)) - loss) +
                         (10.0 * log10(lrp.erp / 1000.0));
 
-                    ifs = 100 + (int)rint(field_strength);
+                    ifs = 100 + (int) rint(field_strength);
 
                     if (ifs < 0)
                         ifs = 0;
@@ -1373,7 +1378,7 @@ void ElevationMap::PlotLRPath(const Site &source, const Site &destination,
                     if (ofs > ifs)
                         ifs = ofs;
 
-                    PutSignal(path.lat[y], path.lon[y], (unsigned char)ifs);
+                    PutSignal(path.lat[y], path.lon[y], (unsigned char) ifs);
 
                     if (fd != NULL) {
                         textlen +=
@@ -1387,14 +1392,14 @@ void ElevationMap::PlotLRPath(const Site &source, const Site &destination,
                 if (loss > 255)
                     ifs = 255;
                 else
-                    ifs = (int)rint(loss);
+                    ifs = (int) rint(loss);
 
                 ofs = GetSignal(path.lat[y], path.lon[y]);
 
                 if (ofs < ifs && ofs != 0)
                     ifs = ofs;
 
-                PutSignal(path.lat[y], path.lon[y], (unsigned char)ifs);
+                PutSignal(path.lat[y], path.lon[y], (unsigned char) ifs);
             }
 
             if (fd != NULL) {
@@ -1425,7 +1430,7 @@ void ElevationMap::LoadTopoData(int max_lon, int min_lon, int max_lat,
     if ((max_lon - min_lon) <= 180.0) {
         for (y = 0; y <= width; y++)
             for (x = min_lat; x <= max_lat; x++) {
-                ymin = (int)(min_lon + (double)y);
+                ymin = (int) (min_lon + (double) y);
 
                 while (ymin < 0)
                     ymin += 360;
@@ -1478,7 +1483,7 @@ unsigned char ElevationMap::GetSignal(double lat, double lon) const {
     const Dem *dem;
 
     dem = FindDEM(lat, lon, x, y);
-    if (!dem)
+    if (! dem)
         return 0;
 
     return (dem->signal[x * sr.ippd + y]);
@@ -1492,8 +1497,8 @@ int ElevationMap::PutSignal(double lat, double lon, unsigned char signal) {
     int x, y;
     Dem *dem;
 
-    dem = (Dem *)FindDEM(lat, lon, x, y);
-    if (!dem)
+    dem = (Dem *) FindDEM(lat, lon, x, y);
+    if (! dem)
         return 0;
 
     dem->signal[x * sr.ippd + y] = signal;
@@ -1508,9 +1513,9 @@ int ElevationMap::PutSignal(double lat, double lon, unsigned char signal) {
  */
 const Dem *ElevationMap::FindDEM(double lat, double lon, int &x, int &y) const {
     for (int i = 0; i < sr.maxpages; ++i) {
-        x = (int)rint(sr.ppd * (lat - (double)dem[i].min_north));
-        y = sr.mpi - (int)rint(sr.ppd * (Utilities::LonDiff(
-                                            (double)dem[i].max_west, lon)));
+        x = (int) rint(sr.ppd * (lat - (double) dem[i].min_north));
+        y = sr.mpi - (int) rint(sr.ppd * (Utilities::LonDiff(
+                                             (double) dem[i].max_west, lon)));
 
         if (x >= 0 && x <= sr.mpi && y >= 0 && y <= sr.mpi)
             return &dem[i];

@@ -44,289 +44,278 @@
 char *d2e(string)
 char *string;
 {
-	/* This function is used to replace 'D's with 'E's for proper
+    /* This function is used to replace 'D's with 'E's for proper
 	   exponential notation of numeric strings read from delimited
 	   USGS data files.  It returns a pointer to a string. */
 
-	unsigned char x;
+    unsigned char x;
 
-	for (x=0; string[x]!=0; x++)
-		if (string[x]=='D')
-			string[x]='E';
-	return (string);
+    for (x = 0; string[x] != 0; x++)
+        if (string[x] == 'D')
+            string[x] = 'E';
+    return (string);
 }
 
-int main(argc,argv)
+int main(argc, argv)
 int argc;
 char *argv[];
 {
-	unsigned char minimum[30], maximum[30], swlong[30],
-		 swlat[30], nelong[30], nelat[30];
-		/* nwlat[30], nwlong[30], selong[30], selat[30]; */
-	char string[40];
-	double max_el, min_el,  max_west, min_west, max_north, min_north;
-	int x, y, z, c, array[1202][1202];
-	char splatfile[25];
-	FILE *fd;
+    unsigned char minimum[30], maximum[30], swlong[30], swlat[30], nelong[30],
+        nelat[30];
+    /* nwlat[30], nwlong[30], selong[30], selat[30]; */
+    char string[40];
+    double max_el, min_el, max_west, min_west, max_north, min_north;
+    int x, y, z, c, array[1202][1202];
+    char splatfile[25];
+    FILE *fd;
 
-	if (argc!=2)
-	{
-		fprintf(stderr,"Usage: usgs2sdf uncompressed_delimited_usgs_datafile (ie: wilmington-e)\n");
-		exit(0);
-	}
+    if (argc != 2) {
+        fprintf(stderr, "Usage: usgs2sdf uncompressed_delimited_usgs_datafile "
+                        "(ie: wilmington-e)\n");
+        exit(0);
+    }
 
-	fd=fopen(argv[1],"rb");
+    fd = fopen(argv[1], "rb");
 
-	if (fd!=NULL)
-	{
-		fprintf(stdout,"Reading \"%s\"...",argv[1]);
-		fflush(stdout);
+    if (fd != NULL) {
+        fprintf(stdout, "Reading \"%s\"...", argv[1]);
+        fflush(stdout);
 
-		/* Skip first 548 bytes */
+        /* Skip first 548 bytes */
 
-		for (x=0; x<548; x++)
-			getc(fd);
+        for (x = 0; x < 548; x++)
+            getc(fd);
 
-		/* Read quadrangle corners */
-	
-		/* Read southwest longitude */
+        /* Read quadrangle corners */
 
-		for (x=0; x<22; x++)
-			swlong[x]=getc(fd);
-		swlong[x]=0;
+        /* Read southwest longitude */
 
-		/* Skip 2 bytes */
+        for (x = 0; x < 22; x++)
+            swlong[x] = getc(fd);
+        swlong[x] = 0;
 
-		for (x=0; x<2; x++)
-			getc(fd);
+        /* Skip 2 bytes */
 
-		/* Read southwest latitude */
+        for (x = 0; x < 2; x++)
+            getc(fd);
 
-		for (x=0; x<22; x++)
-			swlat[x]=getc(fd);
-		swlat[x]=0;
+        /* Read southwest latitude */
 
-		/* Skip 2 bytes */
+        for (x = 0; x < 22; x++)
+            swlat[x] = getc(fd);
+        swlat[x] = 0;
 
-		for (x=0; x<2; x++)
-			getc(fd);
+        /* Skip 2 bytes */
 
-		/* Read northwest longitude */
+        for (x = 0; x < 2; x++)
+            getc(fd);
 
-		/**
+        /* Read northwest longitude */
+
+        /**
 		for (x=0; x<22; x++)
 			nwlong[x]=getc(fd);
 		nwlong[x]=0;
 		**/
 
-		for (x=0; x<22; x++)
-			getc(fd);
+        for (x = 0; x < 22; x++)
+            getc(fd);
 
-		/* Skip 2 bytes */
+        /* Skip 2 bytes */
 
-		for (x=0; x<2; x++)
-			getc(fd);
+        for (x = 0; x < 2; x++)
+            getc(fd);
 
-		/* Read northwest latitude */
+        /* Read northwest latitude */
 
-		/**
+        /**
 		for (x=0; x<22; x++)
 			nwlat[x]=getc(fd);
 		nwlat[x]=0;
 		**/
 
-		for (x=0; x<22; x++)
-			getc(fd);
+        for (x = 0; x < 22; x++)
+            getc(fd);
 
-		/* Skip 2 bytes */
+        /* Skip 2 bytes */
 
-		for (x=0; x<2; x++)
-			getc(fd);
+        for (x = 0; x < 2; x++)
+            getc(fd);
 
-		/* Read northeast longitude */
+        /* Read northeast longitude */
 
-		for (x=0; x<22; x++)
-			nelong[x]=getc(fd);
-		nelong[x]=0;
+        for (x = 0; x < 22; x++)
+            nelong[x] = getc(fd);
+        nelong[x] = 0;
 
-		/* Skip 2 bytes */
+        /* Skip 2 bytes */
 
-		for (x=0; x<2; x++)
-			getc(fd);
+        for (x = 0; x < 2; x++)
+            getc(fd);
 
-		/* Read northeast latitude */
+        /* Read northeast latitude */
 
-		for (x=0; x<22; x++)
-			nelat[x]=getc(fd);
-		nelat[x]=0;
+        for (x = 0; x < 22; x++)
+            nelat[x] = getc(fd);
+        nelat[x] = 0;
 
-		/* Skip 2 bytes */
+        /* Skip 2 bytes */
 
-		for (x=0; x<2; x++)
-			getc(fd);
+        for (x = 0; x < 2; x++)
+            getc(fd);
 
-		/* Read southeast longitude */
+        /* Read southeast longitude */
 
-		/**
+        /**
 		for (x=0; x<22; x++)
 			selong[x]=getc(fd);
 		selong[x]=0;
 		**/
 
-		for (x=0; x<22; x++)
-			getc(fd);
+        for (x = 0; x < 22; x++)
+            getc(fd);
 
-		/* Skip 2 bytes */
+        /* Skip 2 bytes */
 
-		for (x=0; x<2; x++)
-			getc(fd);
+        for (x = 0; x < 2; x++)
+            getc(fd);
 
-		/* Read southeast latitude */
+        /* Read southeast latitude */
 
-		/**
+        /**
 		for (x=0; x<22; x++)
 			selat[x]=getc(fd);
 		selat[x]=0;
 		**/
 
-		for (x=0; x<22; x++)
-			getc(fd);
+        for (x = 0; x < 22; x++)
+            getc(fd);
 
-		/* Skip 2 bytes */
+        /* Skip 2 bytes */
 
-		for (x=0; x<2; x++)
-			getc(fd);
+        for (x = 0; x < 2; x++)
+            getc(fd);
 
-		/* Read minimum elevation */ 
+        /* Read minimum elevation */
 
-		for (x=0; x<22; x++)
-			minimum[x]=getc(fd);
-		minimum[x]=0;
+        for (x = 0; x < 22; x++)
+            minimum[x] = getc(fd);
+        minimum[x] = 0;
 
-		/* Skip 2 bytes */
+        /* Skip 2 bytes */
 
-		for (x=0; x<2; x++)
-			getc(fd);
+        for (x = 0; x < 2; x++)
+            getc(fd);
 
-		/* Read maximum elevation */
+        /* Read maximum elevation */
 
-		for (x=0; x<22; x++)
-			maximum[x]=getc(fd);
+        for (x = 0; x < 22; x++)
+            maximum[x] = getc(fd);
 
-		maximum[x]=0;
+        maximum[x] = 0;
 
-		sscanf(d2e((char*)minimum),"%lG",&min_el);
-		sscanf(d2e((char*)maximum),"%lf",&max_el);
+        sscanf(d2e((char *) minimum), "%lG", &min_el);
+        sscanf(d2e((char *) maximum), "%lf", &max_el);
 
-		sscanf(d2e((char*)swlong),"%lf",&max_west);
-		sscanf(d2e((char*)swlat),"%lf",&min_north);
+        sscanf(d2e((char *) swlong), "%lf", &max_west);
+        sscanf(d2e((char *) swlat), "%lf", &min_north);
 
-		sscanf(d2e((char*)nelong),"%lf",&min_west);
-		sscanf(d2e((char*)nelat),"%lf",&max_north);
+        sscanf(d2e((char *) nelong), "%lf", &min_west);
+        sscanf(d2e((char *) nelat), "%lf", &max_north);
 
-		max_west/=-3600.0;
-		min_north/=3600.0;
-		max_north/=3600.0;
-		min_west/=-3600.0;
+        max_west /= -3600.0;
+        min_north /= 3600.0;
+        max_north /= 3600.0;
+        min_west /= -3600.0;
 
-		/* Skip 84 Bytes */
+        /* Skip 84 Bytes */
 
-		for (x=0; x<84; x++)
-			getc(fd);
+        for (x = 0; x < 84; x++)
+            getc(fd);
 
-		/* Read elevation data... */
+        /* Read elevation data... */
 
-		for (x=1200; x>=0; x--)
-		{
-			if (x==900)
-			{
-				printf(" 25%c...",37);
-				fflush(stdout);
-			}
+        for (x = 1200; x >= 0; x--) {
+            if (x == 900) {
+                printf(" 25%c...", 37);
+                fflush(stdout);
+            }
 
-			if (x==600)
-			{
-				printf(" 50%c...",37);
-				fflush(stdout);
-			}
+            if (x == 600) {
+                printf(" 50%c...", 37);
+                fflush(stdout);
+            }
 
-			if (x==300)
-			{
-				printf(" 75%c... ",37);
-				fflush(stdout);
-			}
+            if (x == 300) {
+                printf(" 75%c... ", 37);
+                fflush(stdout);
+            }
 
-			/* Skip over 9 strings of data */
+            /* Skip over 9 strings of data */
 
-			for (y=0; y<9; y++)
-			{
-				string[0]=0;
+            for (y = 0; y < 9; y++) {
+                string[0] = 0;
 
-				do
-				{
-					c=getc(fd);
+                do {
+                    c = getc(fd);
 
-				} while (c==' ' || c=='\n');
+                } while (c == ' ' || c == '\n');
 
-				for (z=0; c!=' ' && c!='\n' && z<28; z++)
-				{
-					string[z]=c;
-					c=getc(fd);
-				}
+                for (z = 0; c != ' ' && c != '\n' && z < 28; z++) {
+                    string[z] = c;
+                    c = getc(fd);
+                }
 
-				string[z]=0;	
-			}
+                string[z] = 0;
+            }
 
-			/* Store elevation data in array */
+            /* Store elevation data in array */
 
-			for (y=0; y<1201; y++)
-			{
-				string[0]=0;
+            for (y = 0; y < 1201; y++) {
+                string[0] = 0;
 
-				do
-				{
-					c=getc(fd);
+                do {
+                    c = getc(fd);
 
-				} while (c==' ' || c=='\n');
+                } while (c == ' ' || c == '\n');
 
-				for (z=0; c!=' ' && c!='\n' && z<28; z++)
-				{
-					string[z]=c;
-					c=getc(fd);
-				}
+                for (z = 0; c != ' ' && c != '\n' && z < 28; z++) {
+                    string[z] = c;
+                    c = getc(fd);
+                }
 
-				string[z]=0;	
-				sscanf(string,"%d",&array[y][x]);
-			}
-		}
+                string[z] = 0;
+                sscanf(string, "%d", &array[y][x]);
+            }
+        }
 
-		fclose(fd);
+        fclose(fd);
 
-		/* Write splat data file to disk */
+        /* Write splat data file to disk */
 
-		sprintf(splatfile,"%.0f_%.0f_%.0f_%.0f.sdf",min_north,max_north,min_west,max_west);
+        sprintf(splatfile, "%.0f_%.0f_%.0f_%.0f.sdf", min_north, max_north,
+                min_west, max_west);
 
-		fprintf(stdout," Done!\nWriting \"%s\"... ",splatfile);
-		fflush(stdout);
+        fprintf(stdout, " Done!\nWriting \"%s\"... ", splatfile);
+        fflush(stdout);
 
-		fd=fopen(splatfile,"w");
+        fd = fopen(splatfile, "w");
 
-		fprintf(fd,"%.0f\n%.0f\n%.0f\n%.0f\n", max_west, min_north, min_west, max_north);
+        fprintf(fd, "%.0f\n%.0f\n%.0f\n%.0f\n", max_west, min_north, min_west,
+                max_north);
 
-		for (x=0; x<1200; x++)
-			for (y=0; y<1200; y++)
-				fprintf(fd,"%d\n",array[x][y]);
+        for (x = 0; x < 1200; x++)
+            for (y = 0; y < 1200; y++)
+                fprintf(fd, "%d\n", array[x][y]);
 
-		fclose(fd);
-		fprintf(stdout,"Done!\n");
-		fflush(stdout);
-	}
+        fclose(fd);
+        fprintf(stdout, "Done!\n");
+        fflush(stdout);
+    }
 
-	if (fd==NULL)
-	{
-		fprintf(stderr,"*** %c%s%c: File Not Found!\n",34,argv[1],34);
-		exit(-1);
-	}
-	else
-		exit(0);
+    if (fd == NULL) {
+        fprintf(stderr, "*** %c%s%c: File Not Found!\n", 34, argv[1], 34);
+        exit(-1);
+    } else
+        exit(0);
 }

@@ -8,8 +8,7 @@
  * This file is covered by the LICENSE.md file in the root of this project.
  */
 
-#ifndef antenna_pattern_file_h
-#define antenna_pattern_file_h
+#pragma once
 
 #include <string>
 
@@ -22,5 +21,3 @@ class AntennaPattern {
   public:
     void LoadAntennaPattern(const std::string &filename);
 };
-
-#endif /* antenna_pattern_file_h */

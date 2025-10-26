@@ -14,19 +14,19 @@
 #include "site.h"
 #include "splat_run.h"
 #include "utilities.h"
-#include <iostream>
 #include <fstream>
-
-using namespace std;
+#include <iostream>
 
 Json::Json(const ElevationMap &em, const SplatRun &sr)
-    : path(sr.arraysize, sr.ppd), em(em), sr(sr) {}
-    
+    : path(sr.arraysize, sr.ppd),
+      em(em),
+      sr(sr) { }
+
 // === unsorted start ===
-    // JSON output by der-stefan
-    // This is NOT yet for productive use! I currently test coverage predictions only, no point2point predictions.
-    
-    /* read in argv[] as an associative array.
+// JSON output by der-stefan
+// This is NOT yet for productive use! I currently test coverage predictions only, no point2point predictions.
+
+/* read in argv[] as an associative array.
 	 * You can now access the list e.g. by args["o"] which will not fail if the argument is not set
 	 * 
 	 *	map<string, string>::iterator i;
@@ -34,7 +34,7 @@ Json::Json(const ElevationMap &em, const SplatRun &sr)
 	 *		cout << i->first << ": " << i->second << endl;
 	 *	}
 	 */
-	//typedef map<string,string> arg_t;
+//typedef map<string,string> arg_t;
 /*	arg_t args;
 	
 	string curr_arg = "";
@@ -55,41 +55,43 @@ Json::Json(const ElevationMap &em, const SplatRun &sr)
 			}
 		}
 	}*/
-	/* end argv[] reading */
-	
-    //Json json(*em_p, sr);
-    //json.WriteJSON(args, tx_site[0], lrp, mapfile);
+/* end argv[] reading */
+
+//Json json(*em_p, sr);
+//json.WriteJSON(args, tx_site[0], lrp, mapfile);
 // === unsorted end ===
 
-    
-void Json::WriteJSON(arg_t args, Site tx_site, Lrp lrp, string mapfile) {
-	int x;
-	char report_name[80];
+void Json::WriteJSON(arg_t args, Site tx_site, Lrp lrp, std::string mapfile) {
+    std::string report_name;
 
-    sprintf(report_name, "%s.json", mapfile.c_str());
+    report_name = mapfile + ".json";
 
-    for (x = 0; report_name[x] != 0; x++)
-        if (report_name[x] == 32 || report_name[x] == 17 ||
-            report_name[x] == 92 || report_name[x] == 42 ||
-            report_name[x] == 47)
-            report_name[x] = '_';
-    
-    ofstream reportfile(report_name);
-    
+    for (size_t i = 0; i < report_name.length(); i++)
+        if (report_name[i] == 32 || report_name[i] == 17 ||
+            report_name[i] == 92 || report_name[i] == 42 ||
+            report_name[i] == 47)
+            report_name[i] = '_';
+
+    std::ofstream reportfile(report_name);
+
     reportfile << "{\n";
     reportfile << "\t\"splat\": \"" << sr.splat_version.c_str() << "\",\n";
     reportfile << "\t\"name\": \"" << tx_site.name.c_str() << "\",\n";
     reportfile << "\t\"image\": {\n";
     reportfile << "\t\t\"file\": \"" << mapfile.c_str() << ".png\",\n";
     reportfile << "\t\t\"projection\": \"EPSG:3857\",\n";
-    reportfile << "\t\t\"bounds\": [[" << em.min_north << ", " << 360-em.max_west << "],[" << em.max_north << ", " << 360-em.min_west << "]],\n";
-    reportfile << "\t\t\"unit\": \"dbm\",\n";	//TODO: determine unit (dBm or dBuV/m)
+    reportfile << "\t\t\"bounds\": [[" << em.min_north << ", "
+               << 360 - em.max_west << "],[" << em.max_north << ", "
+               << 360 - em.min_west << "]],\n";
+    reportfile
+        << "\t\t\"unit\": \"dbm\",\n";  //TODO: determine unit (dBm or dBuV/m)
     reportfile << "\t\t\"colormap\": {\n";
     reportfile << "\t\t\t\"0\": \"#FF0000\",\n";
-    reportfile << "\t\t\t\"-10\": \"#FF8000\"\n";	//TODO: determine colormap
+    reportfile << "\t\t\t\"-10\": \"#FF8000\"\n";  //TODO: determine colormap
     reportfile << "\t\t}\n\t},\n";
     reportfile << "\t\"qth\": {\n";
-    reportfile << "\t\t\"coordinates\": [" << tx_site.lat << ", " << 360-tx_site.lon << "],\n";
+    reportfile << "\t\t\"coordinates\": [" << tx_site.lat << ", "
+               << 360 - tx_site.lon << "],\n";
     reportfile << "\t\t\"height\": " << tx_site.alt << "\n";
     reportfile << "\t},\n";
     reportfile << "\t\"lrp\": {\n";
@@ -104,25 +106,26 @@ void Json::WriteJSON(arg_t args, Site tx_site, Lrp lrp, string mapfile) {
     reportfile << "\t\t\"erp\": " << lrp.erp << "\n";
     reportfile << "\t},\n";
     reportfile << "\t\"arguments\": {\n";
-    
-    map<string, string>::iterator i;
+
+    std::map<std::string, std::string>::iterator i;
     int pos = 0;
     int len = args.size();
-    for (i=args.begin(); i != args.end(); i++, pos++) {
-		reportfile << "\t\t\"" <<  i->first.c_str() << "\": \"" << i->second.c_str() << "\"";
-		if(pos < (len - 1)) {
-			reportfile << ",\n";
-		} else {
-			reportfile << "\n";	// no comma for last array entry
-		}
-	}
+    for (i = args.begin(); i != args.end(); i++, pos++) {
+        reportfile << "\t\t\"" << i->first.c_str() << "\": \""
+                   << i->second.c_str() << "\"";
+        if (pos < (len - 1)) {
+            reportfile << ",\n";
+        } else {
+            reportfile << "\n";  // no comma for last array entry
+        }
+    }
 
     reportfile << "\t}\n";
     reportfile << "}\n";
 
-	reportfile.close();
-	
-	cout << "\nJSON file written to: " << report_name;
+    reportfile.close();
+
+    std::cout << "\nJSON file written to: " << report_name;
 
     fflush(stdout);
 }

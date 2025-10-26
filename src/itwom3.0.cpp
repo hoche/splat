@@ -1,54 +1,58 @@
+// clang-format off
 /********************************************************************************
  * Irregular Terrain With Obstructions Model (ITWOM) *
  *                                                                               *
- * Version 3.0b, January 2, 2019  File: itwom3.0.c *
+ * Version 3.0c, January 2, 2019  File: itwom3.0.c *
  *                                                                               *
  * Provenance:   Further test version of itwom2.0m re adj to Hrzn range factors
- **
+ *
  * 1. This file is based on a thorough debugging, completion, and update of the
- ** ITM, based on an original, public domain version of this file obtained from:
- ** ftp://flattop.its.bldrdoc.gov/itm/ITMDLL.cpp prior to May, 2007. C++
- *routines * for this program are taken from a translation of the FORTRAN code
- *written by  * U.S. Department of Commerce NTIA/ITS Institute for
- *Telecommunication Sciences    * Irregular Terrain Model (ITM) (Longley-Rice).
- **
- * 2. The Linux version of this file incorporates improvements suggested by a *
- * study of changes made to file itm.cpp by J. D. McDonald to remove Microsoft *
- * Windows dll-isms and to debug an ambguity in overloaded calls. *
+ * ITM, based on an original, public domain version of this file obtained from:
+ * ftp://flattop.its.bldrdoc.gov/itm/ITMDLL.cpp prior to May, 2007. C++
+ * routines for this program are taken from a translation of the FORTRAN code
+ * written by U.S. Department of Commerce NTIA/ITS Institute for
+ * Telecommunication Sciences Irregular Terrain Model (ITM) (Longley-Rice).
+ *
+ * 2. The Linux version of this file incorporates improvements suggested by a
+ * study of changes made to file itm.cpp by J. D. McDonald to remove Microsoft
+ * Windows dll-isms and to debug an ambguity in overloaded calls.
+ *
  * 3. The Linux version of this file also incorporates improvements suggested by
- ** a study of further modifications made to itm.cpp by John A. Magliacane to *
+ * a study of further modifications made to itm.cpp by John A. Magliacane to
  * remove unused variables, unneeded #includes, and to replace pow() statements
- ** with explicit multiplications to improve execution speed and accuracy. *
+ * with explicit multiplications to improve execution speed and accuracy.
+ *
  * 4. On August 19, 2007 this file was modified by Sid Shumate to include *
  * changes and updates included in version 7.0 of ITMDLL.cpp, which was released
- ** by the NTIA/ITS on June 26, 2007. With correction set SS1 and SS2:
- *itm71.cpp.    *
+ * by the NTIA/ITS on June 26, 2007. With correction set SS1 and SS2:
+ * itm71.cpp.
+ *
  * 5. On Feb. 5, 2008 this file became v.1.0 of the ITWOM with the addition, by
- ** Sid Shumate, of multiple corrections, the replacement of subroutines lrprop
- ** and alos with lrprop2 and alos2, and the addition of subroutine saalos to *
+ * Sid Shumate, of multiple corrections, the replacement of subroutines lrprop
+ * and alos with lrprop2 and alos2, and the addition of subroutine saalos to
  * incorporate Radiative Transfer Engine (RTE) computations in the line of sight
- ** range. * Update 8 Jun 2010 to modify alos to match 2010 series of IEEE-BTS *
- * newsletter articles * Update June 12, 2010 to z version to change test
- *outputs                      * Offshoot start date June 23, 2010 to start
- *itwom2.0 dual version for FCC.     * Update to 2.0b July 25 to correct if
- *statement errors in adiff2 re two peak   * calculations starting at line 525 *
- * Development to 2.0c 8 Aug 2010 after modifying saalos and adiff for full *
+ * range.
+ *
+ * Update 8 Jun 2010 to modify alos to match 2010 series of IEEE-BTS 
+ * newsletter articles
+ * Update June 12, 2010 to z version to change test outputs
+ * Offshoot start date June 23, 2010 to start itwom2.0 dual version for FCC.
+ * Update to 2.0b July 25 to correct if statement errors in adiff2 re two peak
+ * calculations starting at line 525
+ * Update to 2.0c 8 Aug 2010 after modifying saalos and adiff for full
  * addition of saalos treatment to post obstruction calculations and debugging.
- ** Modified to make 1st obs loss=5.8 only, no clutter loss considered * Updated
- *to 3.1 after much cleanup, conversion to pure C, and added           *
- * documentation by Michel Hoche-Mong. *
+ * Modified to make 1st obs loss=5.8 only, no clutter loss considered
+
+ * Update to 3.0 2018/2019 after much cleanup, conversion to pure C, and added 
+ * documentation by Michel Hoche-Mong.
  *                                                                               *
- * Commented out unused variables and calculations to eliminate gcc warnings *
- *    (-Wunused-but-set-variable)  -- John A. Magliacane -- July 25, 2013 *
  ********************************************************************************/
+// clang-format on
 
 #include <assert.h>
 #include <complex>
 #include <math.h>
 #include <string.h>
-//#include <stdio.h>
-//#include <stdlib.h>
-//#include <stdbool.h>
 
 #include "itwom3.0.h"
 
@@ -299,7 +303,7 @@ double h0f(double r, double et) {
     double h0fv, temp;
     int it;
 
-    it = (int)et;
+    it = (int) et;
 
     if (it <= 0) {
         it = 1;
@@ -1335,8 +1339,8 @@ void lrprop(double dist, prop_type *prop, propa_type *propa) {
             pow(prop->wn * (prop->gme * prop->gme), -THIRD); /* No 2nd pow() */
         d3 = max(propa->dlsa, 1.3787 * prop->xae + propa->dla);
         d4 = d3 + 2.7574 * prop->xae;
-        a3 = adiff(&state, d3, prop, propa); // use
-        a4 = adiff(&state, d4, prop, propa); // use
+        a3 = adiff(&state, d3, prop, propa);  // use
+        a4 = adiff(&state, d4, prop, propa);  // use
         propa->emd = (a4 - a3) / (d4 - d3);
         propa->aed = a3 - propa->emd * d3;
     }
@@ -1366,7 +1370,7 @@ void lrprop(double dist, prop_type *prop, propa_type *propa) {
      * do some line-of-site setup calculations. Otherwise we skip that
      * and go to scattering. */
     if (prop->dist < propa->dlsa) {
-        if (!prop->wlos) {
+        if (! prop->wlos) {
             alos_state alosstate = {0};
             alos_init(&alosstate, prop, propa);
 
@@ -1432,7 +1436,7 @@ void lrprop(double dist, prop_type *prop, propa_type *propa) {
     }
 
     if (prop->dist <= 0.0 || prop->dist >= propa->dlsa) {
-        if (!prop->wscat) {
+        if (! prop->wscat) {
             ascat_state scatterstate = {0};
             ascat_init(&scatterstate, prop);
 
@@ -1577,7 +1581,7 @@ void lrprop2(double dist, prop_type *prop, propa_type *propa) {
             0.0) /* if interval width is zero or less, used for area mode */
         {
 
-            if (!prop->wlos) {
+            if (! prop->wlos) {
                 d2 = propa->dlsa;
                 a2 = propa->aed + d2 * propa->emd;
                 d0 = 1.908 * prop->wn * prop->he[0] * prop->he[1];
@@ -1618,7 +1622,7 @@ void lrprop2(double dist, prop_type *prop, propa_type *propa) {
                         }
                     }
 
-                    if (!wq) {
+                    if (! wq) {
                         propa->ak1 = FORTRAN_DIM(a2, a1) / (d2 - d1);
                         propa->ak2 = 0.0;
 
@@ -1632,7 +1636,7 @@ void lrprop2(double dist, prop_type *prop, propa_type *propa) {
         } else /* for ITWOM point-to-point mode */
         {
 
-            if (!prop->wlos) {
+            if (! prop->wlos) {
                 q = alos2(prop, propa); /* coefficient setup */
                 prop->wlos = true;
             }
@@ -1660,7 +1664,7 @@ void lrprop2(double dist, prop_type *prop, propa_type *propa) {
     if (prop->dist <= 0.0 || prop->dist >= propa->dlsa) {
         if (iw == 0.0) /* area mode */
         {
-            if (!prop->wscat) {
+            if (! prop->wscat) {
                 ascat_state scatterstate = {0};
                 ascat_init(&scatterstate, prop);
 
@@ -1696,7 +1700,7 @@ void lrprop2(double dist, prop_type *prop, propa_type *propa) {
             }
         } else /* ITWOM mode  q used to preset coefficients with zero input */
         {
-            if (!prop->wscat) {
+            if (! prop->wscat) {
                 d5 = 0.0;
                 d6 = 0.0;
                 ascat_state scatterstate = {0};
@@ -1727,8 +1731,8 @@ void lrprop2(double dist, prop_type *prop, propa_type *propa) {
  *
  * Used in avar
  */
-double curve(double const c1, double const c2, double const x1, double const x2,
-             double const x3, double const de) {
+double curve(const double c1, const double c2, const double x1, const double x2,
+             const double x3, const double de) {
     /* return
      * (c1+c2/(1.0+pow((de-x2)/x3,2.0)))*pow(de/x1,2.0)/(1.0+pow(de/x1,2.0)); */
     double temp1, temp2;
@@ -1973,7 +1977,8 @@ void hzns(const elev_t pfl[], prop_type *prop) {
     int np;
     double xi, za, zb, qc, q, sb, sa;
 
-    np = (int)pfl[0]; /* number of elements in pfl array                      */
+    np =
+        (int) pfl[0]; /* number of elements in pfl array                      */
     xi = pfl[1];      /* x increment, the distance between elements           */
 
     za = pfl[2] +
@@ -2019,7 +2024,7 @@ void hzns(const elev_t pfl[], prop_type *prop) {
             wq = false;
         }
 
-        if (!wq) /* no tx obstructions, so examine rx end */
+        if (! wq) /* no tx obstructions, so examine rx end */
         {
             q = pfl[i + 2] - ((qc * sb + prop->the[1]) * sb) -
                 zb; /* height diff from pfl pt to sb,      */
@@ -2055,7 +2060,8 @@ void hzns2(const elev_t pfl[], prop_type *prop) {
     int np, rp, i, j;
     double xi, za, zb, qc, q, sb, sa, dr, dshh;
 
-    np = (int)pfl[0]; /* number of elements in pfl array                      */
+    np =
+        (int) pfl[0]; /* number of elements in pfl array                      */
     xi = pfl[1];      /* x increment, the distance between elements           */
 
     za = pfl[2] +
@@ -2110,7 +2116,7 @@ void hzns2(const elev_t pfl[], prop_type *prop) {
             }
         }
 
-        if (!wq) /* we know it's not LOS so examine the rx end   */
+        if (! wq) /* we know it's not LOS so examine the rx end   */
         {
             for (i = 1; i < np; i++) {
                 sb -= xi; /* move sb towards tx                        */
@@ -2170,13 +2176,12 @@ void hzns2(const elev_t pfl[], prop_type *prop) {
     } else /* line of sight  */
     {
         if (za > 0.0) {
-            dr =
-                (prop->dist) / (1 + zb / za); /* if the antenna has 0 height,
+            dr = (prop->dist) / (1 + zb / za); /* if the antenna has 0 height,
                                                  there is no 2-ray reflection */
         }
     }
 
-    rp = 2 + (int)(floor(0.5 + dr / xi));
+    rp = 2 + (int) (floor(0.5 + dr / xi));
 
     prop->rpl = rp;
     prop->rph = pfl[rp];
@@ -2227,8 +2232,8 @@ void z1sq1(const elev_t z[], const double x1, const double x2, double *z0,
                       xn, xb + 1.0); /* move xb up by one (or set to the end) */
     }
 
-    ja = (int)xa;
-    jb = (int)xb;
+    ja = (int) xa;
+    jb = (int) xb;
 
     n = jb - ja;   /* total number of points as an integer.          */
     xa = xb - xa;  /* also the total number of points, but as a float. */
@@ -2305,8 +2310,8 @@ void z1sq2(const elev_t z[], const double x1, const double x2, double *z0,
                       xn, xb + 1.0); /* move xb up by one (or set to the end) */
     }
 
-    ja = (int)xa;
-    jb = (int)xb;
+    ja = (int) xa;
+    jb = (int) xb;
 
     xa = (2 * trunc((xb - xa) / 2)) -
          1; /* make xa an odd integer representing the number */
@@ -2317,8 +2322,8 @@ void z1sq2(const elev_t z[], const double x1, const double x2, double *z0,
     /* crossing. We made it negative because we'll be */
     /* from -x to +x, past the middle at 0.              */
 
-    xb += x;               /* xb is the number of intervals to the middle    */
-    ja = jb - 1 - (int)xa; /* fix up the start point because we insisted on  */
+    xb += x;                /* xb is the number of intervals to the middle    */
+    ja = jb - 1 - (int) xa; /* fix up the start point because we insisted on  */
     /* an odd number of intervals. We might need to   */
     /* move it a bit to accomodate.                   */
 
@@ -2378,7 +2383,7 @@ double qtile(const int nn, elev_t a[], const int ir) {
     n = nn;
     k = min(max(0, ir), n - 1);
 
-    while (!done) {
+    while (! done) {
         if (goto10) {
             q = a[k];
             i0 = m;
@@ -2487,7 +2492,7 @@ double d1thx(const elev_t pfl[], const double x1, const double x2) {
     double d1thxv, sn, xa, xb;
     elev_t *s;
 
-    np = (int)pfl[0];
+    np = (int) pfl[0];
     xa = x1 / pfl[1]; /* start point's array element */
     xb = x2 / pfl[1]; /* end point's array element */
     d1thxv = 0.0;
@@ -2495,21 +2500,21 @@ double d1thx(const elev_t pfl[], const double x1, const double x2) {
     if (xb - xa < 2.0)
         return d1thxv;
 
-    ka = (int)(0.1 * (xb - xa + 8.0)); /* from 32 to 242 points */
-    ka = min(max(4, ka), 25);          /* ka can range from 4-25. */
-    n = 10 * ka - 5;                   /* n can range from 35-245 */
-    kb = n - ka + 1;                   /* kb can range from 32-221 */
+    ka = (int) (0.1 * (xb - xa + 8.0)); /* from 32 to 242 points */
+    ka = min(max(4, ka), 25);           /* ka can range from 4-25. */
+    n = 10 * ka - 5;                    /* n can range from 35-245 */
+    kb = n - ka + 1;                    /* kb can range from 32-221 */
     sn = n - 1; /* index of last path element to consider */
 
-    s = (elev_t *)calloc(n + 2, sizeof(elev_t));
+    s = (elev_t *) calloc(n + 2, sizeof(elev_t));
     assert(s != NULL);
     s[0] = sn;
     s[1] = 1.0;
 
     xb = (xb - xa) / sn; /* rescale xb to the new distance */
 
-    k = (int)(xa + 1.0);
-    xa -= (double)k; /* xa now ranges from -1.0 to near 0 */
+    k = (int) (xa + 1.0);
+    xa -= (double) k; /* xa now ranges from -1.0 to near 0 */
 
     /* Load up a temporary height array, smoothed */
     for (j = 0; j < n; j++) {
@@ -2571,7 +2576,7 @@ double d1thx2(const elev_t pfl[], const double x1, const double x2) {
     double d1thx2v, sn, xa, xb, xc;
     elev_t *s;
 
-    np = (int)pfl[0];
+    np = (int) pfl[0];
     xa = x1 / pfl[1]; /* start point's array element */
     xb = x2 / pfl[1]; /* end point's array element */
     d1thx2v = 0.0;
@@ -2580,23 +2585,24 @@ double d1thx2(const elev_t pfl[], const double x1, const double x2) {
         return d1thx2v;
 
     /* Compare this section to d1thx() above. */
-    ka = (int)(0.1 * (xb - xa + 8.0));
-    kmx = max(25, (int)(83350 / (pfl[1]))); /* Sid's fix: dynamically figure out
+    ka = (int) (0.1 * (xb - xa + 8.0));
+    kmx =
+        max(25, (int) (83350 / (pfl[1]))); /* Sid's fix: dynamically figure out
                                                the max elements */
-    ka = min(max(4, ka), kmx);              /* range from 4 to kmax */
+    ka = min(max(4, ka), kmx);             /* range from 4 to kmax */
     n = 10 * ka - 5;
     kb = n - ka + 1;
     sn = n - 1;
 
-    s = (elev_t *)calloc(n + 2, sizeof(elev_t));
+    s = (elev_t *) calloc(n + 2, sizeof(elev_t));
     assert(s != NULL);
     s[0] = sn;
     s[1] = 1.0;
 
     xb = (xb - xa) / sn; /* rescale xb to the new distance */
 
-    k = (int)(trunc(xa + 1.0));
-    xc = xa - ((double)k); /* xa now ranges from -1.0 to near 0 */
+    k = (int) (trunc(xa + 1.0));
+    xc = xa - ((double) k); /* xa now ranges from -1.0 to near 0 */
     /* This new variable, xc, was added by Sid because     */
     /* xa's value is later passed to z1sq2 and he wanted   */
     /* to preserve the original xa value. However, z1sq2() */
@@ -2663,7 +2669,7 @@ void qlrpfl(const elev_t pfl[], int klimx, int mdvarx, prop_type *prop,
     double xl[2], q, za, zb, temp;
 
     prop->dist = pfl[0] * pfl[1]; /* total distance of the pfl array */
-    np = (int)pfl[0];             /* number of points in the pfl array */
+    np = (int) pfl[0];            /* number of points in the pfl array */
 
     hzns(pfl,
          prop); /* analyse pfl and store horizon/obstruction info in prop */
@@ -2769,7 +2775,7 @@ void qlrpfl2(const elev_t pfl[], int klimx, int mdvarx, prop_type *prop,
     double q = 1;
 
     prop->dist = pfl[0] * pfl[1]; /* total distance of the pfl array */
-    np = (int)pfl[0];             /* number of points in the pfl array */
+    np = (int) pfl[0];            /* number of points in the pfl array */
 
     hzns2(pfl,
           prop); /* analyse pfl and store horizon/obstruction info in prop */
@@ -2970,13 +2976,13 @@ void point_to_point_ITM(const elev_t elev[], double tht_m, double rht_m,
     prop.mdp = -1;
     zc = qerfi(conf);
     zr = qerfi(rel);
-    np = (long)elev[0];
+    np = (long) elev[0];
     eno = eno_ns_surfref;
     enso = 0.0;
     q = enso;
 
     if (q <= 0.0) {
-        ja = (long)(3.0 + 0.1 * elev[0]); /* added (long) to correct */
+        ja = (long) (3.0 + 0.1 * elev[0]); /* added (long) to correct */
         jb = np - ja + 6;
 
         for (i = ja - 1; i < jb; ++i)
@@ -3098,7 +3104,7 @@ void point_to_point(const elev_t elev[], double tht_m, double rht_m,
     prop.thenr = 0.0;
     zc = qerfi(conf);
     zr = qerfi(rel);
-    np = (long)elev[0];
+    np = (long) elev[0];
     /* dkm=(elev[1]*elev[0])/1000.0; */
     /* xkm=elev[1]/1000.0; */
     eno = eno_ns_surfref;
@@ -3116,7 +3122,7 @@ void point_to_point(const elev_t elev[], double tht_m, double rht_m,
     prop.dhd = 0.0;      /* delta_h_diff preset */
 
     if (q <= 0.0) {
-        ja = (long)(3.0 + 0.1 * elev[0]);
+        ja = (long) (3.0 + 0.1 * elev[0]);
         jb = np - ja + 6;
 
         for (i = ja - 1; i < jb; ++i)
@@ -3216,7 +3222,7 @@ void point_to_pointMDH_two(const elev_t elev[], double tht_m, double rht_m,
     ztime = qerfi(timepct);
     zloc = qerfi(locpct);
     zconf = qerfi(confpct);
-    np = (long)elev[0];
+    np = (long) elev[0];
     /* dkm = (elev[1] * elev[0]) / 1000.0; */
     /* xkm = elev[1] / 1000.0; */
     eno = eno_ns_surfref;
@@ -3231,7 +3237,7 @@ void point_to_pointMDH_two(const elev_t elev[], double tht_m, double rht_m,
     mode_var = 1;        /* int mode_var set for FCC ILLR */
 
     if (q <= 0.0) {
-        ja = (long)(3.0 + 0.1 * elev[0]); /* to match addition of (long) */
+        ja = (long) (3.0 + 0.1 * elev[0]); /* to match addition of (long) */
         jb = np - ja + 6;
         for (i = ja - 1; i < jb; ++i)
             zsys += elev[i];
@@ -3310,7 +3316,7 @@ void point_to_pointDH(const elev_t elev[], double tht_m, double rht_m,
     prop.thenr = 0.0;
     zc = qerfi(conf);
     zr = qerfi(rel);
-    np = (long)elev[0];
+    np = (long) elev[0];
     /* dkm = (elev[1] * elev[0]) / 1000.0; */
     /* xkm = elev[1] / 1000.0; */
     eno = eno_ns_surfref;
@@ -3324,8 +3330,8 @@ void point_to_pointDH(const elev_t elev[], double tht_m, double rht_m,
     prop.cd = 1.00;      /* double clutter_density */
 
     if (q <= 0.0) {
-        ja = (long)(3.0 +
-                    0.1 * elev[0]); /* to match KD2BD addition of (long)  */
+        ja = (long) (3.0 +
+                     0.1 * elev[0]); /* to match KD2BD addition of (long)  */
         jb = np - ja + 6;
         for (i = ja - 1; i < jb; ++i)
             zsys += elev[i];
@@ -3407,8 +3413,8 @@ void area(long ModVar, double deltaH, double tht_m, double rht_m,
     long ipol;
     int kst[2];
 
-    kst[0] = (int)TSiteCriteria;
-    kst[1] = (int)RSiteCriteria;
+    kst[0] = (int) TSiteCriteria;
+    kst[1] = (int) RSiteCriteria;
     zt = qerfi(pctTime / 100.0);
     zl = qerfi(pctLoc / 100.0);
     zc = qerfi(pctConf / 100.0);
@@ -3418,15 +3424,15 @@ void area(long ModVar, double deltaH, double tht_m, double rht_m,
     prop.dh = deltaH;
     prop.hg[0] = tht_m;
     prop.hg[1] = rht_m;
-    propv.klim = (long)radio_climate;
+    propv.klim = (long) radio_climate;
     prop.encc = enc_ncc_clcref;
     prop.cch = clutter_height;
     prop.cd = clutter_density;
     prop.dhd = delta_h_diff;
     prop.ens = eno;
     prop.kwx = 0;
-    ivar = (long)ModVar;
-    ipol = (long)pol;
+    ivar = (long) ModVar;
+    ipol = (long) pol;
     qlrps(frq_mhz, 0.0, eno, ipol, eps, sgm, &prop);
     qlra(kst, propv.klim, ivar, &prop, &propv);
 

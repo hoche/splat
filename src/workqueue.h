@@ -1,6 +1,8 @@
 // Simple workqueue loosely adapted from stackexchange
 // https://codereview.stackexchange.com/questions/60363/thread-pool-worker-implementation
 
+#pragma once
+
 #include <cassert>
 #include <deque>
 #include <functional>
@@ -56,7 +58,7 @@ class WorkQueue {
 
     std::atomic<bool> m_exit{false};
     std::atomic<bool> m_finish_work{
-        true}; // override m_exit until the work is done
+        true};  // override m_exit until the work is done
 
     void operator=(const WorkQueue &) = delete;
     WorkQueue(const WorkQueue &) = delete;

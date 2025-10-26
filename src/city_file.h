@@ -8,8 +8,7 @@
  * This file is covered by the LICENSE.md file in the root of this project.
  */
 
-#ifndef city_file_h
-#define city_file_h
+#pragma once
 
 #include "elevation_map.h"
 
@@ -19,5 +18,3 @@ class CityFile {
   public:
     void LoadCities(const std::string &filename, ElevationMap &em);
 };
-
-#endif /* city_file_h */
