@@ -3297,7 +3297,7 @@ tdefl_find_match(tdefl_compressor *d, mz_uint lookahead_pos, mz_uint max_dist,
     mz_uint num_probes_left = d->m_max_probes[match_len >= 32];
     const mz_uint16 *s = (const mz_uint16 *) (d->m_dict + pos), *p, *q;
     mz_uint16 c01 = TDEFL_READ_UNALIGNED_WORD(&d->m_dict[pos + match_len - 1]),
-              s01 = *s;
+              s01 = TDEFL_READ_UNALIGNED_WORD(&d->m_dict[pos]);
     MZ_ASSERT(max_match_len <= TDEFL_MAX_MATCH_LEN);
     if (max_match_len <= match_len)
         return;
@@ -3321,7 +3321,7 @@ tdefl_find_match(tdefl_compressor *d, mz_uint lookahead_pos, mz_uint max_dist,
         if (! dist)
             break;
         q = (const mz_uint16 *) (d->m_dict + probe_pos);
-        if (*q != s01)
+        if (TDEFL_READ_UNALIGNED_WORD(&d->m_dict[probe_pos]) != s01)
             continue;
         p = s;
         probe_len = 32;
