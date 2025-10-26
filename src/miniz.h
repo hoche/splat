@@ -2369,10 +2369,9 @@ tinfl_status tinfl_decompress(tinfl_decompressor *r,
                 else if ((counter >= 9) && (counter <= dist)) {
                     const mz_uint8 *pSrc_end = pSrc + (counter & ~7);
                     do {
-                        ((mz_uint32 *) pOut_buf_cur)[0] =
-                            ((const mz_uint32 *) pSrc)[0];
-                        ((mz_uint32 *) pOut_buf_cur)[1] =
-                            ((const mz_uint32 *) pSrc)[1];
+                        /* Use memcpy to avoid UBSan errors on unaligned access */
+                        memcpy(pOut_buf_cur, pSrc, 4);
+                        memcpy(pOut_buf_cur + 4, pSrc + 4, 4);
                         pOut_buf_cur += 8;
                     } while ((pSrc += 8) < pSrc_end);
                     if ((counter &= 7) < 3) {
