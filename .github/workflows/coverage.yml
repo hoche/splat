@@ -1,0 +1,74 @@
+name: Code Coverage
+
+on:
+  push:
+    branches: [ main, master, develop, v2.0.0-b1 ]
+  pull_request:
+    branches: [ main, master, develop, v2.0.0-b1 ]
+  workflow_dispatch:
+
+jobs:
+  coverage:
+    name: Code Coverage Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          cmake \
+          ninja-build \
+          libbz2-dev \
+          zlib1g-dev \
+          lcov \
+          gcovr
+
+    - name: Configure CMake with coverage
+      env:
+        CC: gcc
+        CXX: g++
+      run: |
+        cmake -B build \
+          -G Ninja \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DCMAKE_CXX_FLAGS="--coverage -fprofile-arcs -ftest-coverage" \
+          -DCMAKE_C_FLAGS="--coverage -fprofile-arcs -ftest-coverage" \
+          -DCMAKE_EXE_LINKER_FLAGS="--coverage"
+
+    - name: Build
+      run: cmake --build build
+
+    - name: Run tests
+      run: |
+        cd build
+        ./splat_tests
+
+    - name: Generate coverage report
+      run: |
+        cd build
+        lcov --capture --directory . --output-file coverage.info
+        lcov --remove coverage.info '/usr/*' '*/tests/*' '*/_deps/*' --output-file coverage.info
+        lcov --list coverage.info
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        file: build/coverage.info
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+    - name: Generate HTML coverage report
+      run: |
+        cd build
+        genhtml coverage.info --output-directory coverage_html
+
+    - name: Upload HTML coverage report
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report-html
+        path: build/coverage_html

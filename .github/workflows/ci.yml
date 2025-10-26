@@ -1,0 +1,251 @@
+name: CI Build and Test
+
+on:
+  push:
+    branches: [ main, master, 2.0-develop ]
+  pull_request:
+    branches: [ main, master, 2.0-develop ]
+  workflow_dispatch:
+
+jobs:
+  # Linux builds
+  linux:
+    name: Linux (${{ matrix.compiler }}, ${{ matrix.build_type }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [gcc, clang]
+        build_type: [Debug, Release]
+        include:
+          - compiler: gcc
+            cc: gcc
+            cxx: g++
+          - compiler: clang
+            cc: clang
+            cxx: clang++
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          cmake \
+          ninja-build \
+          libbz2-dev \
+          zlib1g-dev
+
+    - name: Configure CMake
+      env:
+        CC: ${{ matrix.cc }}
+        CXX: ${{ matrix.cxx }}
+      run: |
+        cmake -B build \
+          -G Ninja \
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+          -DCMAKE_C_COMPILER=${{ matrix.cc }} \
+          -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
+
+    - name: Build
+      run: cmake --build build --config ${{ matrix.build_type }}
+
+    - name: Run tests
+      run: |
+        cd build
+        ./splat_tests --gtest_output=xml:test_results.xml
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-linux-${{ matrix.compiler }}-${{ matrix.build_type }}
+        path: build/test_results.xml
+
+  # macOS Intel builds
+  macos-intel:
+    name: macOS Intel (${{ matrix.build_type }})
+    runs-on: macos-13  # Intel runner
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [Debug, Release]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        brew install cmake ninja bzip2
+
+    - name: Configure CMake
+      run: |
+        cmake -B build \
+          -G Ninja \
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+
+    - name: Build
+      run: cmake --build build --config ${{ matrix.build_type }}
+
+    - name: Run tests
+      run: |
+        cd build
+        ./splat_tests --gtest_output=xml:test_results.xml
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-macos-intel-${{ matrix.build_type }}
+        path: build/test_results.xml
+
+  # macOS ARM (Apple Silicon) builds
+  macos-arm:
+    name: macOS ARM (${{ matrix.build_type }})
+    runs-on: macos-14  # ARM (M1) runner
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [Debug, Release]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        brew install cmake ninja bzip2
+
+    - name: Configure CMake
+      run: |
+        cmake -B build \
+          -G Ninja \
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+
+    - name: Build
+      run: cmake --build build --config ${{ matrix.build_type }}
+
+    - name: Run tests
+      run: |
+        cd build
+        ./splat_tests --gtest_output=xml:test_results.xml
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-macos-arm-${{ matrix.build_type }}
+        path: build/test_results.xml
+
+  # Windows builds
+  windows:
+    name: Windows (${{ matrix.build_type }})
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [Debug, Release]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        choco install cmake ninja -y
+
+    - name: Setup MSVC
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Configure CMake
+      run: |
+        cmake -B build `
+          -G "Visual Studio 17 2022" `
+          -A x64 `
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+
+    - name: Build
+      run: cmake --build build --config ${{ matrix.build_type }}
+
+    - name: Run tests
+      run: |
+        cd build
+        .\${{ matrix.build_type }}\splat_tests.exe --gtest_output=xml:test_results.xml
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-windows-${{ matrix.build_type }}
+        path: build/test_results.xml
+
+  # FreeBSD builds (using cross-platform-actions)
+  freebsd:
+    name: FreeBSD (${{ matrix.build_type }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [Debug, Release]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Build and test on FreeBSD
+      uses: cross-platform-actions/action@v0.24.0
+      with:
+        operating_system: freebsd
+        version: '14.0'
+        shell: bash
+        run: |
+          # Install dependencies
+          sudo pkg install -y cmake ninja bzip2 googletest
+
+          # Configure
+          cmake -B build \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+
+          # Build
+          cmake --build build --config ${{ matrix.build_type }}
+
+          # Test
+          cd build
+          ./splat_tests --gtest_output=xml:test_results.xml
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-freebsd-${{ matrix.build_type }}
+        path: build/test_results.xml
+
+  # Summary job to check all builds passed
+  build-summary:
+    name: Build Summary
+    runs-on: ubuntu-latest
+    needs: [linux, macos-intel, macos-arm, windows, freebsd]
+    if: always()
+
+    steps:
+    - name: Check build results
+      run: |
+        echo "Linux build: ${{ needs.linux.result }}"
+        echo "macOS Intel build: ${{ needs.macos-intel.result }}"
+        echo "macOS ARM build: ${{ needs.macos-arm.result }}"
+        echo "Windows build: ${{ needs.windows.result }}"
+        echo "FreeBSD build: ${{ needs.freebsd.result }}"
+
+        if [ "${{ needs.linux.result }}" != "success" ] || \
+           [ "${{ needs.macos-intel.result }}" != "success" ] || \
+           [ "${{ needs.macos-arm.result }}" != "success" ] || \
+           [ "${{ needs.windows.result }}" != "success" ] || \
+           [ "${{ needs.freebsd.result }}" != "success" ]; then
+          echo "One or more builds failed"
+          exit 1
+        fi
+        echo "All builds succeeded!"
