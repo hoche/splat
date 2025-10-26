@@ -1354,10 +1354,8 @@ typedef unsigned char mz_validate_uint64[sizeof(mz_uint64) == 8 ? 1 : -1];
 #define MZ_MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MZ_CLEAR_OBJ(obj) memset(&(obj), 0, sizeof(obj))
 
-#if MINIZ_USE_UNALIGNED_LOADS_AND_STORES && MINIZ_LITTLE_ENDIAN
-#define MZ_READ_LE16(p) *((const mz_uint16 *) (p))
-#define MZ_READ_LE32(p) *((const mz_uint32 *) (p))
-#else
+/* Always use byte-wise reads to avoid UBSan errors on unaligned access */
+/* Even though x86 supports unaligned loads, it's undefined behavior in C */
 #define MZ_READ_LE16(p)                                                        \
     ((mz_uint32) (((const mz_uint8 *) (p))[0]) |                               \
      ((mz_uint32) (((const mz_uint8 *) (p))[1]) << 8U))
@@ -1366,7 +1364,6 @@ typedef unsigned char mz_validate_uint64[sizeof(mz_uint64) == 8 ? 1 : -1];
      ((mz_uint32) (((const mz_uint8 *) (p))[1]) << 8U) |                       \
      ((mz_uint32) (((const mz_uint8 *) (p))[2]) << 16U) |                      \
      ((mz_uint32) (((const mz_uint8 *) (p))[3]) << 24U))
-#endif
 
 #define MZ_READ_LE64(p)                                                        \
     (((mz_uint64) MZ_READ_LE32(p)) |                                           \
