@@ -91,6 +91,9 @@ splat
 [-hd]
 .br
 [-st]
+.br
+[-msl]
+.br
 .SH DESCRIPTION
 \fBSPLAT!\fP is a powerful terrestrial RF propagation and terrain
 analysis tool for the spectrum between 20 MHz and 20 GHz.
@@ -205,12 +208,14 @@ sites analyzed by the program from ASCII files having a \fI.qth\fP extension.
 QTH files contain the site's name, the site's latitude (positive if North
 of the equator, negative if South), the site's longitude (in degrees West,
 0 to 360 degrees, or degrees East 0 to -360 degrees), and the site's
-antenna height above ground level (AGL), each separated by a single
-line-feed character.  The antenna height is assumed to be specified in
-feet unless followed by the letter \fIm\fP or the word \fImeters\fP in
-either upper or lower case.  Latitude and longitude information may be
-expressed in either decimal format (74.6864) or degree, minute, second
-(DMS) format (74 41 11.0).
+antenna height, interpreted by default as  above ground level (AGL),
+each separated by a single line-feed character.  The antenna height is
+assumed to be specified in feet unless followed by the letter \fIm\fP or
+the word \fImeters\fP in either upper or lower case.  You can optionally
+add a single line following the altitude containing either \fMSL\f or
+\fAGL\f to indicate that the altitude is measured from sea level or ground
+level.  Latitude and longitude information may be expressed in either
+decimal format (74.6864) or degree, minute, second (DMS) format (74 41 11.0).
 .PP
 For example, a site location file describing television station WNJT-DT,
 Trenton, NJ (\fIwnjt-dt.qth\fP) might read as follows:
@@ -496,6 +501,7 @@ line will return a summary of \fBSPLAT!\fP's command line options:
 .br
 -imperial employ imperial rather than metric units for all user I/O
 .br
+
 -maxpages [16] Maximum Analysis Region capability: 1, 4, 9, 16, 25, 36, 49, 64
 .br
   -sdelim [_] Lat and lon delimeter in SDF filenames
@@ -503,6 +509,8 @@ line will return a summary of \fBSPLAT!\fP's command line options:
      -hd Use High Definition mode (3600 ppd vs 1200 ppd). Requires SRTM-1 SDF files.
 .br
      -st use a single CPU thread (classic mode)
+.br
+-msl assume TX and RX site altitudes are referenced from MSL instead of AGL
 .br
 \fR
 The command-line options for \fCsplat\fR and \fCsplat-hd\fR are identical.
