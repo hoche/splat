@@ -41,6 +41,7 @@ splat
       -fz Fresnel zone clearance percentage (default = 60)
       -gc ground clutter height (feet/meters)
      -jpg when generating maps, create jpgs instead of pngs or ppms
+     -ppm when generating maps, create ppms instead of pngs or jpgs
      -tif create geotiff instead of png or jpeg
      -ngs display greyscale topography as white in images
      -erp override ERP in .lrp file (Watts)
@@ -48,6 +49,7 @@ splat
      -ani name of alphanumeric input file
      -udt name of user defined terrain input file
      -kml generate Google Earth (.kml) compatible output
+     -kmz generate Google Earth compressed (.kmz) output
      -geo generate an Xastir .geo georeference file (with image output)
      -dbm plot signal power level contours rather than field strength
      -log copy command line std::string to this output file

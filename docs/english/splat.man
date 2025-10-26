@@ -50,6 +50,10 @@ splat
 .br
 [-log \fIlogfile.ext\fP]
 .br
+[-json]
+.br
+[-v \fIN\fP]
+.br
 [-n]
 .br
 [-N]
@@ -62,15 +66,27 @@ splat
 .br
 [-ngs]
 .br
+[-jpg]
+.br
+[-ppm]
+.br
+[-tif]
+.br
 [-geo]
 .br
 [-kml]
 .br
+[-kmz]
+.br
 [-gpsav]
+.br
+[-itwom]
 .br
 [-imperial]
 .br
-[-olditm]
+[-maxpages \fIN\fP]
+.br
+[-sdelim \fIcharacter\fP]
 .br
 [-hd]
 .br
@@ -444,6 +460,12 @@ line will return a summary of \fBSPLAT!\fP's command line options:
 .br
     -gc ground clutter height (feet/meters)
 .br
+   -jpg when generating maps, create jpgs instead of pngs or ppms
+.br
+   -ppm when generating maps, create ppms instead of pngs or jpgs
+.br
+   -tif create geotiff instead of png or jpeg
+.br
    -ngs display greyscale topography as white in .ppm files
 .br
    -erp override ERP in .lrp file (Watts)
@@ -456,17 +478,27 @@ line will return a summary of \fBSPLAT!\fP's command line options:
 .br
    -kml generate Google Earth (.kml) compatible output
 .br
+   -kmz generate Google Earth compressed (.kmz) output
+.br
    -geo generate an Xastir .geo georeference file (with .ppm output)
 .br
    -dbm plot signal power level contours rather than field strength
 .br
    -log copy command line string to this output file
 .br
+   -json create JSON file containing configuration
+.br
+       -v N verbosity level. Default is 1. Set to 0 to quiet everything.
+.br
  -gpsav preserve gnuplot temporary working files after SPLAT! execution
+.br
+  -itwom invoke the ITWOM model instead of using Longley-Rice
 .br
 -imperial employ imperial rather than metric units for all user I/O
 .br
--olditm invoke older ITM propagation model rather than the newer ITWOM
+-maxpages [16] Maximum Analysis Region capability: 1, 4, 9, 16, 25, 36, 49, 64
+.br
+  -sdelim [_] Lat and lon delimeter in SDF filenames
 .br
      -hd Use High Definition mode (3600 ppd vs 1200 ppd). Requires SRTM-1 SDF files.
 .br
