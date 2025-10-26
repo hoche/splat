@@ -50,6 +50,10 @@ splat
 .br
 [-log \fIlogfile.ext\fP]
 .br
+[-json]
+.br
+[-v \fIN\fP]
+.br
 [-n]
 .br
 [-N]
@@ -62,17 +66,34 @@ splat
 .br
 [-ngs]
 .br
+[-jpg]
+.br
+[-ppm]
+.br
+[-tif]
+.br
 [-geo]
 .br
 [-kml]
 .br
+[-kmz]
+.br
 [-gpsav]
+.br
+[-itwom]
 .br
 [-imperial]
 .br
+[-maxpages \fIN\fP]
+.br
+[-sdelim \fIcharacter\fP]
+.br
+[-hd]
+.br
+[-st]
+.br
 [-msl]
 .br
-[-olditm]
 .SH DESCRIPTION
 \fBSPLAT!\fP is a powerful terrestrial RF propagation and terrain
 analysis tool for the spectrum between 20 MHz and 20 GHz.
@@ -444,6 +465,12 @@ line will return a summary of \fBSPLAT!\fP's command line options:
 .br
     -gc ground clutter height (feet/meters)
 .br
+   -jpg when generating maps, create jpgs instead of pngs or ppms
+.br
+   -ppm when generating maps, create ppms instead of pngs or jpgs
+.br
+   -tif create geotiff instead of png or jpeg
+.br
    -ngs display greyscale topography as white in .ppm files
 .br
    -erp override ERP in .lrp file (Watts)
@@ -456,22 +483,79 @@ line will return a summary of \fBSPLAT!\fP's command line options:
 .br
    -kml generate Google Earth (.kml) compatible output
 .br
+   -kmz generate Google Earth compressed (.kmz) output
+.br
    -geo generate an Xastir .geo georeference file (with .ppm output)
 .br
    -dbm plot signal power level contours rather than field strength
 .br
    -log copy command line string to this output file
 .br
+   -json create JSON file containing configuration
+.br
+       -v N verbosity level. Default is 1. Set to 0 to quiet everything.
+.br
  -gpsav preserve gnuplot temporary working files after SPLAT! execution
+.br
+  -itwom invoke the ITWOM model instead of using Longley-Rice
 .br
 -imperial employ imperial rather than metric units for all user I/O
 .br
--msl assume TX and RX site altitudes are referenced from MSL instead of AGL
+
+-maxpages [16] Maximum Analysis Region capability: 1, 4, 9, 16, 25, 36, 49, 64
 .br
--olditm invoke older ITM propagation model rather than the newer ITWOM
+  -sdelim [_] Lat and lon delimeter in SDF filenames
+.br
+     -hd Use High Definition mode (3600 ppd vs 1200 ppd). Requires SRTM-1 SDF files.
+.br
+     -st use a single CPU thread (classic mode)
+.br
+-msl assume TX and RX site altitudes are referenced from MSL instead of AGL
 .br
 \fR
 The command-line options for \fCsplat\fR and \fCsplat-hd\fR are identical.
+.SS High Definition Mode
+\fBSPLAT!\fP can operate in High Definition (HD) mode by using the \fC-hd\fR
+command-line switch. HD mode provides significantly higher terrain resolution by
+using 3600 pixels per degree instead of the standard 1200 pixels per degree.
+This corresponds to 1 arc-second resolution versus the standard 3 arc-second resolution.
+.PP
+\fBKey characteristics of HD mode:\fP
+.IP \(bu 3
+\fBResolution:\fP 1 arc-second (approximately 30 meters at the equator) vs.
+3 arc-second (approximately 90 meters) in standard mode
+.IP \(bu 3
+\fBData requirements:\fP Requires high-resolution SDF files generated from
+SRTM-1 data using the \fCsrtm2sdf-hd\fR utility
+.IP \(bu 3
+\fBFile naming:\fP HD mode SDF files are named with an \fC-hd\fR suffix
+(e.g., \fCN40W074-hd.sdf\fR or \fCN40W074-hd.sdf.bz2\fR)
+.IP \(bu 3
+\fBMemory usage:\fP HD mode requires significantly more memory due to the 3x
+increase in resolution (9x more data points per square degree)
+.IP \(bu 3
+\fBAccuracy:\fP Provides more accurate terrain analysis, particularly important
+for short-range links and detailed obstruction analysis
+.IP \(bu 3
+\fBCompatibility:\fP Output files from HD mode are not compatible with standard
+mode and vice versa due to resolution differences
+.PP
+\fBExample usage:\fP
+.PP
+\fCsplat -t tx_site.qth -r rx_site.qth -hd\fR
+.PP
+\fBImportant notes:\fP
+.IP \(bu 3
+When using \fC-maxpages 1\fR, HD mode is required (standard mode requires
+\fC-maxpages\fR to be at least 4)
+.IP \(bu 3
+User-defined terrain features in HD mode are interpreted as 1 arc-second in size,
+compared to 3 arc-seconds in standard mode
+.IP \(bu 3
+All analysis types (point-to-point, coverage, path loss) are supported in HD mode
+.IP \(bu 3
+Alphanumeric output files generated in one mode cannot be imported into the other mode
+.PP
 The \fC-log\fR command line switch causes all invoked command line options
 to be logged to a file of your choosing  (\fIlogfile.txt\fP):
 .PP
