@@ -3326,8 +3326,12 @@ tdefl_find_match(tdefl_compressor *d, mz_uint lookahead_pos, mz_uint max_dist,
         p = s;
         probe_len = 32;
         do {
-        } while ((*(++p) == *(++q)) && (*(++p) == *(++q)) &&
-                 (*(++p) == *(++q)) && (*(++p) == *(++q)) && (--probe_len > 0));
+        } while (
+            (TDEFL_READ_UNALIGNED_WORD((const mz_uint8*)(++p)) == TDEFL_READ_UNALIGNED_WORD((const mz_uint8*)(++q))) &&
+            (TDEFL_READ_UNALIGNED_WORD((const mz_uint8*)(++p)) == TDEFL_READ_UNALIGNED_WORD((const mz_uint8*)(++q))) &&
+            (TDEFL_READ_UNALIGNED_WORD((const mz_uint8*)(++p)) == TDEFL_READ_UNALIGNED_WORD((const mz_uint8*)(++q))) &&
+            (TDEFL_READ_UNALIGNED_WORD((const mz_uint8*)(++p)) == TDEFL_READ_UNALIGNED_WORD((const mz_uint8*)(++q))) &&
+            (--probe_len > 0));
         if (! probe_len) {
             *pMatch_dist = dist;
             *pMatch_len = MZ_MIN(max_match_len, TDEFL_MAX_MATCH_LEN);
