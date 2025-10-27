@@ -121,6 +121,9 @@ class ImageWriter {
     png_structp m_png_ptr = NULL;
     png_infop m_info_ptr = NULL;
     png_text m_text_ptr[PNG_NTEXT] = {{0}};
+    // Use std::string for metadata storage to avoid manual memory management
+    std::string png_title_str;
+    std::string png_projection_str;
     std::string bounds_str;
 #endif
 #ifdef HAVE_LIBGDAL
