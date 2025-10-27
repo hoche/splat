@@ -19,7 +19,20 @@ that. (Later versions of OpenCL allow C++, but none of the common GPU drivers su
 
 ## Building
 
-For this version, you must have CMake and either gcc or clang installed, and it must be a version that supports at least C++11 .
+For this version, you must have CMake and either gcc or clang installed, and it must be a version that supports at least C++17.
+
+**Note**: The build system automatically prefers Clang if available (for better sanitizer support), but will fall back to GCC if Clang is not found. You can override this by setting `CC` and `CXX` environment variables:
+
+```bash
+# Use GCC explicitly
+CC=gcc CXX=g++ cmake -B build
+
+# Use Clang explicitly
+CC=clang CXX=clang++ cmake -B build
+
+# Let CMake choose (prefers Clang)
+cmake -B build
+```
 
 You also need several utility libraries:
 * libbzip2
@@ -184,6 +197,54 @@ vim will try to interpret these as "Linux Router Project" files. You can disable
 	let g:loaded_tar = 1
 
 in your ~/.vimrc.
+
+## Testing and Code Quality
+
+SPLAT! includes comprehensive testing and code quality tools:
+
+### Running Tests
+
+```bash
+make test           # Run all unit tests
+```
+
+### Sanitizers (Runtime Error Detection)
+
+Detect memory errors, undefined behavior, and concurrency issues:
+
+```bash
+make asan           # AddressSanitizer (memory errors)
+make ubsan          # UndefinedBehaviorSanitizer (undefined behavior)
+make tsan           # ThreadSanitizer (data races, deadlocks)
+make lsan           # LeakSanitizer (memory leaks)
+make sanitizers     # Run all sanitizers
+```
+
+### Static Analysis
+
+Analyze code without running it:
+
+```bash
+make cppcheck       # CppCheck static analysis
+make clang-tidy     # Clang-Tidy analysis
+make analyze        # Run all static analysis tools
+```
+
+### Memory Analysis
+
+```bash
+make valgrind       # Valgrind comprehensive analysis
+make valgrind-quick # Valgrind quick mode
+```
+
+### Combined Checks
+
+```bash
+make check-quick    # Quick check (ASan + UBSan)
+make check-all      # Run all checks (comprehensive)
+```
+
+For detailed information about each tool, see [TESTING.md](TESTING.md).
 
 ## Acknowledgements
 This project and code is based on the original SPLAT! version 1.4.2 by John A. Magliacane, KD2BD:

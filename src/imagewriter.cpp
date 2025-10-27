@@ -37,12 +37,25 @@
 #include "imagewriter.h"
 #include <exception>
 #include <iostream>
+#include <mutex>
 #include <string.h>
 #include <string>
 
 #define DEFAULT_JPEG_QUALITY 90
 
 ImageWriter::ImageWriter(){};  // private constructor
+
+// Static function to initialize GDAL library once before any ImageWriter objects are created
+// This avoids lock-order-inversion issues with std::call_once and GDAL's internal mutexes
+void ImageWriter::InitializeGDAL() {
+#ifdef HAVE_LIBGDAL
+    static bool initialized = false;
+    if (! initialized) {
+        GDALAllRegister();
+        initialized = true;
+    }
+#endif
+}
 
 ImageWriter::ImageWriter(const std::string &filename, ImageType imagetype,
                          int width, int height, double north, double south,
@@ -63,6 +76,14 @@ ImageWriter::ImageWriter(const std::string &filename, ImageType imagetype,
     m_imgline_alpha = std::make_unique<unsigned char[]>(m_width);
     m_imgline = std::make_unique<unsigned char[]>(3 * m_width);
 
+    // Initialize GeoTransform array after member variables are set
+    adfGeoTransform[0] = m_west;
+    adfGeoTransform[1] = (m_east - m_west) / m_width;
+    adfGeoTransform[2] = 0;
+    adfGeoTransform[3] = m_north;
+    adfGeoTransform[4] = 0;
+    adfGeoTransform[5] = (m_south - m_north) / m_height;
+
     // Open file after memory allocation to avoid leaks if fopen fails
     if ((m_fp = fopen(filename.c_str(), "wb")) == NULL) {
         throw std::invalid_argument("Invalid filename");
@@ -75,18 +96,20 @@ ImageWriter::ImageWriter(const std::string &filename, ImageType imagetype,
         m_png_ptr =
             png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
         m_info_ptr = png_create_info_struct(m_png_ptr);
-        // write metadata
-        m_text_ptr[0].key = strdup("Title");
-        m_text_ptr[0].text = strdup("SPLAT!");
+        // write metadata using std::string for automatic memory management
+        png_title_str = "Title";
+        m_text_ptr[0].key = const_cast<char *>(png_title_str.c_str());
+        m_text_ptr[0].text = const_cast<char *>("SPLAT!");
         m_text_ptr[0].compression = PNG_TEXT_COMPRESSION_NONE;
-        m_text_ptr[1].key = strdup("projection");
-        m_text_ptr[1].text = strdup("EPSG:4326");
+        png_projection_str = "projection";
+        m_text_ptr[1].key = const_cast<char *>(png_projection_str.c_str());
+        m_text_ptr[1].text = const_cast<char *>("EPSG:4326");
         m_text_ptr[1].compression = PNG_TEXT_COMPRESSION_NONE;
-        m_text_ptr[2].key = strdup("bounds");
+        m_text_ptr[2].key = const_cast<char *>("bounds");
         bounds_str = "[[" + std::to_string(m_south) + "," +
                      std::to_string(m_west) + "],[" + std::to_string(m_north) +
                      "," + std::to_string(m_east) + "]]";
-        m_text_ptr[2].text = strdup(bounds_str.c_str());
+        m_text_ptr[2].text = const_cast<char *>(bounds_str.c_str());
         m_text_ptr[2].compression = PNG_TEXT_COMPRESSION_NONE;
         png_set_text(m_png_ptr, m_info_ptr, m_text_ptr, PNG_NTEXT);
         png_init_io(m_png_ptr, m_fp);
@@ -101,7 +124,6 @@ ImageWriter::ImageWriter(const std::string &filename, ImageType imagetype,
 #endif
 #ifdef HAVE_LIBGDAL
     case IMAGETYPE_GEOTIFF:
-        GDALAllRegister();
         papszOptions = CSLSetNameValue(papszOptions, "COMPRESS", "DEFLATE");
         papszOptions = CSLSetNameValue(papszOptions, "TILED", "YES");
         poDriver = GetGDALDriverManager()->GetDriverByName("GTiff");
@@ -187,7 +209,7 @@ ImageWriter::ImageWriter(const std::string &filename, ImageType imagetype,
 };
 
 ImageWriter::~ImageWriter() {
-    // Smart pointers automatically clean up the arrays
+    // Smart pointers and std::string automatically clean up all allocations
 
     // close file
     if (m_fp) {
@@ -241,26 +263,36 @@ void ImageWriter::EmitLine() {
 #endif
 #ifdef HAVE_LIBGDAL
     case IMAGETYPE_GEOTIFF:
-        poDstDS->GetRasterBand(1)->RasterIO(GF_Write, 0, m_linenumber, m_width,
-                                            1, m_imgline_red.get(), m_width, 1,
-                                            GDT_Byte, 0, 0);
-        poDstDS->GetRasterBand(2)->RasterIO(GF_Write, 0, m_linenumber, m_width,
-                                            1, m_imgline_green.get(), m_width, 1,
-                                            GDT_Byte, 0, 0);
-        poDstDS->GetRasterBand(3)->RasterIO(GF_Write, 0, m_linenumber, m_width,
-                                            1, m_imgline_blue.get(), m_width, 1,
-                                            GDT_Byte, 0, 0);
-        poDstDS->GetRasterBand(4)->RasterIO(GF_Write, 0, m_linenumber, m_width,
-                                            1, m_imgline_alpha.get(), m_width, 1,
-                                            GDT_Byte, 0, 0);
-        poDstDS->GetRasterBand(5)->RasterIO(GF_Write, 0, m_linenumber, m_width,
-                                            1, m_imgline_signal.get(), m_width, 1,
-                                            GDT_Byte, 0, 0);
+        if (poDstDS->GetRasterBand(1)->RasterIO(
+                GF_Write, 0, m_linenumber, m_width, 1, m_imgline_red.get(),
+                m_width, 1, GDT_Byte, 0, 0) != CE_None) {
+            throw std::runtime_error("Failed to write red band to GeoTIFF");
+        }
+        if (poDstDS->GetRasterBand(2)->RasterIO(
+                GF_Write, 0, m_linenumber, m_width, 1, m_imgline_green.get(),
+                m_width, 1, GDT_Byte, 0, 0) != CE_None) {
+            throw std::runtime_error("Failed to write green band to GeoTIFF");
+        }
+        if (poDstDS->GetRasterBand(3)->RasterIO(
+                GF_Write, 0, m_linenumber, m_width, 1, m_imgline_blue.get(),
+                m_width, 1, GDT_Byte, 0, 0) != CE_None) {
+            throw std::runtime_error("Failed to write blue band to GeoTIFF");
+        }
+        if (poDstDS->GetRasterBand(4)->RasterIO(
+                GF_Write, 0, m_linenumber, m_width, 1, m_imgline_alpha.get(),
+                m_width, 1, GDT_Byte, 0, 0) != CE_None) {
+            throw std::runtime_error("Failed to write alpha band to GeoTIFF");
+        }
+        if (poDstDS->GetRasterBand(5)->RasterIO(
+                GF_Write, 0, m_linenumber, m_width, 1, m_imgline_signal.get(),
+                m_width, 1, GDT_Byte, 0, 0) != CE_None) {
+            throw std::runtime_error("Failed to write signal band to GeoTIFF");
+        }
         break;
 #endif
 #ifdef HAVE_LIBJPEG
     case IMAGETYPE_JPG: {
-        unsigned char* imgline_ptr = m_imgline.get();
+        unsigned char *imgline_ptr = m_imgline.get();
         jpeg_write_scanlines(&m_cinfo, &imgline_ptr, 1);
         break;
     }
@@ -295,10 +327,15 @@ void ImageWriter::Finish() {
 									GDALGetRasterXSize( poDstDSproj ),
 									GDALGetRasterYSize( poDstDSproj ) );
 		GDALDestroyGenImgProjTransformer( psWarpOptions->pTransformerArg );
-		GDALDestroyWarpOptions( psWarpOptions );	
+		GDALDestroyWarpOptions( psWarpOptions );
 		GDALClose( (GDALDatasetH) poDstDSproj );*/
         GDALClose((GDALDatasetH) poDstDS);
-        GDALDestroyDriverManager();
+        // Free GDAL string list allocated by CSLSetNameValue
+        if (papszOptions) {
+            CSLDestroy(papszOptions);
+        }
+        // Don't call GDALDestroyDriverManager() - GDAL should persist for program lifetime
+        // Calling it repeatedly causes lock-order inversions detected by ThreadSanitizer
         break;
 #endif
 #ifdef HAVE_LIBJPEG

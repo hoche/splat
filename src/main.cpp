@@ -18,6 +18,7 @@
 #include "elevation_map.h"
 #include "gnuplot.h"
 #include "image.h"
+#include "imagewriter.h"
 #include "itwom3.0.h"
 #include "json.h"
 #include "kml.h"
@@ -44,6 +45,10 @@
 void check_allocation(void *ptr, std::string name, const SplatRun &sr);
 
 int main(int argc, const char *argv[]) {
+    // Initialize GDAL library once at program startup
+    // This must be done before any ImageWriter objects are created
+    ImageWriter::InitializeGDAL();
+
     size_t x, y, z = 0;
     int min_lat, min_lon, max_lat, max_lon, rxlat, rxlon, txlat, txlon,
         west_min, west_max, north_min, north_max;
@@ -116,7 +121,7 @@ int main(int argc, const char *argv[]) {
     sr.multithread = true;
     sr.verbose = 1;
     sr.sdf_delimiter = "_";
-   
+
     if (argc == 1 || (argc == 2 && strcmp(argv[1], "--help") == 0)) {
         std::cout
             << "\n\t\t --==[ " << SplatRun::splat_name << " v"
@@ -652,7 +657,7 @@ int main(int argc, const char *argv[]) {
         }
         rx_site.amsl_flag = true;
     }
-    
+
     /* check if the output map should have a bottom legend */
     // TODO: PVW: LOS maps don't use a legend. Does sr.coverage detect those correctly?
     if (sr.kml || sr.geo || (sr.imagetype == IMAGETYPE_GEOTIFF) ||

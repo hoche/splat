@@ -1,0 +1,14 @@
+# ThreadSanitizer suppressions for SPLAT!
+#
+# GDAL library has known lock-order-inversion false positives during initialization.
+# GDALAllRegister() is only called once from a single thread at program startup,
+# so these warnings are not actual deadlock risks.
+#
+# See: https://github.com/OSGeo/gdal/issues/4959
+# See: https://github.com/OSGeo/gdal/issues/5296
+
+# Suppress GDAL internal mutex warnings during initialization
+deadlock:CPLAcquireMutex
+deadlock:CPLCreateOrAcquireMutexEx
+deadlock:ImageWriter::InitializeGDAL
+deadlock:ImageWriterTest::SetUp

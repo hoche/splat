@@ -24,8 +24,9 @@ class Kml {
     const SplatRun &sr;
 
     std::string SanitizeFilename(const std::string &filename);
-    void GenerateKMLContent(FILE *fd, const Site &source, const Site &destination,
-                           double azimuth, double distance);
+    void GenerateKMLContent(FILE *fd, const Site &source,
+                            const Site &destination, double azimuth,
+                            double distance);
 
   public:
     Kml(const ElevationMap &em, const SplatRun &sr);

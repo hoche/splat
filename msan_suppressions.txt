@@ -1,0 +1,20 @@
+# MemorySanitizer suppressions for SPLAT!
+#
+# MSan detects uninitialized values in system libraries that were not compiled
+# with MSan instrumentation. These are false positives since we cannot control
+# how system libraries are built.
+#
+# MSan requires ALL code (including dependencies) to be compiled with -fsanitize=memory
+# which is not feasible for system libraries like GDAL, PROJ, libpng, libjpeg, etc.
+#
+# See TESTING.md for details on MSan limitations.
+
+# Suppress warnings from PROJ library (used by GDAL)
+fun:*libproj.so*
+
+# Suppress warnings from GDAL library
+fun:*libgdal.so*
+
+# Suppress warnings from other system libraries
+fun:*libc.so*
+fun:*libstdc++.so*

@@ -27,16 +27,16 @@ Kml::Kml(const ElevationMap &em, const SplatRun &sr)
 std::string Kml::SanitizeFilename(const std::string &filename) {
     std::string sanitized = filename;
     for (size_t i = 0; i < sanitized.length(); i++) {
-        if (sanitized[i] == 32 || sanitized[i] == 17 ||
-            sanitized[i] == 92 || sanitized[i] == 42 ||
-            sanitized[i] == 47)
+        if (sanitized[i] == 32 || sanitized[i] == 17 || sanitized[i] == 92 ||
+            sanitized[i] == 42 || sanitized[i] == 47)
             sanitized[i] = '_';
     }
     return sanitized;
 }
 
-void Kml::GenerateKMLContent(FILE *fd, const Site &source, const Site &destination,
-                             double azimuth, double distance) {
+void Kml::GenerateKMLContent(FILE *fd, const Site &source,
+                             const Site &destination, double azimuth,
+                             double distance) {
     int x, y;
     char block;
     double rx_alt, tx_alt, cos_xmtr_angle, cos_test_angle, test_alt;
@@ -199,16 +199,18 @@ void Kml::GenerateKMLContent(FILE *fd, const Site &source, const Site &destinati
          transmitter as seen at the temp rx point. */
 
         cos_xmtr_angle =
-            ((rx_alt * rx_alt) + (local_distance * local_distance) - (tx_alt * tx_alt)) /
+            ((rx_alt * rx_alt) + (local_distance * local_distance) -
+             (tx_alt * tx_alt)) /
             (2.0 * rx_alt * local_distance);
 
         for (x = y, block = 0; x >= 0 && block == 0; x--) {
             local_distance = 5280.0 * (path.distance[y] - path.distance[x]);
             test_alt = sr.earthradius + path.elevation[x];
 
-            cos_test_angle = ((rx_alt * rx_alt) + (local_distance * local_distance) -
-                              (test_alt * test_alt)) /
-                             (2.0 * rx_alt * local_distance);
+            cos_test_angle =
+                ((rx_alt * rx_alt) + (local_distance * local_distance) -
+                 (test_alt * test_alt)) /
+                (2.0 * rx_alt * local_distance);
 
             /* Compare these two angles to determine if
              an obstruction exists.  Since we're comparing
@@ -255,12 +257,13 @@ void Kml::WriteKML(const Site &source, const Site &destination) {
 
     path.ReadPath(source, destination, em);
 
-    report_name = SanitizeFilename(source.name + "-to-" + destination.name + ".kml");
+    report_name =
+        SanitizeFilename(source.name + "-to-" + destination.name + ".kml");
     azimuth = source.Azimuth(destination);
     distance = source.Distance(destination);
 
     fd = fopen(report_name.c_str(), "w");
-    if (!fd) {
+    if (! fd) {
         fprintf(stderr, "\nError: Unable to create KML file\n");
         return;
     }
@@ -281,14 +284,16 @@ void Kml::WriteKMZ(const Site &source, const Site &destination) {
 
     path.ReadPath(source, destination, em);
 
-    kmz_name = SanitizeFilename(source.name + "-to-" + destination.name + ".kmz");
-    kml_temp_name = SanitizeFilename(source.name + "-to-" + destination.name + "_temp.kml");
+    kmz_name =
+        SanitizeFilename(source.name + "-to-" + destination.name + ".kmz");
+    kml_temp_name =
+        SanitizeFilename(source.name + "-to-" + destination.name + "_temp.kml");
     azimuth = source.Azimuth(destination);
     distance = source.Distance(destination);
 
     // Write KML content to temporary file
     fd = fopen(kml_temp_name.c_str(), "w");
-    if (!fd) {
+    if (! fd) {
         fprintf(stderr, "\nError: Unable to create temporary KML file\n");
         return;
     }

@@ -5,6 +5,7 @@
 *.vcxproj.user
 .gdbinit
 build/
+build-*/
 cscope.out
 hd-parms.h
 splat
