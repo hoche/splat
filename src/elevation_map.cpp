@@ -1152,7 +1152,7 @@ void ElevationMap::PlotLRPath(const Site &source, const Site &destination,
     UPDATE_RUNNING_AVG(avgpathlen, path.length, totalpaths);
 
     /* XXX why +10? should it just be +2? Better yet, path.length+2? */
-    elev_t elev[sr.arraysize + 10];
+    std::vector<elev_t> elev(sr.arraysize + 10);
 
     four_thirds_earth = FOUR_THIRDS * EARTHRADIUS;
 
@@ -1275,7 +1275,7 @@ void ElevationMap::PlotLRPath(const Site &source, const Site &destination,
 
             if (sr.propagation_model == PROP_ITWOM)
 	        /* Convert MSL to AGL if needed, since that's what point_to_point expects */
-                point_to_point(elev, (source.alt - (source.amsl_flag ? path.elevation[0] : 0.0)) * METERS_PER_FOOT,
+                point_to_point(elev.data(), (source.alt - (source.amsl_flag ? path.elevation[0] : 0.0)) * METERS_PER_FOOT,
                                (destination.alt - (destination.amsl_flag ? path.elevation[y] : 0.0)) * METERS_PER_FOOT,
                                lrp.eps_dielect, lrp.sgm_conductivity,
                                lrp.eno_ns_surfref, lrp.frq_mhz,
@@ -1283,7 +1283,7 @@ void ElevationMap::PlotLRPath(const Site &source, const Site &destination,
                                loss, strmode, errnum);
             else
 	        /* Convert MSL to AGL if needed, since that's what point_to_point expects */
-                point_to_point_ITM(elev, (source.alt - (source.amsl_flag ? path.elevation[0] : 0.0)) * METERS_PER_FOOT,
+                point_to_point_ITM(elev.data(), (source.alt - (source.amsl_flag ? path.elevation[0] : 0.0)) * METERS_PER_FOOT,
                                    (destination.alt - (destination.amsl_flag ? path.elevation[y] : 0.0)) * METERS_PER_FOOT,
                                    lrp.eps_dielect, lrp.sgm_conductivity,
                                    lrp.eno_ns_surfref, lrp.frq_mhz,

@@ -133,9 +133,7 @@ class ImageWriter {
     char **papszOptions = NULL;
 
     /* georeferencing of image */
-    double adfGeoTransform[6] = {m_west, (m_east - m_west) / m_width,
-                                 0,      m_north,
-                                 0,      (m_south - m_north) / m_height};
+    double adfGeoTransform[6];
     OGRSpatialReference oSRS;
     char *pszSRS_WKT = NULL;
 
