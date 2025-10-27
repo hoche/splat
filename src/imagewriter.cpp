@@ -315,6 +315,10 @@ void ImageWriter::Finish() {
 		GDALDestroyWarpOptions( psWarpOptions );
 		GDALClose( (GDALDatasetH) poDstDSproj );*/
         GDALClose((GDALDatasetH) poDstDS);
+        // Free GDAL string list allocated by CSLSetNameValue
+        if (papszOptions) {
+            CSLDestroy(papszOptions);
+        }
         // Don't call GDALDestroyDriverManager() - GDAL should persist for program lifetime
         // Calling it repeatedly causes lock-order inversions detected by ThreadSanitizer
         break;
