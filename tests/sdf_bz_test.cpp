@@ -26,7 +26,8 @@ class SdfBzTest : public ::testing::Test {
 
         // Create test directory
         int ret = system("mkdir -p ./test_sdf_bz_data");
-        (void)ret;  // Ignore return value - test will fail later if dir not created
+        (void)
+            ret;  // Ignore return value - test will fail later if dir not created
     }
 
     void TearDown() override {
@@ -35,7 +36,7 @@ class SdfBzTest : public ::testing::Test {
 
         // Clean up test files
         int ret = system("rm -rf ./test_sdf_bz_data");
-        (void)ret;  // Ignore return value - cleanup failure is not critical
+        (void) ret;  // Ignore return value - cleanup failure is not critical
     }
 
     // Helper to create a minimal valid SDF file and compress it with bzip2
@@ -446,14 +447,15 @@ class SdfBzCoordinateTest
         sr->ppd = 1200;
         em = new ElevationMap(*sr);
         int ret = system("mkdir -p ./test_sdf_bz_coords");
-        (void)ret;  // Ignore return value - test will fail later if dir not created
+        (void)
+            ret;  // Ignore return value - test will fail later if dir not created
     }
 
     void TearDown() override {
         delete em;
         delete sr;
         int ret = system("rm -rf ./test_sdf_bz_coords");
-        (void)ret;  // Ignore return value - cleanup failure is not critical
+        (void) ret;  // Ignore return value - cleanup failure is not critical
     }
 };
 

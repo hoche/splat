@@ -8,14 +8,14 @@
  * in the ElevationMap.
  */
 
-#include <gtest/gtest.h>
-#include <fstream>
-#include <string>
 #include <cstdio>
+#include <fstream>
+#include <gtest/gtest.h>
+#include <string>
 
+#include "../src/elevation_map.h"
 #include "../src/kml.h"
 #include "../src/site.h"
-#include "../src/elevation_map.h"
 #include "../src/splat_run.h"
 
 extern "C" {
@@ -23,7 +23,7 @@ extern "C" {
 }
 
 class KmlTest : public ::testing::Test {
-protected:
+  protected:
     void SetUp() override {
         // Create a minimal SplatRun configuration with very small memory footprint
         // PPD of 1200 means 1200 samples per degree
@@ -42,7 +42,8 @@ protected:
             em = new ElevationMap(sr);
         } catch (const std::bad_alloc &) {
             // If we can't allocate even minimal memory, skip these tests
-            GTEST_SKIP() << "Insufficient memory to create ElevationMap for testing";
+            GTEST_SKIP()
+                << "Insufficient memory to create ElevationMap for testing";
         }
 
         // Set up test sites
@@ -83,8 +84,11 @@ protected:
 
     bool KmlContainsExpectedContent(const std::string &content) {
         // Check for essential KML elements
-        return content.find("<?xml version=\"1.0\" encoding=\"UTF-8\"?>") != std::string::npos &&
-               content.find("<kml xmlns=\"http://earth.google.com/kml/2.0\">") != std::string::npos &&
+        return content.find("<?xml version=\"1.0\" encoding=\"UTF-8\"?>") !=
+                   std::string::npos &&
+               content.find(
+                   "<kml xmlns=\"http://earth.google.com/kml/2.0\">") !=
+                   std::string::npos &&
                content.find("<name>SPLAT! Path</name>") != std::string::npos &&
                content.find("TestTX") != std::string::npos &&
                content.find("TestRX") != std::string::npos &&
@@ -242,7 +246,7 @@ TEST_F(KmlTest, WriteKMZContainsValidKmlContent) {
 
     ASSERT_GT(bytes_read, 0) << "Should be able to read KML content from KMZ";
 
-    std::string content(static_cast<char*>(buf), bufsize);
+    std::string content(static_cast<char *>(buf), bufsize);
     free(buf);
 
     EXPECT_TRUE(KmlContainsExpectedContent(content))
@@ -274,7 +278,7 @@ TEST_F(KmlTest, WriteKMZKmlContentMatchesWriteKML) {
     size_t bufsize = 0;
     zip_entry_read(zip, &buf, &bufsize);
 
-    std::string kmz_kml_content(static_cast<char*>(buf), bufsize);
+    std::string kmz_kml_content(static_cast<char *>(buf), bufsize);
     free(buf);
 
     zip_entry_close(zip);

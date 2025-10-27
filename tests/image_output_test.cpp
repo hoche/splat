@@ -157,9 +157,9 @@ TEST_F(ImageWriterTest, WritePNGImage) {
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
             // Create RGBA gradient
-            Pixel pixel = (255 << 24) |                   // Alpha
-                          ((x * 255 / width) << 16) |     // Blue
-                          ((y * 255 / height) << 8) |     // Green
+            Pixel pixel = (255 << 24) |                        // Alpha
+                          ((x * 255 / width) << 16) |          // Blue
+                          ((y * 255 / height) << 8) |          // Green
                           ((x + y) * 128 / (width + height));  // Red
             writer.AppendPixel(pixel);
         }
@@ -349,9 +349,8 @@ TEST_F(ImageWriterTest, PixelOffsetTracking) {
 }
 
 // Parameterized test for different image formats
-class ImageWriterFormatTest
-    : public ImageWriterTest,
-      public ::testing::WithParamInterface<ImageType> {
+class ImageWriterFormatTest : public ImageWriterTest,
+                              public ::testing::WithParamInterface<ImageType> {
   protected:
     void SetUp() override {
         ImageWriterTest::SetUp();
@@ -403,7 +402,8 @@ TEST_P(ImageWriterFormatTest, WriteImageInFormat) {
         // Write a simple gradient
         for (int y = 0; y < 50; y++) {
             for (int x = 0; x < 50; x++) {
-                Pixel pixel = (255 << 24) | ((x * 5) << 16) | ((y * 5) << 8) | 128;
+                Pixel pixel =
+                    (255 << 24) | ((x * 5) << 16) | ((y * 5) << 8) | 128;
                 writer.AppendPixel(pixel);
             }
             writer.EmitLine();
@@ -413,8 +413,8 @@ TEST_P(ImageWriterFormatTest, WriteImageInFormat) {
 
         // Verify file was created
         std::ifstream file(filename);
-        EXPECT_TRUE(file.good()) << "Output file should exist for format "
-                                  << type;
+        EXPECT_TRUE(file.good())
+            << "Output file should exist for format " << type;
         file.close();
     });
 

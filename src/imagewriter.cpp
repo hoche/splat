@@ -86,18 +86,18 @@ ImageWriter::ImageWriter(const std::string &filename, ImageType imagetype,
         m_info_ptr = png_create_info_struct(m_png_ptr);
         // write metadata using std::string for automatic memory management
         png_title_str = "Title";
-        m_text_ptr[0].key = const_cast<char*>(png_title_str.c_str());
-        m_text_ptr[0].text = const_cast<char*>("SPLAT!");
+        m_text_ptr[0].key = const_cast<char *>(png_title_str.c_str());
+        m_text_ptr[0].text = const_cast<char *>("SPLAT!");
         m_text_ptr[0].compression = PNG_TEXT_COMPRESSION_NONE;
         png_projection_str = "projection";
-        m_text_ptr[1].key = const_cast<char*>(png_projection_str.c_str());
-        m_text_ptr[1].text = const_cast<char*>("EPSG:4326");
+        m_text_ptr[1].key = const_cast<char *>(png_projection_str.c_str());
+        m_text_ptr[1].text = const_cast<char *>("EPSG:4326");
         m_text_ptr[1].compression = PNG_TEXT_COMPRESSION_NONE;
-        m_text_ptr[2].key = const_cast<char*>("bounds");
+        m_text_ptr[2].key = const_cast<char *>("bounds");
         bounds_str = "[[" + std::to_string(m_south) + "," +
                      std::to_string(m_west) + "],[" + std::to_string(m_north) +
                      "," + std::to_string(m_east) + "]]";
-        m_text_ptr[2].text = const_cast<char*>(bounds_str.c_str());
+        m_text_ptr[2].text = const_cast<char *>(bounds_str.c_str());
         m_text_ptr[2].compression = PNG_TEXT_COMPRESSION_NONE;
         png_set_text(m_png_ptr, m_info_ptr, m_text_ptr, PNG_NTEXT);
         png_init_io(m_png_ptr, m_fp);
@@ -285,7 +285,7 @@ void ImageWriter::EmitLine() {
 #endif
 #ifdef HAVE_LIBJPEG
     case IMAGETYPE_JPG: {
-        unsigned char* imgline_ptr = m_imgline.get();
+        unsigned char *imgline_ptr = m_imgline.get();
         jpeg_write_scanlines(&m_cinfo, &imgline_ptr, 1);
         break;
     }

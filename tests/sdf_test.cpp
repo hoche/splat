@@ -25,7 +25,8 @@ class SdfTest : public ::testing::Test {
 
         // Create test directory
         int ret = system("mkdir -p ./test_sdf_data");
-        (void)ret;  // Ignore return value - test will fail later if dir not created
+        (void)
+            ret;  // Ignore return value - test will fail later if dir not created
     }
 
     void TearDown() override {
@@ -34,7 +35,7 @@ class SdfTest : public ::testing::Test {
 
         // Clean up test files
         int ret = system("rm -rf ./test_sdf_data");
-        (void)ret;  // Ignore return value - cleanup failure is not critical
+        (void) ret;  // Ignore return value - cleanup failure is not critical
     }
 
     // Helper to create a minimal valid SDF file
@@ -257,14 +258,15 @@ class SdfCoordinateTest
         sr->ppd = 1200;
         em = new ElevationMap(*sr);
         int ret = system("mkdir -p ./test_sdf_coords");
-        (void)ret;  // Ignore return value - test will fail later if dir not created
+        (void)
+            ret;  // Ignore return value - test will fail later if dir not created
     }
 
     void TearDown() override {
         delete em;
         delete sr;
         int ret = system("rm -rf ./test_sdf_coords");
-        (void)ret;  // Ignore return value - cleanup failure is not critical
+        (void) ret;  // Ignore return value - cleanup failure is not critical
     }
 };
 

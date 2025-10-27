@@ -3329,22 +3329,25 @@ tdefl_find_match(tdefl_compressor *d, mz_uint lookahead_pos, mz_uint max_dist,
             do {
                 pos_offset += 2;
                 probe_offset += 2;
-            } while (
-                (TDEFL_READ_UNALIGNED_WORD(&d->m_dict[pos + pos_offset]) ==
-                 TDEFL_READ_UNALIGNED_WORD(&d->m_dict[probe_pos + probe_offset])) &&
-                (pos_offset += 2, probe_offset += 2,
-                 TDEFL_READ_UNALIGNED_WORD(&d->m_dict[pos + pos_offset]) ==
-                 TDEFL_READ_UNALIGNED_WORD(&d->m_dict[probe_pos + probe_offset])) &&
-                (pos_offset += 2, probe_offset += 2,
-                 TDEFL_READ_UNALIGNED_WORD(&d->m_dict[pos + pos_offset]) ==
-                 TDEFL_READ_UNALIGNED_WORD(&d->m_dict[probe_pos + probe_offset])) &&
-                (pos_offset += 2, probe_offset += 2,
-                 TDEFL_READ_UNALIGNED_WORD(&d->m_dict[pos + pos_offset]) ==
-                 TDEFL_READ_UNALIGNED_WORD(&d->m_dict[probe_pos + probe_offset])) &&
-                (--probe_len > 0));
+            } while ((TDEFL_READ_UNALIGNED_WORD(&d->m_dict[pos + pos_offset]) ==
+                      TDEFL_READ_UNALIGNED_WORD(
+                          &d->m_dict[probe_pos + probe_offset])) &&
+                     (pos_offset += 2, probe_offset += 2,
+                      TDEFL_READ_UNALIGNED_WORD(&d->m_dict[pos + pos_offset]) ==
+                          TDEFL_READ_UNALIGNED_WORD(
+                              &d->m_dict[probe_pos + probe_offset])) &&
+                     (pos_offset += 2, probe_offset += 2,
+                      TDEFL_READ_UNALIGNED_WORD(&d->m_dict[pos + pos_offset]) ==
+                          TDEFL_READ_UNALIGNED_WORD(
+                              &d->m_dict[probe_pos + probe_offset])) &&
+                     (pos_offset += 2, probe_offset += 2,
+                      TDEFL_READ_UNALIGNED_WORD(&d->m_dict[pos + pos_offset]) ==
+                          TDEFL_READ_UNALIGNED_WORD(
+                              &d->m_dict[probe_pos + probe_offset])) &&
+                     (--probe_len > 0));
             /* Reconstruct p and q pointers for the rest of the code */
-            p = (const mz_uint16 *)(d->m_dict + pos + pos_offset);
-            q = (const mz_uint16 *)(d->m_dict + probe_pos + probe_offset);
+            p = (const mz_uint16 *) (d->m_dict + pos + pos_offset);
+            q = (const mz_uint16 *) (d->m_dict + probe_pos + probe_offset);
         }
         if (! probe_len) {
             *pMatch_dist = dist;
