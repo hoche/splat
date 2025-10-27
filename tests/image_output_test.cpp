@@ -10,6 +10,9 @@
 class ImageWriterTest : public ::testing::Test {
   protected:
     void SetUp() override {
+        // Initialize GDAL library (safe to call multiple times)
+        ImageWriter::InitializeGDAL();
+
         // Initialize common test data
         width = 100;
         height = 100;

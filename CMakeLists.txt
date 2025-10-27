@@ -276,7 +276,23 @@ add_sanitizer_target(asan "AddressSanitizer (ASan)" "address")
 add_sanitizer_target(ubsan "UndefinedBehaviorSanitizer (UBSan)" "undefined")
 
 # ThreadSanitizer - detects data races and deadlocks
-add_sanitizer_target(tsan "ThreadSanitizer (TSan)" "thread")
+# Uses suppression file to filter known false positives from GDAL library
+add_custom_target(tsan
+    COMMAND ${CMAKE_COMMAND} -E echo "Building with ThreadSanitizer..."
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/tsan
+    COMMAND ${CMAKE_COMMAND}
+        "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}"
+        "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
+        "-DCMAKE_CXX_FLAGS=-fsanitize=thread -fno-omit-frame-pointer -g -O1"
+        "-DCMAKE_C_FLAGS=-fsanitize=thread -fno-omit-frame-pointer -g -O1"
+        "-DCMAKE_EXE_LINKER_FLAGS=-fsanitize=thread"
+        -S ${CMAKE_SOURCE_DIR}
+        -B ${CMAKE_BINARY_DIR}/tsan
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/tsan --target splat_tests
+    COMMAND ${CMAKE_COMMAND} -E echo "Running tests with ThreadSanitizer..."
+    COMMAND ${CMAKE_SOURCE_DIR}/run_tsan.sh ${CMAKE_BINARY_DIR}/tsan/splat_tests
+    COMMENT "Running ThreadSanitizer"
+)
 
 # MemorySanitizer - detects uninitialized memory reads (Clang only)
 # Note: MSan requires Clang and all dependencies compiled with MSan

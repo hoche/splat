@@ -45,6 +45,18 @@
 
 ImageWriter::ImageWriter(){};  // private constructor
 
+// Static function to initialize GDAL library once before any ImageWriter objects are created
+// This avoids lock-order-inversion issues with std::call_once and GDAL's internal mutexes
+void ImageWriter::InitializeGDAL() {
+#ifdef HAVE_LIBGDAL
+    static bool initialized = false;
+    if (! initialized) {
+        GDALAllRegister();
+        initialized = true;
+    }
+#endif
+}
+
 ImageWriter::ImageWriter(const std::string &filename, ImageType imagetype,
                          int width, int height, double north, double south,
                          double east, double west)
@@ -112,11 +124,6 @@ ImageWriter::ImageWriter(const std::string &filename, ImageType imagetype,
 #endif
 #ifdef HAVE_LIBGDAL
     case IMAGETYPE_GEOTIFF:
-        // Initialize GDAL only once (thread-safe singleton pattern)
-        {
-            static std::once_flag gdal_init_flag;
-            std::call_once(gdal_init_flag, []() { GDALAllRegister(); });
-        }
         papszOptions = CSLSetNameValue(papszOptions, "COMPRESS", "DEFLATE");
         papszOptions = CSLSetNameValue(papszOptions, "TILED", "YES");
         poDriver = GetGDALDriverManager()->GetDriverByName("GTiff");

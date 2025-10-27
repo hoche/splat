@@ -82,6 +82,9 @@ class ImageWriter {
     ImageWriter();  // private constructor
 
   public:
+    // Initialize GDAL library (call once before creating any ImageWriter objects)
+    static void InitializeGDAL();
+
     explicit ImageWriter(const std::string &filename, ImageType imagetype,
                          int width, int height, double north, double south,
                          double east, double west);

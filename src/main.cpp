@@ -18,6 +18,7 @@
 #include "elevation_map.h"
 #include "gnuplot.h"
 #include "image.h"
+#include "imagewriter.h"
 #include "itwom3.0.h"
 #include "json.h"
 #include "kml.h"
@@ -44,6 +45,10 @@
 void check_allocation(void *ptr, std::string name, const SplatRun &sr);
 
 int main(int argc, const char *argv[]) {
+    // Initialize GDAL library once at program startup
+    // This must be done before any ImageWriter objects are created
+    ImageWriter::InitializeGDAL();
+
     size_t x, y, z = 0;
     int min_lat, min_lon, max_lat, max_lon, rxlat, rxlon, txlat, txlon,
         west_min, west_max, north_min, north_max;
