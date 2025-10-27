@@ -62,6 +62,8 @@ Detects concurrency issues:
 make tsan
 ```
 
+**Note**: TSan uses a suppression file (`tsan_suppressions.txt`) to filter known false positives from the GDAL library. GDAL's initialization has internal lock-order issues that are not actual deadlock risks since initialization happens from a single thread.
+
 #### LeakSanitizer (LSan)
 Detects memory leaks:
 - Memory that was allocated but never freed

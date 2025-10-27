@@ -111,7 +111,7 @@ jobs:
 
     - name: Run tests with TSan
       env:
-        TSAN_OPTIONS: halt_on_error=1:second_deadlock_stack=1
+        TSAN_OPTIONS: suppressions=${{ github.workspace }}/tsan_suppressions.txt:halt_on_error=1:second_deadlock_stack=1
       run: |
         cd build
         ./splat_tests
