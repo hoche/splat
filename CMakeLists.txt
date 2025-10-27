@@ -295,9 +295,32 @@ add_custom_target(tsan
 )
 
 # MemorySanitizer - detects uninitialized memory reads (Clang only)
-# Note: MSan requires Clang and all dependencies compiled with MSan
+# Note: MSan requires Clang and ALL dependencies compiled with MSan
+# This is typically not feasible in standard development environments
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    add_sanitizer_target(msan "MemorySanitizer (MSan)" "memory")
+    add_custom_target(msan
+        COMMAND ${CMAKE_COMMAND} -E echo "=== MemorySanitizer MSan Information ==="
+        COMMAND ${CMAKE_COMMAND} -E echo ""
+        COMMAND ${CMAKE_COMMAND} -E echo "MSan requires ALL code including system libraries to be"
+        COMMAND ${CMAKE_COMMAND} -E echo "compiled with -fsanitize=memory. In most environments,"
+        COMMAND ${CMAKE_COMMAND} -E echo "system libraries like GDAL, PROJ, libpng are NOT compiled"
+        COMMAND ${CMAKE_COMMAND} -E echo "with MSan, which prevents MSan from running successfully."
+        COMMAND ${CMAKE_COMMAND} -E echo ""
+        COMMAND ${CMAKE_COMMAND} -E echo "This is a known limitation of MSan, not a bug in SPLAT."
+        COMMAND ${CMAKE_COMMAND} -E echo ""
+        COMMAND ${CMAKE_COMMAND} -E echo "For this reason, the msan target is informational only."
+        COMMAND ${CMAKE_COMMAND} -E echo "See TESTING.md for full details on MSan limitations."
+        COMMAND ${CMAKE_COMMAND} -E echo ""
+        COMMAND ${CMAKE_COMMAND} -E echo "If you have an MSan-instrumented environment, build with:"
+        COMMAND ${CMAKE_COMMAND} -E echo "  CC=clang CXX=clang++ cmake -B build-msan"
+        COMMAND ${CMAKE_COMMAND} -E echo "    -DCMAKE_CXX_FLAGS=-fsanitize=memory"
+        COMMAND ${CMAKE_COMMAND} -E echo "    -DCMAKE_C_FLAGS=-fsanitize=memory"
+        COMMAND ${CMAKE_COMMAND} -E echo "    -DCMAKE_EXE_LINKER_FLAGS=-fsanitize=memory"
+        COMMAND ${CMAKE_COMMAND} -E echo "  cmake --build build-msan"
+        COMMAND ${CMAKE_COMMAND} -E echo "  cd build-msan"
+        COMMAND ${CMAKE_COMMAND} -E echo "  ./splat_tests"
+        COMMENT "MSan information - not running, see output"
+    )
 else()
     add_custom_target(msan
         COMMAND ${CMAKE_COMMAND} -E echo "MemorySanitizer requires Clang compiler"

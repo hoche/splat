@@ -83,21 +83,30 @@ make msan
 
 **Important Notes**:
 - MSan **requires Clang** compiler (not available with GCC)
-- MSan requires all dependencies to be compiled with MSan, which can be challenging
-- **Good news**: SPLAT! now defaults to Clang if available, so MSan should work out of the box!
+- MSan requires **ALL** dependencies to be compiled with MSan instrumentation
+- **Good news**: SPLAT! now defaults to Clang if available
 - If you explicitly configured with GCC, the `make msan` target will display a helpful error message
 
-**Common Issue - False Positives from System Libraries**:
+**Known Limitation - System Library Dependencies**:
 
-MSan will report uninitialized values in system libraries (libproj, libgdal, etc.) because they weren't compiled with MSan. These are false positives and can be safely ignored if they're in third-party code:
+MSan has a critical limitation: it requires ALL code (including system libraries) to be compiled with `-fsanitize=memory`. In most environments, system libraries like GDAL, PROJ, libpng, etc. are **not** compiled with MSan, which causes errors during library initialization:
 
 ```
 WARNING: MemorySanitizer: use-of-uninitialized-value
   #0 ... in libproj.so.25
   #1 ... in libgdal.so.34
+SUMMARY: MemorySanitizer: use-of-uninitialized-value
+Exiting
 ```
 
-To focus on SPLAT! code only, look for stack traces that include `/home/.../splat/src/` paths.
+**This is expected behavior and not a bug in SPLAT!** The `make msan` target will:
+- Build successfully with MSan instrumentation
+- Attempt to run tests (may exit early due to uninstrumented libraries)
+- Display an informational message explaining the limitation
+
+**If MSan does run successfully** in your environment, focus only on warnings from SPLAT! code (paths containing `/splat/src/`). Warnings from system libraries can be safely ignored.
+
+**Alternative**: To use MSan effectively, you would need to build all dependencies from source with MSan enabled, which is beyond the scope of typical development workflows.
 
 To ensure Clang is being used:
 ```bash
