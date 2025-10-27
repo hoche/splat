@@ -85,6 +85,18 @@ make msan
 - **Good news**: SPLAT! now defaults to Clang if available, so MSan should work out of the box!
 - If you explicitly configured with GCC, the `make msan` target will display a helpful error message
 
+**Common Issue - False Positives from System Libraries**:
+
+MSan will report uninitialized values in system libraries (libproj, libgdal, etc.) because they weren't compiled with MSan. These are false positives and can be safely ignored if they're in third-party code:
+
+```
+WARNING: MemorySanitizer: use-of-uninitialized-value
+  #0 ... in libproj.so.25
+  #1 ... in libgdal.so.34
+```
+
+To focus on SPLAT! code only, look for stack traces that include `/home/.../splat/src/` paths.
+
 To ensure Clang is being used:
 ```bash
 # CMake automatically prefers Clang if available
