@@ -185,6 +185,54 @@ vim will try to interpret these as "Linux Router Project" files. You can disable
 
 in your ~/.vimrc.
 
+## Testing and Code Quality
+
+SPLAT! includes comprehensive testing and code quality tools:
+
+### Running Tests
+
+```bash
+make test           # Run all unit tests
+```
+
+### Sanitizers (Runtime Error Detection)
+
+Detect memory errors, undefined behavior, and concurrency issues:
+
+```bash
+make asan           # AddressSanitizer (memory errors)
+make ubsan          # UndefinedBehaviorSanitizer (undefined behavior)
+make tsan           # ThreadSanitizer (data races, deadlocks)
+make lsan           # LeakSanitizer (memory leaks)
+make sanitizers     # Run all sanitizers
+```
+
+### Static Analysis
+
+Analyze code without running it:
+
+```bash
+make cppcheck       # CppCheck static analysis
+make clang-tidy     # Clang-Tidy analysis
+make analyze        # Run all static analysis tools
+```
+
+### Memory Analysis
+
+```bash
+make valgrind       # Valgrind comprehensive analysis
+make valgrind-quick # Valgrind quick mode
+```
+
+### Combined Checks
+
+```bash
+make check-quick    # Quick check (ASan + UBSan)
+make check-all      # Run all checks (comprehensive)
+```
+
+For detailed information about each tool, see [TESTING.md](TESTING.md).
+
 ## Acknowledgements
 This project and code is based on the original SPLAT! version 1.4.2 by John A. Magliacane, KD2BD:
 http://www.qsl.net/kd2bd/splat.html

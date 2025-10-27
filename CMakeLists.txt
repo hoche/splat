@@ -225,3 +225,160 @@ gtest_discover_tests(splat_tests)
 
 # Installation of test executable (optional)
 install(TARGETS splat_tests DESTINATION bin)
+
+# ==============================================================================
+# Sanitizer and Static Analysis Targets
+# ==============================================================================
+
+# Function to create sanitizer build targets
+function(add_sanitizer_target TARGET_NAME SANITIZER_NAME SANITIZER_FLAGS)
+    add_custom_target(${TARGET_NAME}
+        COMMAND ${CMAKE_COMMAND} -E echo "Building with ${SANITIZER_NAME}..."
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/${TARGET_NAME}
+        COMMAND ${CMAKE_COMMAND}
+            "-DCMAKE_CXX_FLAGS=-fsanitize=${SANITIZER_FLAGS} -fno-omit-frame-pointer -g -O1"
+            "-DCMAKE_C_FLAGS=-fsanitize=${SANITIZER_FLAGS} -fno-omit-frame-pointer -g -O1"
+            "-DCMAKE_EXE_LINKER_FLAGS=-fsanitize=${SANITIZER_FLAGS}"
+            -S ${CMAKE_SOURCE_DIR}
+            -B ${CMAKE_BINARY_DIR}/${TARGET_NAME}
+        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/${TARGET_NAME} --target splat_tests
+        COMMAND ${CMAKE_COMMAND} -E echo "Running tests with ${SANITIZER_NAME}..."
+        COMMAND cd ${CMAKE_BINARY_DIR}/${TARGET_NAME} && ./splat_tests
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        COMMENT "Running ${SANITIZER_NAME}"
+        VERBATIM
+    )
+endfunction()
+
+# AddressSanitizer - detects memory errors (use-after-free, buffer overflows, etc.)
+add_sanitizer_target(asan "AddressSanitizer (ASan)" "address")
+
+# UndefinedBehaviorSanitizer - detects undefined behavior
+add_sanitizer_target(ubsan "UndefinedBehaviorSanitizer (UBSan)" "undefined")
+
+# ThreadSanitizer - detects data races and deadlocks
+add_sanitizer_target(tsan "ThreadSanitizer (TSan)" "thread")
+
+# MemorySanitizer - detects uninitialized memory reads (Clang only)
+add_sanitizer_target(msan "MemorySanitizer (MSan)" "memory")
+
+# LeakSanitizer - detects memory leaks (can be run standalone or with ASan)
+add_custom_target(lsan
+    COMMAND ${CMAKE_COMMAND} -E echo "Running LeakSanitizer..."
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/lsan
+    COMMAND ${CMAKE_COMMAND}
+        "-DCMAKE_CXX_FLAGS=-fsanitize=leak -fno-omit-frame-pointer -g -O1"
+        "-DCMAKE_C_FLAGS=-fsanitize=leak -fno-omit-frame-pointer -g -O1"
+        "-DCMAKE_EXE_LINKER_FLAGS=-fsanitize=leak"
+        -S ${CMAKE_SOURCE_DIR}
+        -B ${CMAKE_BINARY_DIR}/lsan
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/lsan --target splat_tests
+    COMMAND ${CMAKE_COMMAND} -E echo "Running tests with LeakSanitizer..."
+    COMMAND cd ${CMAKE_BINARY_DIR}/lsan && ASAN_OPTIONS=detect_leaks=1 ./splat_tests
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    COMMENT "Running LeakSanitizer"
+    VERBATIM
+)
+
+# Valgrind - memory error detector and profiler
+add_custom_target(valgrind
+    COMMAND ${CMAKE_COMMAND} -E echo "Running Valgrind..."
+    COMMAND valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes
+        --verbose --error-exitcode=1 ${CMAKE_BINARY_DIR}/splat_tests
+    DEPENDS splat_tests
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    COMMENT "Running Valgrind memory checker"
+    VERBATIM
+)
+
+# Valgrind with memcheck only (faster)
+add_custom_target(valgrind-quick
+    COMMAND ${CMAKE_COMMAND} -E echo "Running Valgrind (quick)..."
+    COMMAND valgrind --leak-check=yes --error-exitcode=1 ${CMAKE_BINARY_DIR}/splat_tests
+    DEPENDS splat_tests
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    COMMENT "Running Valgrind (quick mode)"
+    VERBATIM
+)
+
+# Clang-Tidy - static analysis
+add_custom_target(clang-tidy
+    COMMAND ${CMAKE_COMMAND} -E echo "Running Clang-Tidy..."
+    COMMAND clang-tidy
+        ${SPLAT_SOURCES}
+        -p ${CMAKE_BINARY_DIR}
+        --checks='-*,bugprone-*,clang-analyzer-*,cppcoreguidelines-*,modernize-*,performance-*,readability-*'
+        --warnings-as-errors=''
+        --header-filter='.*'
+    DEPENDS splat
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    COMMENT "Running Clang-Tidy static analysis"
+    VERBATIM
+)
+
+# CppCheck - static analysis
+add_custom_target(cppcheck
+    COMMAND ${CMAKE_COMMAND} -E echo "Running CppCheck..."
+    COMMAND cppcheck
+        --enable=all
+        --inconclusive
+        --std=c++17
+        --suppress=missingIncludeSystem
+        --suppress=unmatchedSuppression
+        --inline-suppr
+        --error-exitcode=1
+        --quiet
+        -I src
+        src/
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    COMMENT "Running CppCheck static analysis"
+    VERBATIM
+)
+
+# CppCheck with verbose output
+add_custom_target(cppcheck-verbose
+    COMMAND ${CMAKE_COMMAND} -E echo "Running CppCheck (verbose)..."
+    COMMAND cppcheck
+        --enable=all
+        --inconclusive
+        --std=c++17
+        --suppress=missingIncludeSystem
+        -I src
+        src/
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    COMMENT "Running CppCheck static analysis (verbose)"
+    VERBATIM
+)
+
+# Combined sanitizers target (runs all sanitizers sequentially)
+add_custom_target(sanitizers
+    COMMAND ${CMAKE_COMMAND} -E echo "Running all sanitizers..."
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target asan
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target ubsan
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target tsan
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target lsan
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    COMMENT "Running all sanitizers sequentially"
+    VERBATIM
+)
+
+# Combined static analysis target
+add_custom_target(analyze
+    COMMAND ${CMAKE_COMMAND} -E echo "Running all static analysis tools..."
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target cppcheck
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target clang-tidy
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    COMMENT "Running all static analysis tools"
+    VERBATIM
+)
+
+# All checks target (sanitizers + static analysis + valgrind)
+add_custom_target(check-all
+    COMMAND ${CMAKE_COMMAND} -E echo "Running comprehensive checks..."
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target sanitizers
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target analyze
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target valgrind
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    COMMENT "Running all checks (sanitizers, static analysis, valgrind)"
+    VERBATIM
+)
