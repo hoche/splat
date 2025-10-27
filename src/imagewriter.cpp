@@ -37,6 +37,7 @@
 #include "imagewriter.h"
 #include <exception>
 #include <iostream>
+#include <mutex>
 #include <string.h>
 #include <string>
 
@@ -103,7 +104,11 @@ ImageWriter::ImageWriter(const std::string &filename, ImageType imagetype,
 #endif
 #ifdef HAVE_LIBGDAL
     case IMAGETYPE_GEOTIFF:
-        GDALAllRegister();
+        // Initialize GDAL only once (thread-safe singleton pattern)
+        {
+            static std::once_flag gdal_init_flag;
+            std::call_once(gdal_init_flag, []() { GDALAllRegister(); });
+        }
         papszOptions = CSLSetNameValue(papszOptions, "COMPRESS", "DEFLATE");
         papszOptions = CSLSetNameValue(papszOptions, "TILED", "YES");
         poDriver = GetGDALDriverManager()->GetDriverByName("GTiff");
@@ -307,10 +312,11 @@ void ImageWriter::Finish() {
 									GDALGetRasterXSize( poDstDSproj ),
 									GDALGetRasterYSize( poDstDSproj ) );
 		GDALDestroyGenImgProjTransformer( psWarpOptions->pTransformerArg );
-		GDALDestroyWarpOptions( psWarpOptions );	
+		GDALDestroyWarpOptions( psWarpOptions );
 		GDALClose( (GDALDatasetH) poDstDSproj );*/
         GDALClose((GDALDatasetH) poDstDS);
-        GDALDestroyDriverManager();
+        // Don't call GDALDestroyDriverManager() - GDAL should persist for program lifetime
+        // Calling it repeatedly causes lock-order inversions detected by ThreadSanitizer
         break;
 #endif
 #ifdef HAVE_LIBJPEG
