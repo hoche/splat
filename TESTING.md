@@ -79,13 +79,29 @@ Detects uninitialized memory reads (Clang only):
 make msan
 ```
 
-**Note**: MSan requires all dependencies to be compiled with MSan, which can be challenging.
+**Important Notes**:
+- MSan **requires Clang** compiler (not available with GCC)
+- MSan requires all dependencies to be compiled with MSan, which can be challenging
+- **Good news**: SPLAT! now defaults to Clang if available, so MSan should work out of the box!
+- If you explicitly configured with GCC, the `make msan` target will display a helpful error message
+
+To ensure Clang is being used:
+```bash
+# CMake automatically prefers Clang if available
+cmake -B build
+
+# Or explicitly use Clang
+CC=clang CXX=clang++ cmake -B build
+make msan
+```
 
 #### Run All Sanitizers
 
 ```bash
-make sanitizers     # Runs ASan, UBSan, TSan, and LSan sequentially
+make sanitizers     # Runs ASan, UBSan, TSan, LSan (+ MSan if using Clang)
 ```
+
+**Note**: The `sanitizers` target automatically skips MSan if using GCC.
 
 ### Memory Analysis
 

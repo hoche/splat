@@ -19,7 +19,20 @@ that. (Later versions of OpenCL allow C++, but none of the common GPU drivers su
 
 ## Building
 
-For this version, you must have CMake and either gcc or clang installed, and it must be a version that supports at least C++11 .
+For this version, you must have CMake and either gcc or clang installed, and it must be a version that supports at least C++17.
+
+**Note**: The build system automatically prefers Clang if available (for better sanitizer support), but will fall back to GCC if Clang is not found. You can override this by setting `CC` and `CXX` environment variables:
+
+```bash
+# Use GCC explicitly
+CC=gcc CXX=g++ cmake -B build
+
+# Use Clang explicitly
+CC=clang CXX=clang++ cmake -B build
+
+# Let CMake choose (prefers Clang)
+cmake -B build
+```
 
 You also need several utility libraries:
 * libbzip2

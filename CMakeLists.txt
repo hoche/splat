@@ -1,4 +1,21 @@
 cmake_minimum_required(VERSION 3.16)
+
+# Prefer Clang if available (better sanitizer support), but fall back to GCC
+# This can be overridden with: CC=gcc CXX=g++ cmake ..
+# Note: Must be set before project() command
+if(NOT DEFINED ENV{CC} AND NOT DEFINED ENV{CXX} AND NOT DEFINED CMAKE_C_COMPILER AND NOT DEFINED CMAKE_CXX_COMPILER)
+    find_program(CLANG_EXECUTABLE NAMES clang)
+    find_program(CLANGXX_EXECUTABLE NAMES clang++)
+
+    if(CLANG_EXECUTABLE AND CLANGXX_EXECUTABLE)
+        set(CMAKE_C_COMPILER ${CLANG_EXECUTABLE} CACHE FILEPATH "C compiler" FORCE)
+        set(CMAKE_CXX_COMPILER ${CLANGXX_EXECUTABLE} CACHE FILEPATH "C++ compiler" FORCE)
+        message(STATUS "Using Clang compiler (for better sanitizer support)")
+    else()
+        message(STATUS "Clang not found, using default compiler")
+    endif()
+endif()
+
 project(splat VERSION 2.0 LANGUAGES C CXX)
 
 # Set C++ standard
@@ -236,6 +253,8 @@ function(add_sanitizer_target TARGET_NAME SANITIZER_NAME SANITIZER_FLAGS)
         COMMAND ${CMAKE_COMMAND} -E echo "Building with ${SANITIZER_NAME}..."
         COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/${TARGET_NAME}
         COMMAND ${CMAKE_COMMAND}
+            "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}"
+            "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
             "-DCMAKE_CXX_FLAGS=-fsanitize=${SANITIZER_FLAGS} -fno-omit-frame-pointer -g -O1"
             "-DCMAKE_C_FLAGS=-fsanitize=${SANITIZER_FLAGS} -fno-omit-frame-pointer -g -O1"
             "-DCMAKE_EXE_LINKER_FLAGS=-fsanitize=${SANITIZER_FLAGS}"
@@ -260,13 +279,26 @@ add_sanitizer_target(ubsan "UndefinedBehaviorSanitizer (UBSan)" "undefined")
 add_sanitizer_target(tsan "ThreadSanitizer (TSan)" "thread")
 
 # MemorySanitizer - detects uninitialized memory reads (Clang only)
-add_sanitizer_target(msan "MemorySanitizer (MSan)" "memory")
+# Note: MSan requires Clang and all dependencies compiled with MSan
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    add_sanitizer_target(msan "MemorySanitizer (MSan)" "memory")
+else()
+    add_custom_target(msan
+        COMMAND ${CMAKE_COMMAND} -E echo "MemorySanitizer requires Clang compiler"
+        COMMAND ${CMAKE_COMMAND} -E echo "Current compiler: ${CMAKE_CXX_COMPILER_ID}"
+        COMMAND ${CMAKE_COMMAND} -E echo "To use MSan, reconfigure with: CC=clang CXX=clang++ cmake .."
+        COMMAND ${CMAKE_COMMAND} -E false
+        COMMENT "MSan not available with current compiler"
+    )
+endif()
 
 # LeakSanitizer - detects memory leaks (can be run standalone or with ASan)
 add_custom_target(lsan
     COMMAND ${CMAKE_COMMAND} -E echo "Running LeakSanitizer..."
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/lsan
     COMMAND ${CMAKE_COMMAND}
+        "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}"
+        "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
         "-DCMAKE_CXX_FLAGS=-fsanitize=leak -fno-omit-frame-pointer -g -O1"
         "-DCMAKE_C_FLAGS=-fsanitize=leak -fno-omit-frame-pointer -g -O1"
         "-DCMAKE_EXE_LINKER_FLAGS=-fsanitize=leak"
@@ -351,16 +383,31 @@ add_custom_target(cppcheck-verbose
 )
 
 # Combined sanitizers target (runs all sanitizers sequentially)
-add_custom_target(sanitizers
-    COMMAND ${CMAKE_COMMAND} -E echo "Running all sanitizers..."
-    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target asan
-    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target ubsan
-    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target tsan
-    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target lsan
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    COMMENT "Running all sanitizers sequentially"
-    VERBATIM
-)
+# Note: MSan only runs on Clang
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    add_custom_target(sanitizers
+        COMMAND ${CMAKE_COMMAND} -E echo "Running all sanitizers..."
+        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target asan
+        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target ubsan
+        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target tsan
+        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target lsan
+        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target msan
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        COMMENT "Running all sanitizers sequentially (including MSan)"
+        VERBATIM
+    )
+else()
+    add_custom_target(sanitizers
+        COMMAND ${CMAKE_COMMAND} -E echo "Running all sanitizers (MSan skipped - requires Clang)..."
+        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target asan
+        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target ubsan
+        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target tsan
+        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target lsan
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        COMMENT "Running all sanitizers sequentially (MSan not available)"
+        VERBATIM
+    )
+endif()
 
 # Combined static analysis target
 add_custom_target(analyze

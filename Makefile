@@ -41,7 +41,7 @@ lsan: ## run LeakSanitizer (detects memory leaks)
 	@cd build && cmake --build . -j --target lsan
 .PHONY: lsan
 
-msan: ## run MemorySanitizer (detects uninitialized reads, Clang only)
+msan: ## run MemorySanitizer (detects uninitialized reads, requires Clang)
 	@cd build && cmake --build . -j --target msan
 .PHONY: msan
 
