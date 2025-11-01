@@ -76,6 +76,7 @@ ImageWriter::ImageWriter(const std::string &filename, ImageType imagetype,
     m_imgline_alpha = std::make_unique<unsigned char[]>(m_width);
     m_imgline = std::make_unique<unsigned char[]>(3 * m_width);
 
+#ifdef HAVE_LIBGDAL
     // Initialize GeoTransform array after member variables are set
     adfGeoTransform[0] = m_west;
     adfGeoTransform[1] = (m_east - m_west) / m_width;
@@ -83,6 +84,7 @@ ImageWriter::ImageWriter(const std::string &filename, ImageType imagetype,
     adfGeoTransform[3] = m_north;
     adfGeoTransform[4] = 0;
     adfGeoTransform[5] = (m_south - m_north) / m_height;
+#endif
 
     // Open file after memory allocation to avoid leaks if fopen fails
     if ((m_fp = fopen(filename.c_str(), "wb")) == NULL) {
