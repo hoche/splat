@@ -34,14 +34,16 @@ CC=clang CXX=clang++ cmake -B build
 cmake -B build
 ```
 
-You also need several utility libraries:
+You also need a few utility libraries:
 * libbzip2
 * zlib
+
+In addition, the following image-generation libraries are helpful. It will work without them but will create poor-quality and large .ppm files:
 * libpng
 * libjpeg
 * libgdal
 
-and gnuplot for generating graphs.
+Finally, you need gnuplot for generating graphs.
 
 
 You can generally get these via system packages. For instance:
