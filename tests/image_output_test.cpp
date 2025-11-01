@@ -2,6 +2,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <string>
+#include <vector>
 
 // Include the ImageWriter header
 #include "../src/imagewriter.h"

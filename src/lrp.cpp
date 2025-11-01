@@ -72,6 +72,7 @@ char Lrp::ReadLRParm(const Site &txsite, char forced_read, bool &loadPat,
     }
 
     std::ifstream infile(filename);
+    bool file_ever_opened = false;
 
     if (! infile.is_open()) {
         /* Load default "splat.lrp" file */
@@ -80,6 +81,7 @@ char Lrp::ReadLRParm(const Site &txsite, char forced_read, bool &loadPat,
     }
 
     if (infile.is_open()) {
+        file_ever_opened = true;
         std::stringstream ss;
 
         // Read eps_dielect
@@ -221,7 +223,7 @@ char Lrp::ReadLRParm(const Site &txsite, char forced_read, bool &loadPat,
         }
     }
 
-    if (! infile.is_open() && forced_read) {
+    if (! file_ever_opened && forced_read) {
         /* Assign some default parameters
          for use in this run. */
 
@@ -274,7 +276,9 @@ char Lrp::ReadLRParm(const Site &txsite, char forced_read, bool &loadPat,
     else if (forced_read == 0)
         return_value = 0;
 
-    if (forced_read && (! ok)) {
+    if (forced_read && file_ever_opened && (! ok)) {
+        // File was opened but parsing failed - use defaults but don't write file
+        // (the file already exists, just has bad data)
         eps_dielect = 15.0;
         sgm_conductivity = 0.005;
         eno_ns_surfref = 301.0;
@@ -286,7 +290,9 @@ char Lrp::ReadLRParm(const Site &txsite, char forced_read, bool &loadPat,
         erp = 0.0;
 
         fprintf(stderr,
-                "Default parameters have been assumed for this analysis.\n");
+                "\n\n%c*** There were problems parsing your \"%s\" file! "
+                "***\nDefault parameters have been assumed for this analysis.\n",
+                7, filename.c_str());
 
         return_value = 1;
     }
