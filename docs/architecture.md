@@ -132,7 +132,7 @@ elevation_grid[1200×1200 or 3600×3600]
 
 ### 5. LRP Handler (`lrp.h`/`lrp.cpp`)
 
-Manages Irregular Terrain Model parameters.
+Manages Longley-Rice Propagation (LRP) Irregular Terrain Model (ITM) parameters.
 
 **Key Functions**:
 - Load LRP files
