@@ -70,7 +70,7 @@ jobs:
   # macOS Intel builds
   macos-intel:
     name: macOS Intel (${{ matrix.build_type }})
-    runs-on: macos-13  # Intel runner
+    runs-on: macos-15-intel  # Intel runner
     strategy:
       fail-fast: false
       matrix:
@@ -108,7 +108,7 @@ jobs:
   # macOS ARM (Apple Silicon) builds
   macos-arm:
     name: macOS ARM (${{ matrix.build_type }})
-    runs-on: macos-14  # ARM (M1) runner
+    runs-on: macos-latest  # ARM runner
     strategy:
       fail-fast: false
       matrix:
