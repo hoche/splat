@@ -390,6 +390,13 @@ cleanup:
     if (zip->fp) {
       fclose(zip->fp);
     }
+    if (zip->cd_entries) {
+      for (int i = 0; i < zip->num_entries; i++) {
+        CLEANUP(zip->cd_entries[i].filename);
+      }
+      free(zip->cd_entries);
+    }
+    CLEANUP(zip->filename);
     CLEANUP(zip);
   }
   return NULL;
@@ -509,7 +516,12 @@ int zip_entry_open(struct zip_t *zip, const char *entryname) {
   zip->entry.uncomp_crc32 = crc32(0L, Z_NULL, 0);
   zip->entry.method = (zip->level > 0) ? ZIP_COMP_DEFLATE : ZIP_COMP_STORE;
   zip->entry.m_time = time(NULL);
-  zip->entry.external_attr = (0100644) << 16; // regular file, rw-r--r--
+  // UNIX or APPLE - set default file permissions (rw-r--r--)
+#if defined(__unix__) || defined(__APPLE__)
+  zip->entry.external_attr = ((unsigned int)0100644) << 16;
+#else
+  zip->entry.external_attr = 0;
+#endif
   zip->entry.stream_initialized = 0;
 
   // Remember position for local file header
@@ -774,7 +786,7 @@ int zip_entry_fwrite(struct zip_t *zip, const char *filename) {
     if ((st.st_mode & 0200) == 0) {
       zip->entry.external_attr |= 0x01; // read-only
     }
-    zip->entry.external_attr |= (st.st_mode & 0xFFFF) << 16;
+    zip->entry.external_attr |= ((unsigned int)(st.st_mode & 0xFFFF)) << 16;
   }
 
   unsigned char buffer[BUFFER_SIZE];
