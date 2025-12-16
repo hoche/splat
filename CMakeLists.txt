@@ -162,6 +162,7 @@ set(TEST_SOURCES
     tests/sdf_test.cpp
     tests/sdf_bz_test.cpp
     tests/kml_test.cpp
+    tests/udt_test.cpp
 )
 
 # List source files needed by tests (excluding main.cpp)
