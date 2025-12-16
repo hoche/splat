@@ -65,6 +65,7 @@ set(SPLAT_SOURCES
     src/antenna_pattern.cpp
     src/boundary_file.cpp
     src/city_file.cpp
+    src/command_line_parser.cpp
     src/dem.cpp
     src/elevation_map.cpp
     src/gnuplot.cpp
@@ -153,6 +154,7 @@ FetchContent_MakeAvailable(googletest)
 # Explicitly list test source files
 set(TEST_SOURCES
     tests/antenna_pattern_test.cpp
+    tests/command_line_parser_test.cpp
     tests/image_output_test.cpp
     tests/input_file_parsing_test.cpp
     tests/itwom_test.cpp
@@ -172,6 +174,7 @@ set(TEST_REQUIRED_SOURCES
     src/antenna_pattern.cpp
     src/boundary_file.cpp
     src/city_file.cpp
+    src/command_line_parser.cpp
     src/dem.cpp
     src/elevation_map.cpp
     src/gnuplot.cpp

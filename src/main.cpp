@@ -14,6 +14,7 @@
 #include "antenna_pattern.h"
 #include "boundary_file.h"
 #include "city_file.h"
+#include "command_line_parser.h"
 #include "dem.h"
 #include "elevation_map.h"
 #include "gnuplot.h"
@@ -49,17 +50,11 @@ int main(int argc, const char *argv[]) {
     // This must be done before any ImageWriter objects are created
     ImageWriter::InitializeGDAL();
 
-    size_t x, y, z = 0;
+    size_t x, y, z;
     int min_lat, min_lon, max_lat, max_lon, rxlat, rxlon, txlat, txlon,
         west_min, west_max, north_min, north_max;
 
     char *env = NULL;
-    std::string mapfile, elevation_file, height_file, longley_file,
-        terrain_file, udt_file, ani_filename, ano_filename, logfile,
-        maxpages_str, proj;
-
-    std::vector<std::string> city_file;
-    std::vector<std::string> boundary_file;
 
     std::vector<Site> tx_site;
     Site rx_site;
@@ -122,506 +117,32 @@ int main(int argc, const char *argv[]) {
     sr.verbose = 1;
     sr.sdf_delimiter = "_";
 
-    if (argc == 1 || (argc == 2 && strcmp(argv[1], "--help") == 0)) {
-        std::cout
-            << "\n\t\t --==[ " << SplatRun::splat_name << " v"
-            << SplatRun::splat_version
-            << " Available Options... ]==--\n\n"
-               "       -t txsite(s).qth\n"
-               "       -r sr.rxsite.qth\n"
-               "       -c plot LOS coverage of TX(s) with an RX antenna at X "
-               "feet/meters AGL\n"
-               "       -L plot path loss map of TX based on an RX at X "
-               "feet/meters AGL\n"
-               "       -s filename(s) of city/site file(s) to import (5 max)\n"
-               "       -b filename(s) of cartographic boundary file(s) to "
-               "import (5 max)\n"
-               "       -p filename of terrain profile graph to plot\n"
-               "       -e filename of terrain elevation graph to plot\n"
-               "       -h filename of terrain height graph to plot\n"
-               "       -H filename of normalized terrain height graph to plot\n"
-               "       -l filename of path loss graph to plot\n"
-               "       -o filename of topographic map to generate (without "
-               "suffix)\n"
-               "       -d sdf file directory path (overrides path in "
-               "~/.splat_path file)\n"
-               "       -m earth radius multiplier\n"
-               "       -n do not plot LOS paths in maps\n"
-               "       -N do not produce unnecessary site or obstruction "
-               "reports\n"
-               "       -f frequency for Fresnel zone calculation (MHz)\n"
-               "       -R modify default range for -c or -L "
-               "(miles/kilometers)\n"
-               "       -v N verbosity level. Default is 1. Set to 0 to quiet "
-               "everything.\n"
-               "      -st use a single CPU thread (classic mode)\n"
-               "      -hd Use High Definition mode (3600 ppd vs 1200 ppd). "
-               "Requires SRTM-1 SDF files.\n"
-               "      -sc display smooth rather than quantized contour levels\n"
-               "      -db threshold beyond which contours will not be "
-               "displayed\n"
-               "      -nf do not plot Fresnel zones in height plots\n"
-               "      -fz Fresnel zone clearance percentage (default = 60)\n"
-               "      -gc ground clutter height (feet/meters)\n"
-               "     -jpg when generating maps, create jpgs instead of pngs or "
-               "ppms\n"
-#ifdef HAVE_LIBPNG
-               "     -ppm when generating maps, create ppms instead of pngs or "
-               "jpgs\n"
-#endif
-               "     -tif create geotiff instead of png or jpeg\n"
-               "     -ngs display greyscale topography as white in images\n"
-               "     -erp override ERP in .lrp file (Watts)\n"
-               "     -ano name of alphanumeric output file\n"
-               "     -ani name of alphanumeric input file\n"
-               "     -udt name of user defined terrain input file\n"
-               "     -kml generate Google Earth (.kml) compatible output\n"
-               "     -kmz generate Google Earth compressed (.kmz) output\n"
-               "     -geo generate an Xastir .geo georeference file (with "
-               "image output)\n"
-               "     -dbm plot signal power level contours rather than field "
-               "strength\n"
-               "     -log copy command line std::string to this output file\n"
-               "     -json create JSON file containing configuration \n"
-               "   -gpsav preserve gnuplot temporary working files after "
-               "SPLAT! execution\n"
-               "   -itwom invoke the ITWOM model instead of using "
-               "Longley-Rice\n"
-               "  -imperial employ imperial rather than metric units for all "
-               "user I/O\n"
-               "  -msl use MSL for TX/RX altitudes instead of AGL\n"
-               "-maxpages ["
-            << sr.maxpages
-            << "] Maximum Analysis Region capability: 1, 4, 9, 16, 25, 36, 49, "
-               "64 \n"
-               "  -sdelim ["
-            << sr.sdf_delimiter
-            << "] Lat and lon delimeter in SDF filenames \n"
-               "\n"
-               "See the documentation for more details.\n\n";
-
-        return 1;
+    // Parse command-line arguments
+    CommandLineOptions options;
+    if (!ParseCommandLine(argc, argv, sr, options)) {
+        if (options.parse_error) {
+            std::cerr << "\n*** ERROR: " << options.error_message << "\n\n";
+            return -1;
+        }
+        return options.show_help ? 1 : -1;
     }
 
-    /* Scan for command line arguments */
-    y = argc - 1;
-
-    for (x = 1; x <= y; x++) {
-        if (strcmp(argv[x], "-R") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                sscanf(argv[z], "%lf", &sr.max_range);
-
-                if (sr.max_range < 0.0)
-                    sr.max_range = 0.0;
-
-                if (sr.max_range > 1000.0)
-                    sr.max_range = 1000.0;
-            }
-        }
-
-        if (strcmp(argv[x], "-m") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                sscanf(argv[z], "%lf", &sr.er_mult);
-
-                if (sr.er_mult < 0.1)
-                    sr.er_mult = 1.0;
-
-                if (sr.er_mult > 1.0e6)
-                    sr.er_mult = 1.0e6;
-
-                sr.earthradius *= sr.er_mult;
-            }
-        }
-
-        if (strcmp(argv[x], "-v") == 0) {
-            z = x + 1;
-
-            if (z < (size_t) argc && argv[z][0] && argv[z][0] != '-') {
-                int verbose;
-                sscanf(argv[z], "%d", &verbose);
-                sr.verbose = verbose != 0;
-            }
-        }
-
-        if (strcmp(argv[x], "-gc") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                sscanf(argv[z], "%lf", &sr.clutter);
-
-                if (sr.clutter < 0.0)
-                    sr.clutter = 0.0;
-            }
-        }
-
-        if (strcmp(argv[x], "-fz") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                sscanf(argv[z], "%lf", &sr.fzone_clearance);
-
-                if (sr.fzone_clearance < 0.0 || sr.fzone_clearance > 100.0)
-                    sr.fzone_clearance = 60.0;
-
-                sr.fzone_clearance /= 100.0;
-            }
-        }
-
-        if (strcmp(argv[x], "-o") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-')
-                mapfile = argv[z];
-            sr.map = true;
-        }
-
-        if (strcmp(argv[x], "-log") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-')
-                logfile = argv[z];
-
-            sr.command_line_log = true;
-        }
-
-        if (strcmp(argv[x], "-udt") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-')
-                udt_file = argv[z];
-        }
-
-        if (strcmp(argv[x], "-c") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                sscanf(argv[z], "%lf", &sr.altitude);
-                sr.map = true;
-                sr.coverage = true;
-                sr.area_mode = true;
-            }
-        }
-
-        if (strcmp(argv[x], "-db") == 0 || strcmp(argv[x], "-dB") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0]) /* A minus argument is legal here */
-                sscanf(argv[z], "%d", &sr.contour_threshold);
-        }
-
-        if (strcmp(argv[x], "-p") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                terrain_file = argv[z];
-                sr.terrain_plot = true;
-                sr.pt2pt_mode = true;
-            }
-        }
-
-        if (strcmp(argv[x], "-e") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                elevation_file = argv[z];
-                sr.elevation_plot = true;
-                sr.pt2pt_mode = true;
-            }
-        }
-
-        if (strcmp(argv[x], "-h") == 0 || strcmp(argv[x], "-H") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                height_file = argv[z];
-                sr.height_plot = true;
-                sr.pt2pt_mode = true;
-            }
-
-            sr.norm = strcmp(argv[x], "-H") == 0 ? true : false;
-        }
-
-        bool imagetype_set = false;
-#ifdef HAVE_LIBPNG
-        if (strcmp(argv[x], "-ppm") == 0) {
-            if (imagetype_set && sr.imagetype != IMAGETYPE_PPM) {
-                fprintf(
-                    stdout,
-                    "-jpg and -ppm are exclusive options, ignoring -ppm.\n");
-            } else {
-                sr.imagetype = IMAGETYPE_PPM;
-                imagetype_set = true;
-            }
-        }
-#endif
-#ifdef HAVE_LIBGDAL
-        if (strcmp(argv[x], "-tif") == 0) {
-            if (imagetype_set && sr.imagetype != IMAGETYPE_PPM) {
-                fprintf(
-                    stdout,
-                    "-tif and -ppm are exclusive options, ignoring -ppm.\n");
-            } else {
-                sr.imagetype = IMAGETYPE_GEOTIFF;
-                imagetype_set = true;
-            }
-        }
-#endif
-#ifdef HAVE_LIBJPEG
-        if (strcmp(argv[x], "-jpg") == 0) {
-            if (imagetype_set && sr.imagetype != IMAGETYPE_JPG) {
-#ifdef HAVE_LIBPNG
-                fprintf(
-                    stdout,
-                    "-jpg and -ppm are exclusive options, ignoring -jpg.\n");
-#else
-                fprintf(
-                    stdout,
-                    "-jpg and -png are exclusive options, ignoring -jpg.\n");
-#endif
-            } else {
-                sr.imagetype = IMAGETYPE_JPG;
-                imagetype_set = true;
-            }
-        }
-#endif
-
-#ifdef HAVE_LIBGDAL
-        if (strcmp(argv[x], "-proj") == 0) {
-            if (sr.imagetype == IMAGETYPE_GEOTIFF ||
-                sr.imagetype == IMAGETYPE_PNG ||
-                sr.imagetype == IMAGETYPE_JPG) {
-                z = x + 1;
-                if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                    if (strcmp(argv[z], "epsg:3857") == 0) {
-                        sr.projection = PROJ_EPSG_3857;
-                    } else if (strcmp(argv[z], "epsg:4326") == 0) {
-                        sr.projection = PROJ_EPSG_4326;
-                    } else {
-                        std::cerr << "Ignoring unknown projection " << argv[z]
-                                  << " and taking epsg:4326 instead.\n";
-                    }
-                }
-            } else {
-                std::cerr << "-proj supports only gdal output formats. Please "
-                             "use -png, -tif or -jpg.\n";
-            }
-        }
-#endif
-
-        if (strcmp(argv[x], "-imperial") == 0)
-            sr.metric = false;
-
-        if (strcmp(argv[x], "-msl") == 0)
-            sr.msl = true;
-
-        if (strcmp(argv[x], "-gpsav") == 0)
-            sr.gpsav = true;
-
-        if (strcmp(argv[x], "-geo") == 0)
-            sr.geo = true;
-
-        if (strcmp(argv[x], "-kml") == 0)
-            sr.kml = true;
-
-        if (strcmp(argv[x], "-kmz") == 0)
-            sr.kmz = true;
-
-        if (strcmp(argv[x], "-json") == 0)
-            sr.json = true;
-
-        if (strcmp(argv[x], "-nf") == 0)
-            sr.fresnel_plot = false;
-
-        if (strcmp(argv[x], "-ngs") == 0)
-            sr.ngs = true;
-
-        if (strcmp(argv[x], "-n") == 0)
-            sr.nolospath = true;
-
-        if (strcmp(argv[x], "-dbm") == 0)
-            sr.dbm = true;
-
-        if (strcmp(argv[x], "-sc") == 0)
-            sr.smooth_contours = true;
-
-        if (strcmp(argv[x], "-st") == 0)
-            sr.multithread = false;
-
-        if (strcmp(argv[x], "-itwom") == 0)
-            sr.propagation_model = PROP_ITWOM;
-
-        if (strcmp(argv[x], "-N") == 0) {
-            sr.nolospath = true;
-            sr.nositereports = true;
-        }
-
-        if (strcmp(argv[x], "-d") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-')
-                sr.sdf_path = argv[z];
-        }
-
-        if (strcmp(argv[x], "-t") == 0) {
-            /* Read Transmitter Location */
-
-            z = x + 1;
-
-            while (z <= y && argv[z][0] && argv[z][0] != '-' &&
-                   tx_site.size() < 30) {
-                std::string txfile = argv[z];
-                tx_site.push_back(Site(txfile));
-                z++;
-            }
-
-            z--;
-        }
-
-        if (strcmp(argv[x], "-L") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                sscanf(argv[z], "%lf", &sr.altitudeLR);
-                sr.map = true;
-                sr.LRmap = true;
-                sr.area_mode = true;
-
-                if (sr.coverage)
-                    fprintf(stdout,
-                            "c and L are exclusive options, ignoring L.\n");
-            }
-        }
-
-        if (strcmp(argv[x], "-l") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                longley_file = argv[z];
-                sr.longley_plot = true;
-                sr.pt2pt_mode = true;
-            }
-        }
-
-        if (strcmp(argv[x], "-r") == 0) {
-            /* Read Receiver Location */
-
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                std::string rxfile = argv[z];
-                rx_site.LoadQTH(rxfile);
-                sr.rxsite = true;
-                sr.pt2pt_mode = true;
-            }
-        }
-
-        if (strcmp(argv[x], "-s") == 0) {
-            /* Read city file(s) */
-
-            z = x + 1;
-
-            while (z <= y && argv[z][0] && argv[z][0] != '-') {
-                city_file.push_back(argv[z]);
-                z++;
-            }
-
-            z--;
-        }
-
-        if (strcmp(argv[x], "-b") == 0) {
-            /* Read Boundary File(s) */
-
-            z = x + 1;
-
-            while (z <= y && argv[z][0] && argv[z][0] != '-') {
-                boundary_file.push_back(argv[z]);
-                z++;
-            }
-
-            z--;
-        }
-
-        if (strcmp(argv[x], "-f") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                sscanf(argv[z], "%lf", &(sr.forced_freq));
-
-                if (sr.forced_freq < 20.0)
-                    sr.forced_freq = 0.0;
-
-                if (sr.forced_freq > 20.0e3)
-                    sr.forced_freq = 20.0e3;
-            }
-        }
-
-        if (strcmp(argv[x], "-erp") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                sscanf(argv[z], "%lf", &(sr.forced_erp));
-
-                if (sr.forced_erp < 0.0)
-                    sr.forced_erp = -1.0;
-            }
-        }
-
-        if (strcmp(argv[x], "-ano") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-')
-                ano_filename = argv[z];
-        }
-
-        if (strcmp(argv[x], "-ani") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-')
-                ani_filename = argv[z];
-        }
-
-        if (strcmp(argv[x], "-maxpages") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                maxpages_str = argv[z];
-                if (sscanf(maxpages_str.c_str(), "%d", &sr.maxpages) != 1) {
-                    std::cerr << "\n"
-                              << 7 << "*** ERROR: Could not parse maxpages: "
-                              << maxpages_str << "\n\n";
-                    exit(-1);
-                }
-            }
-        }
-
-        if (strcmp(argv[x], "-sdelim") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                sr.sdf_delimiter = argv[z];
-            }
-        }
-
-        if (strcmp(argv[x], "-hd") == 0) {
-            sr.hd_mode = true;
-        }
-    } /* end of command line argument scanning */
-
-    /* Perform some error checking on the arguments
-     and switches parsed from the command-line.
-     If an error is encountered, print a message
-     and exit gracefully. */
-
-    if (tx_site.size() == 0) {
-        fprintf(stderr, "\n%c*** ERROR: No transmitter site(s) specified!\n\n",
-                7);
-        exit(-1);
+    // Load transmitter sites from parsed filenames
+    for (const auto &txfile : options.tx_site_files) {
+        tx_site.push_back(Site(txfile));
     }
 
+    // Load receiver site if specified
+    if (!options.rx_site_file.empty()) {
+        rx_site.LoadQTH(options.rx_site_file);
+    }
+
+    // Validate the parsed configuration
+    if (!ValidateCommandLine(sr, options)) {
+        return -1;
+    }
+
+    /* Perform additional error checking on the loaded sites */
     for (x = 0, y = 0; x < tx_site.size(); x++) {
         if (tx_site[x].lat == 91.0 && tx_site[x].lon == 361.0) {
             fprintf(stderr, "\n*** ERROR: Transmitter site #%lu not found!",
@@ -635,7 +156,7 @@ int main(int argc, const char *argv[]) {
         exit(-1);
     }
 
-    if (! sr.coverage && ! sr.LRmap && ani_filename.empty() &&
+    if (!sr.coverage && !sr.LRmap && options.ani_filename.empty() &&
         rx_site.lat == 91.0 && rx_site.lon == 361.0) {
         if (sr.max_range != 0.0 && tx_site.size() != 0) {
             /* Plot topographic map of radius "sr.max_range" */
@@ -668,13 +189,6 @@ int main(int argc, const char *argv[]) {
 
     switch (sr.maxpages) {
     case 1:
-        if (! sr.hd_mode) {
-            fprintf(
-                stderr,
-                "\n%c*** ERROR: -maxpages must be >= 4 if not in HD mode!\n\n",
-                7);
-            exit(-1);
-        }
         sr.arraysize = 5092;
         break;
     case 4:
@@ -704,12 +218,6 @@ int main(int argc, const char *argv[]) {
     case 64:
         sr.arraysize = sr.hd_mode ? 230430 : 76810;
         break;
-    default:
-        fprintf(stderr,
-                "\n%c*** ERROR: -maxpages must be one of 1, 4, 9, 16, 25, 36, "
-                "49, 64\n\n",
-                7);
-        exit(-1);
     }
 
     sr.ippd = sr.hd_mode ? 3600 : 1200; /* pixels per degree (integer) */
@@ -779,7 +287,7 @@ int main(int argc, const char *argv[]) {
     CityFile cf;
     Region region;
 
-    if (! ani_filename.empty()) {
+    if (!options.ani_filename.empty()) {
         /* read alphanumeric output file from previous simulations if given */
 
         // TODO: Here's an instance where reading the LRParms may say to load
@@ -796,7 +304,7 @@ int main(int argc, const char *argv[]) {
         }
         Anf anf(lrp, sr);
 
-        y = anf.LoadANO(ani_filename, sdf, *em_p);
+        y = anf.LoadANO(options.ani_filename, sdf, *em_p);
 
         for (x = 0; x < tx_site.size(); x++)
             em_p->PlaceMarker(tx_site[x]);
@@ -804,23 +312,23 @@ int main(int argc, const char *argv[]) {
         if (sr.rxsite)
             em_p->PlaceMarker(rx_site);
 
-        if (boundary_file.size() > 0) {
-            for (x = 0; x < boundary_file.size(); x++) {
-                bf.LoadBoundaries(boundary_file[x], *em_p);
+        if (options.boundary_files.size() > 0) {
+            for (x = 0; x < options.boundary_files.size(); x++) {
+                bf.LoadBoundaries(options.boundary_files[x], *em_p);
             }
             fprintf(stdout, "\n");
             fflush(stdout);
         }
 
-        if (city_file.size() > 0) {
-            for (x = 0; x < city_file.size(); x++) {
-                cf.LoadCities(city_file[x], *em_p);
+        if (options.city_files.size() > 0) {
+            for (x = 0; x < options.city_files.size(); x++) {
+                cf.LoadCities(options.city_files[x], *em_p);
             }
             fprintf(stdout, "\n");
             fflush(stdout);
         }
 
-        Image image(sr, mapfile, tx_site, *em_p);
+        Image image(sr, options.mapfile, tx_site, *em_p);
         if (lrp.erp == 0.0) {
             image.WriteCoverageMap(MAPTYPE_PATHLOSS, sr.imagetype, region);
         } else {
@@ -1004,9 +512,9 @@ int main(int argc, const char *argv[]) {
         em_p->LoadTopoData(max_lon, min_lon, max_lat, min_lat, sdf);
     }
 
-    if (! udt_file.empty()) {
+    if (!options.udt_file.empty()) {
         Udt udt(sr);
-        udt.LoadUDT(udt_file, *em_p);
+        udt.LoadUDT(options.udt_file, *em_p);
     }
 
     /***** Let the SPLATting begin! *****/
@@ -1021,27 +529,27 @@ int main(int argc, const char *argv[]) {
             /* Extract extension (if present)
              from "terrain_file" */
 
-            ext = Utilities::DivideExtension(terrain_file, "png");
+            ext = Utilities::DivideExtension(options.terrain_file, "png");
         }
 
         if (sr.elevation_plot) {
             /* Extract extension (if present)
              from "elevation_file" */
-            ext = Utilities::DivideExtension(elevation_file, "png");
+            ext = Utilities::DivideExtension(options.elevation_file, "png");
         }
 
         if (sr.height_plot) {
             /* Extract extension (if present)
              from "height_file" */
 
-            ext = Utilities::DivideExtension(height_file, "png");
+            ext = Utilities::DivideExtension(options.height_file, "png");
         }
 
         if (sr.longley_plot) {
             /* Extract extension (if present)
              from "longley_file" */
 
-            ext = Utilities::DivideExtension(longley_file, "png");
+            ext = Utilities::DivideExtension(options.longley_file, "png");
         }
 
         for (x = 0; x < tx_site.size() && x < 4; x++) {
@@ -1088,9 +596,9 @@ int main(int argc, const char *argv[]) {
             oss << "." << ext;
 
             AntennaPattern pat;
-            if (! sr.nositereports) {
-                filename = longley_file + oss.str();
-                bool longly_file_exists = ! longley_file.empty();
+            if (!sr.nositereports) {
+                filename = options.longley_file + oss.str();
+                bool longly_file_exists = !options.longley_file.empty();
 
                 bool loadPat;
                 std::string patFilename;
@@ -1115,17 +623,17 @@ int main(int argc, const char *argv[]) {
             GnuPlot gnuPlot(sr);
 
             if (sr.terrain_plot) {
-                filename = terrain_file + oss.str();
+                filename = options.terrain_file + oss.str();
                 gnuPlot.GraphTerrain(tx_site[x], rx_site, filename, *em_p);
             }
 
             if (sr.elevation_plot) {
-                filename = elevation_file + oss.str();
+                filename = options.elevation_file + oss.str();
                 gnuPlot.GraphElevation(tx_site[x], rx_site, filename, *em_p);
             }
 
             if (sr.height_plot) {
-                filename = height_file + oss.str();
+                filename = options.height_file + oss.str();
                 gnuPlot.GraphHeight(tx_site[x], rx_site, filename,
                                     sr.fresnel_plot, sr.norm, *em_p, lrp);
             }
@@ -1149,7 +657,7 @@ int main(int argc, const char *argv[]) {
                 }
 
                 if (flag) {
-                    em_p->PlotLRMap(tx_site[x], sr.altitudeLR, ano_filename,
+                    em_p->PlotLRMap(tx_site[x], sr.altitudeLR, options.ano_filename,
                                     *p_pat, lrp);
                 }
             }
@@ -1162,16 +670,16 @@ int main(int argc, const char *argv[]) {
     if (sr.map || sr.topomap) {
         /* Label the map */
 
-        if (! (sr.kml || sr.imagetype == IMAGETYPE_GEOTIFF)) {
+        if (!(sr.kml || sr.imagetype == IMAGETYPE_GEOTIFF)) {
             for (x = 0; x < tx_site.size(); x++)
                 em_p->PlaceMarker(tx_site[x]);
         }
 
-        if (city_file.size() > 0) {
+        if (options.city_files.size() > 0) {
             CityFile cityFile;
 
-            for (y = 0; y < city_file.size(); y++)
-                cityFile.LoadCities(city_file[y], *em_p);
+            for (y = 0; y < options.city_files.size(); y++)
+                cityFile.LoadCities(options.city_files[y], *em_p);
 
             fprintf(stdout, "\n");
             fflush(stdout);
@@ -1179,18 +687,18 @@ int main(int argc, const char *argv[]) {
 
         /* Load city and county boundary data files */
 
-        if (boundary_file.size() > 0) {
+        if (options.boundary_files.size() > 0) {
             BoundaryFile boundaryFile(sr);
 
-            for (y = 0; y < boundary_file.size(); y++)
-                boundaryFile.LoadBoundaries(boundary_file[y], *em_p);
+            for (y = 0; y < options.boundary_files.size(); y++)
+                boundaryFile.LoadBoundaries(options.boundary_files[y], *em_p);
 
             fprintf(stdout, "\n");
             fflush(stdout);
         }
 
         /* Plot the map */
-        Image image(sr, mapfile, tx_site, *em_p);
+        Image image(sr, options.mapfile, tx_site, *em_p);
         if (sr.coverage || sr.pt2pt_mode || sr.topomap) {
             image.WriteCoverageMap(MAPTYPE_LOS, sr.imagetype, region);
             // TODO: PVW: Remove commented out line
@@ -1205,21 +713,21 @@ int main(int argc, const char *argv[]) {
         }
     }
 
-    if (sr.command_line_log && ! logfile.empty()) {
+    if (sr.command_line_log && !options.logfile.empty()) {
         std::fstream fs;
-        fs.open(logfile.c_str(), std::fstream::out);
+        fs.open(options.logfile.c_str(), std::fstream::out);
 
         // TODO: Should we fail silently if we can't open the logfile. Shouldn't
         // we WARN?
         if (fs) {
-            for (x = 0; x < (size_t) argc; x++) {
+            for (x = 0; x < (size_t)argc; x++) {
                 fs << argv[x] << " ";
             }
             fs << std::endl;
             fs.close();
 
             std::cout << "\nCommand-line parameter log written to: \""
-                      << logfile << "\"\n";
+                      << options.logfile << "\"\n";
         }
     }
 

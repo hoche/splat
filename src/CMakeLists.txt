@@ -11,6 +11,7 @@ add_executable(splat
     antenna_pattern.cpp
     boundary_file.cpp
     city_file.cpp
+    command_line_parser.cpp
     dem.cpp
     elevation_map.cpp
     gnuplot.cpp
