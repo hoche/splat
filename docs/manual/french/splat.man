@@ -1,0 +1,1610 @@
+.TH SPLAT! 1 "25 octobre 2025" "" ""
+.SH NAME
+splat Un outil d'analyse de \fBp\fPropagation de \fBs\fPignal RF, de \fBp\fPertes et de \fBt\fPerrain
+.SH SYNOPSIS
+splat
+.br
+[-t  \fItransmitter_site.qth\fP]
+.br
+[-r \fIreceiver_site.qth\fP]
+.br
+[-c \fIhauteur d'antenne rx pour l'analyse de couverture LOS (pieds/mètres) (flottant)\fP]
+.br
+[-L \fIhauteur d'antenne rx pour l'analyse de couverture ITM (pieds/mètres) (flottant)\fP]
+.br
+[-p \fIterrain_profile.ext\fP]
+.br
+[-e \fIelevation_profile.ext\fP]
+.br
+[-h \fIheight_profile.ext\fP]
+.br
+[-H \fInormalized_height_profile.ext\fP]
+.br
+[-l \fIITM_profile.ext\fP]
+.br
+[-o \fInom_fichier_carte_topographique\fP]
+.br
+[-b \fInom_fichier_limite_cartographique.dat\fP]
+.br
+[-s \fIbase_données_site/ville.dat\fP]
+.br
+[-d \fIchemin_répertoire_sdf\fP]
+.br
+[-m \fImultiplicateur de rayon terrestre (flottant)\fP]
+.br
+[-f \fIfréquence (MHz) pour les calculs de zone de Fresnel (flottant)\fP]
+.br
+[-R \fIrayon de couverture maximum (miles/kilomètres) (flottant)\fP]
+.br
+[-dB \fIseuil au-delà duquel les contours ne seront pas affichés\fP]
+.br
+[-gc \fIhauteur du fouillis de sol (pieds/mètres) (flottant)\fP]
+.br
+[-fz \fIpourcentage de dégagement de la zone de Fresnel (par défaut = 60)\fP]
+.br
+[-ano \fInom_fichier_sortie_alphabétique\fP]
+.br
+[-ani \fInom_fichier_entrée_alphabétique\fP]
+.br
+[-udt \fIfichier_terrain_défini_par_utilisateur.dat\fP]
+.br
+[-log \fIlogfile.ext\fP]
+.br
+[-json]
+.br
+[-v \fIN\fP]
+.br
+[-n]
+.br
+[-N]
+.br
+[-nf]
+.br
+[-sc]
+.br
+[-dbm]
+.br
+[-ngs]
+.br
+[-jpg]
+.br
+[-ppm]
+.br
+[-tif]
+.br
+[-proj \fIprojection\fP]
+.br
+[-geo]
+.br
+[-kml]
+.br
+[-kmz]
+.br
+[-gpsav]
+.br
+[-itwom]
+.br
+[-imperial]
+.br
+[-maxpages \fIN\fP]
+.br
+[-sdelim \fIcharacter\fP]
+.br
+[-hd]
+.br
+[-st]
+.br
+[-msl]
+.br
+.SH DESCRIPTION
+\fBSPLAT!\fP est un outil puissant d'analyse de propagation RF terrestre et de terrain
+pour le spectre entre 20 MHz et 20 GHz.
+\fBSPLAT!\fP est un logiciel libre, conçu pour fonctionner sur des stations de travail
+Unix et Linux. La redistribution et/ou modification est autorisée sous les termes
+de la Licence Publique Générale GNU, Version 2, telle que publiée par la Free
+Software Foundation. L'adoption du code source de \fBSPLAT!\fP dans des applications
+propriétaires ou à source fermée est une violation de cette licence et est
+\fBstrictement\fP interdite. 
+.PP
+\fBSPLAT!\fP est distribué dans l'espoir qu'il sera utile, mais
+SANS AUCUNE GARANTIE, sans même la garantie implicite de COMMERCIALISATION
+ou d'ADAPTATION À UN USAGE PARTICULIER. Voir la Licence Publique Générale GNU
+pour plus de détails.
+.SH INTRODUCTION
+Les applications de \fBSPLAT!\fP incluent la visualisation, la conception et
+l'analyse du budget de liaison des réseaux étendus sans fil (WAN), des systèmes
+de communication radio commerciaux et amateurs au-dessus de 20 MHz, des liaisons
+micro-ondes, des études de coordination de fréquences et d'interférences, et la
+prédiction des régions de contours radio et télévision terrestres analogiques et numériques.
+.PP
+\fBSPLAT!\fP fournit des données d'ingénierie de site RF telles que les distances
+de grand cercle et les relèvements entre les sites, les angles d'élévation d'antenne
+(remontée), les angles de dépression (descente), la hauteur d'antenne au-dessus du
+niveau moyen de la mer, la hauteur d'antenne au-dessus du terrain moyen, les relèvements,
+distances et élévations vers les obstructions connues, l'atténuation de trajet du modèle
+de terrain irrégulier, et la force du signal reçu. De plus, les exigences minimales de
+hauteur d'antenne nécessaires pour dégager le terrain, la première zone de Fresnel, et
+tout pourcentage définissable par l'utilisateur de la première zone de Fresnel sont
+également fournis.
+.PP
+\fBSPLAT!\fP produit des rapports, des graphiques et des cartes topographiques haute
+résolution qui dépeignent les trajets en visibilité directe, et les contours régionaux
+de perte de trajet et de force de signal à travers lesquels les zones de couverture
+attendues des émetteurs et systèmes répéteurs peuvent être obtenues. Lors de l'exécution
+d'analyses de visibilité directe et de modèle de terrain irrégulier dans des situations
+où plusieurs sites d'émetteur ou répéteur sont utilisés, \fBSPLAT!\fP détermine les zones
+individuelles et mutuelles de couverture au sein du réseau spécifié.
+.SH FICHIERS D'ENTRÉE
+\fBSPLAT!\fP est une application en ligne de commande qui lit les données
+d'entrée à travers un certain nombre de fichiers de données. Certains fichiers
+sont obligatoires pour l'exécution réussie du programme, tandis que d'autres
+sont optionnels. Les fichiers obligatoires incluent les modèles topographiques
+d'élévation numérique sous la forme de fichiers de données SPLAT (fichiers SDF),
+les fichiers d'emplacement de site (fichiers QTH), et les fichiers de paramètres
+du modèle de terrain irrégulier (fichiers LRP). Les fichiers optionnels incluent
+les fichiers d'emplacement de ville, les fichiers de limites cartographiques,
+les fichiers de terrain définis par l'utilisateur, les fichiers d'entrée de
+perte de trajet, les fichiers de diagramme de rayonnement d'antenne, et les
+fichiers de définition de couleur.
+.SH FICHIERS DE DONNÉES SPLAT
+\fBSPLAT!\fP importe des données topographiques sous la forme de fichiers de données
+SPLAT (SDF). Ces fichiers peuvent être générés à partir d'un certain nombre de sources
+d'information. Aux États-Unis, les fichiers de données SPLAT peuvent être générés via
+les modèles d'élévation numérique de l'U.S. Geological Survey (DEM) en utilisant les
+utilitaires \fBpostdownload\fP et \fBusgs2sdf\fP inclus avec \fBSPLAT!\fP. Les modèles
+d'élévation numérique USGS compatibles avec ces utilitaires peuvent être téléchargés
+depuis :
+.IP
+\fIhttp://edcftp.cr.usgs.gov/pub/data/DEM/250/\fP.
+.PP
+Une résolution et une précision nettement meilleures peuvent être obtenues grâce
+à l'utilisation de modèles d'élévation numérique SRTM Version 2, en particulier
+lorsqu'ils sont complétés par des données SDF dérivées de l'USGS. Ces modèles d'un
+degré par un degré sont le produit de la mission de topographie radar STS-99 de
+la navette spatiale, et sont disponibles pour la plupart des régions peuplées de
+la Terre. Les fichiers de données SPLAT peuvent être générés à partir de données
+SRTM-3 de 3 secondes d'arc en utilisant l'utilitaire \fBsrtm2sdf\fP inclus. Les
+données SRTM-3 Version 2.1 peuvent être obtenues via FTP anonyme depuis :
+.IP
+\fIhttp://dds.cr.usgs.gov/srtm/version2_1/SRTM3/\fP
+.PP
+Notez que les noms de fichiers SRTM font référence à la latitude et à la longitude
+du coin sud-ouest de l'ensemble de données topographiques contenu dans le fichier.
+Par conséquent, la région d'intérêt doit se trouver au nord et à l'est de la latitude
+et de la longitude fournies dans le nom de fichier SRTM.
+.PP
+Une résolution et une précision encore plus grandes peuvent être obtenues en utilisant
+des données topographiques SRTM-1 Version 2.1 d'une seconde d'arc. Ces données sont
+disponibles pour les États-Unis et leurs territoires et possessions, et peuvent être
+téléchargées depuis :
+.IP
+\fIhttp://dds.cr.usgs.gov/srtm/version2_1/SRTM1/\fP
+.PP
+Les fichiers SDF haute résolution pour une utilisation avec \fBSPLAT! HD\fP peuvent
+être générés à partir de données dans ce format en utilisant l'utilitaire \fBsrtm2sdf-hd\fP.
+.PP
+Malgré la précision plus élevée que les données SRTM ont à offrir, certains vides
+existent dans les ensembles de données. Lorsque des vides sont détectés, les utilitaires
+\fBsrtm2sdf\fP et \fBsrtm2sdf-hd\fP les remplacent par des données correspondantes trouvées
+dans les fichiers SDF générés par \fBusgs2sdf\fP. Si les données SDF dérivées de l'USGS
+ne sont pas disponibles, les vides sont traités par moyenne des pixels adjacents, ou
+remplacement direct.
+.PP
+Les fichiers de données SPLAT contiennent des élévations topographiques à valeur entière
+en mètres référencées au niveau moyen de la mer pour des régions de 1 degré par 1 degré
+de la Terre. Les fichiers SDF peuvent être lus par \fBSPLAT!\fP soit en format standard
+(\fI.sdf\fP) tel que généré directement par les utilitaires \fBusgs2sdf\fP, \fBsrtm2sdf\fP,
+et \fBsrtm2sdf-hd\fP, soit en format compressé bzip2 (\fI.sdf.bz2\fP). Étant donné que
+les fichiers non compressés peuvent être lus légèrement plus rapidement que les fichiers
+compressés, \fBSPLAT!\fP recherche d'abord les données SDF nécessaires en format non
+compressé. Si les données non compressées ne peuvent pas être localisées, \fBSPLAT!\fP
+recherche ensuite les données en format compressé bzip2. Si aucun fichier SDF compressé
+ne peut être trouvé pour la région demandée, \fBSPLAT!\fP suppose que la région est au-dessus
+de l'eau et attribuera une élévation au niveau de la mer à ces zones.
+.PP
+Cette fonctionnalité de \fBSPLAT!\fP permet d'effectuer une analyse de trajet non seulement
+sur terre, mais aussi entre des zones côtières non représentées par les données du modèle
+d'élévation numérique. Cependant, ce comportement de \fBSPLAT!\fP souligne l'importance
+d'avoir tous les fichiers SDF requis pour la région analysée si des résultats significatifs
+sont attendus.
+.SH FICHIERS D'EMPLACEMENT DE SITE (QTH)
+\fBSPLAT!\fP importe les informations d'emplacement de site des sites émetteur et
+récepteur analysés par le programme à partir de fichiers ASCII ayant une extension
+\fI.qth\fP. Les fichiers QTH contiennent le nom du site, la latitude du site (positive
+si au nord de l'équateur, négative si au sud), la longitude du site (en degrés Ouest,
+0 à 360 degrés, ou degrés Est 0 à -360 degrés), et la hauteur d'antenne du site,
+interprétée par défaut comme étant au-dessus du niveau du sol (AGL), chaque élément
+séparé par un caractère de saut de ligne unique. La hauteur d'antenne est supposée
+être spécifiée en pieds sauf si elle est suivie de la lettre \fIm\fP ou du mot
+\fImeters\fP en majuscules ou minuscules. Vous pouvez optionnellement ajouter une
+ligne unique suivant l'altitude contenant soit \fMSL\f soit \fAGL\f pour indiquer
+que l'altitude est mesurée depuis le niveau de la mer ou le niveau du sol. Les
+informations de latitude et longitude peuvent être exprimées soit en format décimal
+(74.6864) soit en format degré, minute, seconde (DMS) (74 41 11.0).
+.PP
+Par exemple, un fichier d'emplacement de site décrivant la station de télévision
+WNJT-DT, Trenton, NJ (\fIwnjt-dt.qth\fP) pourrait se lire comme suit :
+.PP
+\fC
+        WNJT-DT
+.br
+        40.2828
+.br
+        74.6864
+.br
+        990.00
+\fR
+.PP
+Chaque site émetteur et récepteur analysé par \fBSPLAT!\fP doit être représenté
+par son propre fichier d'emplacement de site (QTH).
+.SH FICHIERS DE PARAMÈTRES DU MODÈLE DE TERRAIN IRRÉGULIER (LRP)
+Les fichiers de données de paramètres du modèle de terrain irrégulier sont requis
+pour que \fBSPLAT!\fP détermine la perte de trajet RF, la force de champ, ou le niveau
+de puissance de signal reçu en mode point-à-point ou prédiction de zone. Les données
+de paramètres du modèle de terrain irrégulier sont lues à partir de fichiers ayant le
+même nom de base que le fichier QTH du site émetteur, mais avec une extension \fI.lrp\fP.
+Les fichiers LRP de \fBSPLAT!\fP partagent le format suivant (\fIwnjt-dt.lrp\fP) :
+.PP
+\fC
+        15.000  ; Earth Dielectric Constant (Relative permittivity)
+.br
+        0.005   ; Earth Conductivity (Siemens per meter)
+.br
+        301.000 ; Atmospheric Bending Constant (N-units)
+.br
+        647.000 ; Frequency in MHz (20 MHz to 20 GHz)
+.br
+        5       ; Radio Climate (5 = Continental Temperate)
+.br
+        0       ; Polarization (0 = Horizontal, 1 = Vertical)
+.br
+        0.50    ; Fraction of situations (50% of locations)
+.br
+        0.90    ; Fraction of time (90% of the time)
+.br
+        46000.0 ; Effective Radiated Power (ERP) in Watts (optional)
+\fR
+.PP
+Si un fichier LRP correspondant au fichier QTH tx_site ne peut pas être trouvé,
+\fBSPLAT!\fP scanne le répertoire de travail actuel pour le fichier "splat.lrp".
+Si ce fichier ne peut pas être trouvé, des paramètres par défaut seront attribués
+par \fBSPLAT!\fP et un fichier "splat.lrp" correspondant contenant ces paramètres
+par défaut sera écrit dans le répertoire de travail actuel. Le fichier "splat.lrp"
+généré peut ensuite être modifié par l'utilisateur selon les besoins.
+.PP
+Les constantes diélectriques et valeurs de conductivité terrestres typiques sont
+les suivantes :
+.PP
+\fC
+                           Dielectric Constant  Conductivity
+.br
+        Salt water       :        80                5.000
+.br
+        Good ground      :        25                0.020
+.br
+        Fresh water      :        80                0.010
+.br
+        Marshy land      :        12                0.007
+.br
+        Farmland, forest :        15                0.005
+.br
+        Average ground   :        15                0.005
+.br
+        Mountain, sand   :        13                0.002
+.br
+        City             :         5                0.001
+.br
+        Poor ground      :         4                0.001
+.br
+\fR
+.PP
+Les codes de climat radio utilisés par \fBSPLAT!\fP sont les suivants :
+\fC
+
+        1: Équatorial (Congo)
+.br
+        2: Continental Subtropical (Soudan)
+.br
+        3: Maritime Subtropical (Côte ouest de l'Afrique)
+.br
+        4: Désert (Sahara)
+.br
+        5: Continental Tempéré
+.br
+        6: Maritime Tempéré, sur terre (Royaume-Uni et côtes ouest des États-Unis et UE)
+.br
+        7: Maritime Tempéré, sur mer
+.br
+\fR
+.PP
+Le climat Continental Tempéré est commun aux grandes masses terrestres de la zone
+tempérée, telles que les États-Unis. Pour les trajets plus courts que 100 km, il y
+a peu de différence entre les climats Continental et Maritime Tempérés.
+.PP
+Les septième et huitième paramètres du fichier \fI.lrp\fP correspondent à l'analyse
+statistique fournie par le modèle ITM. Dans cet exemple, \fBSPLAT!\fP retournera la
+perte de trajet maximale survenant dans 50% des situations (fraction de situations,
+ou Variabilité de Localisation) 90% du temps (fraction de temps, ou Variabilité
+Temporelle). Ceci est souvent noté F(50,90) dans les études Longley-Rice. Aux États-Unis,
+un critère F(50,90) est typiquement utilisé pour la télévision numérique (modulation
+VSB à 8 niveaux), tandis que F(50,50) est utilisé pour les diffusions analogiques
+(VSB-AM+NTSC).
+.PP
+Pour plus d'informations sur les paramètres du modèle de propagation ITM, veuillez
+vous référer à :
+\fIhttp://www.its.bldrdoc.gov/resources/radio-propagation-software/itm/itm.aspx\fP et
+\fIhttp://www.softwright.com/faq/engineering/prop_longley_rice.html\fP
+.PP
+Le dernier paramètre du fichier \fI.lrp\fP correspond à la Puissance Rayonnée Effective
+(ERP) de l'émetteur, et est optionnel. S'il est inclus dans le fichier \fI.lrp\fP, alors
+\fBSPLAT!\fP calculera les niveaux de force de signal reçu et les contours de niveau de
+force de champ lors de l'exécution d'études ITM. Si le paramètre est omis, la perte de
+trajet est calculée à la place. L'ERP fournie dans le fichier \fI.lrp\fP peut être
+surchargée en utilisant l'interrupteur de ligne de commande \fI-erp\fP de \fBSPLAT!\fP.
+Si le fichier \fI.lrp\fP contient un paramètre ERP et que la génération de perte de
+trajet plutôt que de contours de force de champ est souhaitée, l'ERP peut être assignée
+à zéro en utilisant l'interrupteur \fI-erp\fP sans avoir à modifier le fichier \fI.lrp\fP
+pour accomplir le même résultat.
+.SH FICHIERS D'EMPLACEMENT DE VILLE
+Les noms et emplacements des villes, sites de tours, ou autres points d'intérêt
+peuvent être importés et tracés sur les cartes topographiques générées par \fBSPLAT!\fP.
+\fBSPLAT!\fP importe les noms des villes et emplacements à partir de fichiers ASCII
+contenant le nom, la latitude et la longitude de l'emplacement d'intérêt. Chaque
+champ est séparé par une virgule. Chaque enregistrement est séparé par un caractère
+de saut de ligne unique. Comme c'était le cas avec les fichiers \fI.qth\fP, les
+informations de latitude et longitude peuvent être saisies soit en format décimal
+soit en format degré, minute, seconde (DMS).
+.PP
+Par exemple (\fIcities.dat\fP) :
+\fC
+
+        Teaneck, 40.891973, 74.014506
+.br
+        Tenafly, 40.919212, 73.955892
+.br
+        Teterboro, 40.859511, 74.058908
+.br
+        Tinton Falls, 40.279966, 74.093924
+.br
+        Toms River, 39.977777, 74.183580
+.br
+        Totowa, 40.906160, 74.223310
+.br
+        Trenton, 40.219922, 74.754665
+\fR
+.PP
+Un total de cinq fichiers de données de ville séparés peuvent être importés à la fois,
+et il n'y a pas de limite à la taille de ces fichiers. \fBSPLAT!\fP lit les données de
+ville sur une base "premier arrivé, premier servi", et trace uniquement les emplacements
+dont les annotations ne sont pas en conflit avec les annotations d'emplacements lus
+plus tôt dans le fichier de données de ville actuel, ou dans les fichiers précédents.
+Ce comportement minimise l'encombrement dans les cartes topographiques générées par
+\fBSPLAT!\fP, mais exige également que les emplacements importants soient placés vers
+le début du premier fichier de données de ville, et que les emplacements moins importants
+soient positionnés plus bas dans la liste ou dans les fichiers de données suivants.
+.PP
+Les fichiers de données de ville peuvent être générés manuellement en utilisant n'importe
+quel éditeur de texte, importés à partir d'autres sources, ou dérivés de données disponibles
+auprès du Bureau du recensement des États-Unis en utilisant l'utilitaire \fBcitydecoder\fP
+inclus avec \fBSPLAT!\fP. Ces données sont disponibles gratuitement via Internet à :
+\fIhttp://web.archive.org/web/20130331172800/http://www.census.gov/geo/www/cob/cs2000.html\fP.
+Sélectionnez le format "ARC/INFO Ungenerate (ASCII)" près du bas.
+.SH FICHIERS DE DONNÉES DE LIMITES CARTOGRAPHIQUES
+Les données de limites cartographiques peuvent également être importées pour tracer les
+limites des villes, comtés ou États sur les cartes topographiques générées par \fBSPLAT!\fP.
+Ces données doivent être sous la forme de fichiers de limites cartographiques de métadonnées
+ARC/INFO Ungenerate (Format ASCII), et sont disponibles auprès du Bureau du recensement des
+États-Unis via Internet à :
+\fIhttp://web.archive.org/web/20130331144934/http://www.census.gov/geo/www/cob/co2000.html\fP et
+\fIhttp://web.archive.org/web/20130507075658/http://www.census.gov/geo/www/cob/pl2000.html\fP.
+Un total de cinq fichiers de limites cartographiques séparés peuvent être importés à la fois.
+Il n'est pas nécessaire d'importer les limites d'État si les limites de comté ont déjà
+été importées.
+.SH FONCTIONNEMENT DU PROGRAMME
+\fBSPLAT!\fP est invoqué via la ligne de commande en utilisant une série d'interrupteurs
+et d'arguments. Étant donné que \fBSPLAT!\fP est une application intensive en CPU et
+mémoire, ce type d'interface minimise la surcharge et se prête bien aux opérations
+scriptées (par lots). La priorité de planification CPU et mémoire de \fBSPLAT!\fP peut
+être modifiée par l'utilisation de la commande Unix \fBnice\fP.
+.PP
+Le nombre et le type d'interrupteurs passés à \fBSPLAT!\fP déterminent son mode de
+fonctionnement et sa méthode de génération de données de sortie. Presque tous les
+interrupteurs de \fBSPLAT!\fP peuvent être enchaînés dans n'importe quel ordre sur la
+ligne de commande lors de l'invocation du programme. Taper simplement \fCsplat\fR sur
+la ligne de commande retournera un résumé des options de ligne de commande de \fBSPLAT!\fP :
+\fC
+
+               --==[ SPLAT! v2.0.0 Available Options... ]==--
+.br
+     -t txsite(s).qth (max of 4 with -c, max of 30 with -L)
+.br
+     -r rxsite.qth
+.br
+     -c plot LOS coverage of TX(s) with RX antenna at X feet/meters AGL
+.br
+     -L plot path loss map of TX based on an RX at X feet/meters AGL
+.br
+     -s filename(s) of city/site file(s) to import (5 max)
+.br
+     -b filename(s) of cartographic boundary file(s) to import (5 max)
+.br
+     -p filename of terrain profile graph to plot
+.br
+     -e filename of terrain elevation graph to plot
+.br
+     -h filename of terrain height graph to plot
+.br
+     -H filename of normalized terrain height graph to plot
+.br
+     -l filename of path loss graph to plot
+.br
+     -o filename of topographic map to generate (without suffix)
+.br
+     -u filename of user-defined terrain file to import
+.br
+     -d sdf file directory path (overrides path in ~/.splat_path file)
+.br
+     -m earth radius multiplier
+.br
+     -n do not plot LOS paths in maps
+.br
+     -N do not produce unnecessary site or obstruction reports
+.br
+     -f frequency for Fresnel zone calculation (MHz)
+.br
+     -R modify default range for -c or -L (miles/kilometers)
+.br
+    -sc display smooth rather than quantized contour levels
+.br
+    -db threshold beyond which contours will not be displayed
+.br
+    -nf do not plot Fresnel zones in height plots
+.br
+    -fz Fresnel zone clearance percentage (default = 60)
+.br
+    -gc ground clutter height (feet/meters)
+.br
+   -jpg when generating maps, create jpgs instead of pngs or ppms
+.br
+   -ppm when generating maps, create ppms instead of pngs or jpgs
+.br
+   -tif create geotiff instead of png or jpeg
+.br
+   -proj set projection for GDAL output (epsg:3857 or epsg:4326)
+.br
+   -ngs display greyscale topography as white in images
+.br
+   -erp override ERP in .lrp file (Watts)
+.br
+   -ano name of alphanumeric output file
+.br
+   -ani name of alphanumeric input file
+.br
+   -udt name of user defined terrain input file
+.br
+   -kml generate Google Earth (.kml) compatible output
+.br
+   -kmz generate Google Earth compressed (.kmz) output
+.br
+   -geo generate an Xastir .geo georeference file (with image output)
+.br
+   -dbm plot signal power level contours rather than field strength
+.br
+   -log copy command line string to this output file
+.br
+   -json create JSON file containing configuration
+.br
+       -v N verbosity level. Default is 1. Set to 0 to quiet everything.
+.br
+ -gpsav preserve gnuplot temporary working files after SPLAT! execution
+.br
+  -itwom invoke the ITWOM model instead of using Longley-Rice
+.br
+-imperial employ imperial rather than metric units for all user I/O
+.br
+
+-maxpages [16] Maximum Analysis Region capability: 1, 4, 9, 16, 25, 36, 49, 64
+.br
+  -sdelim [_] Lat and lon delimeter in SDF filenames
+.br
+     -hd Use High Definition mode (3600 ppd vs 1200 ppd). Requires SRTM-1 SDF files.
+.br
+     -st use a single CPU thread (classic mode)
+.br
+-msl assume TX and RX site altitudes are referenced from MSL instead of AGL
+.br
+\fR
+Les options de ligne de commande pour \fCsplat\fR et \fCsplat-hd\fR sont identiques.
+.SS Mode Haute Définition
+\fBSPLAT!\fP peut fonctionner en mode Haute Définition (HD) en utilisant l'interrupteur
+de ligne de commande \fC-hd\fR. Le mode HD fournit une résolution de terrain nettement
+plus élevée en utilisant 3600 pixels par degré au lieu des 1200 pixels par degré standard.
+Cela correspond à une résolution de 1 seconde d'arc par rapport à la résolution standard
+de 3 secondes d'arc.
+.PP
+\fBCaractéristiques clés du mode HD :\fP
+.IP \(bu 3
+\fBRésolution :\fP 1 seconde d'arc (environ 30 mètres à l'équateur) vs.
+3 secondes d'arc (environ 90 mètres) en mode standard
+.IP \(bu 3
+\fBExigences de données :\fP Nécessite des fichiers SDF haute résolution générés à partir
+de données SRTM-1 en utilisant l'utilitaire \fCsrtm2sdf-hd\fR
+.IP \(bu 3
+\fBNommage des fichiers :\fP Les fichiers SDF du mode HD sont nommés avec un suffixe \fC-hd\fR
+(par exemple, \fCN40W074-hd.sdf\fR ou \fCN40W074-hd.sdf.bz2\fR)
+.IP \(bu 3
+\fBUtilisation de la mémoire :\fP Le mode HD nécessite significativement plus de mémoire
+en raison de l'augmentation de 3x de la résolution (9x plus de points de données par degré carré)
+.IP \(bu 3
+\fBPrécision :\fP Fournit une analyse de terrain plus précise, particulièrement importante
+pour les liaisons à courte portée et l'analyse détaillée des obstructions
+.IP \(bu 3
+\fBCompatibilité :\fP Les fichiers de sortie du mode HD ne sont pas compatibles avec le mode
+standard et vice versa en raison des différences de résolution
+.PP
+\fBExemple d'utilisation :\fP
+.PP
+\fCsplat -t tx_site.qth -r rx_site.qth -hd\fR
+.PP
+\fBNotes importantes :\fP
+.IP \(bu 3
+Lors de l'utilisation de \fC-maxpages 1\fR, le mode HD est requis (le mode standard nécessite
+que \fC-maxpages\fR soit au moins 4)
+.IP \(bu 3
+Les caractéristiques de terrain définies par l'utilisateur en mode HD sont interprétées comme
+étant de 1 seconde d'arc en taille, comparé à 3 secondes d'arc en mode standard
+.IP \(bu 3
+Tous les types d'analyse (point-à-point, couverture, perte de trajet) sont pris en charge en mode HD
+.IP \(bu 3
+Les fichiers de sortie alphanumériques générés dans un mode ne peuvent pas être importés dans l'autre mode
+.PP
+L'interrupteur de ligne de commande \fC-log\fR provoque l'enregistrement de toutes les options
+de ligne de commande invoquées dans un fichier de votre choix (\fIlogfile.txt\fP) :
+.PP
+\fCsplat -t tx_site -r rx_site -s nj_cities -o topo_map -log logfile.txt\fR
+.PP
+\fBSPLAT!\fP fonctionne en deux modes distincts : \fImode point-à-point\fP et \fImode de
+prédiction de zone\fP. Soit un modèle de propagation en visibilité directe (LOS) soit un
+modèle de terrain irrégulier (ITM) peut être invoqué par l'utilisateur. La Terre vraie,
+les quatre tiers de la Terre, ou tout autre rayon terrestre défini par l'utilisateur peut
+être spécifié lors de l'exécution d'une analyse en visibilité directe.
+.SH ANALYSE POINT-À-POINT
+\fBSPLAT!\fP peut être utilisé pour effectuer une analyse de terrain en visibilité directe
+entre deux emplacements de site spécifiés. Par exemple :
+.PP
+\fCsplat -t tx_site.qth -r rx_site.qth\fR
+.PP
+invoque une analyse de terrain en visibilité directe entre l'émetteur spécifié dans
+\fItx_site.qth\fP et le récepteur spécifié dans \fIrx_site.qth\fP en utilisant un modèle
+de rayon terrestre vrai, et écrit un rapport d'analyse de trajet \fBSPLAT!\fP dans le
+répertoire de travail actuel. Le rapport contient les détails des sites émetteur et récepteur,
+et identifie l'emplacement de toute obstruction détectée le long du trajet en visibilité
+directe. Si une obstruction peut être dégagée en élevant l'antenne de réception à une
+altitude plus grande, \fBSPLAT!\fP indiquera la hauteur d'antenne minimale requise pour
+qu'un trajet en visibilité directe existe entre les emplacements émetteur et récepteur
+spécifiés. Notez que les unités métriques (kilomètres, mètres) sont spécifiées sauf si
+l'interrupteur \fI-imperial\fP est ajouté aux options de ligne de commande de \fBSPLAT!\fP :
+.PP
+\fCsplat -t tx_site.qth -r rx_site.qth -imperial\fR
+.PP
+Si l'antenne doit être élevée d'une quantité significative, cette détermination peut prendre
+quelques instants. Notez que les résultats fournis sont le \fIminimum\fP nécessaire pour qu'un
+trajet en visibilité directe existe, et dans le cas de cet exemple simple, ne prennent pas
+en compte les exigences de dégagement de la zone de Fresnel.
+.PP
+Les extensions \fIqth\fP sont supposées par \fBSPLAT!\fP pour les fichiers QTH, et sont optionnelles
+lors de la spécification des arguments -t et -r sur la ligne de commande. \fBSPLAT!\fP lit
+automatiquement tous les fichiers de données SPLAT nécessaires pour effectuer l'analyse de
+terrain entre les sites spécifiés. \fBSPLAT!\fP recherche d'abord les fichiers SDF requis
+dans le répertoire de travail actuel. Si les fichiers nécessaires ne sont pas trouvés,
+\fBSPLAT!\fP recherche ensuite dans le chemin spécifié par l'interrupteur de ligne de commande
+\fI-d\fP :
+.PP
+\fCsplat -t tx_site -r rx_site -d /cdrom/sdf/\fR
+.PP
+Un chemin de répertoire externe peut être spécifié en plaçant un fichier ".splat_path" sous
+le répertoire d'accueil de l'utilisateur. Ce fichier doit contenir le chemin complet du
+répertoire de dernier recours vers tous les fichiers SDF. Le chemin dans le fichier
+\fI$HOME/.splat_path\fP doit être sous la forme d'une seule ligne de texte ASCII :
+.PP
+\fC/opt/splat/sdf/\fR
+.PP
+et peut être généré en utilisant n'importe quel éditeur de texte.
+.PP
+Un graphique du profil de terrain entre les emplacements récepteur et émetteur
+en fonction de la distance depuis le récepteur peut être généré en ajoutant
+l'interrupteur \fI-p\fP :
+.PP
+\fCsplat -t tx_site -r rx_site -p terrain_profile.png\fR
+.PP
+\fBSPLAT!\fP invoque \fBgnuplot\fP lors de la génération de graphiques. L'extension
+de nom de fichier spécifiée à \fBSPLAT!\fP détermine le format du graphique produit.
+\fI.png\fP produira un fichier graphique PNG couleur 640x480, tandis que \fI.ps\fP ou
+\fI.postscript\fP produira une sortie postscript. Des sorties dans des formats tels
+que GIF, Adobe Illustrator, AutoCAD dxf, LaTeX, et beaucoup d'autres sont disponibles.
+Veuillez consulter \fBgnuplot\fP et la documentation de \fBgnuplot\fP pour les détails
+sur tous les formats de sortie pris en charge.
+.PP
+Un graphique des élévations sous-tendues par le terrain entre le récepteur et l'émetteur
+en fonction de la distance depuis le récepteur peut être généré en utilisant l'interrupteur
+\fI-e\fP :
+.PP
+\fCsplat -t tx_site -r rx_site -e elevation_profile.png\fR
+.PP
+Le graphique produit en utilisant cet interrupteur illustre les angles d'élévation et
+de dépression résultant du terrain entre l'emplacement du récepteur et le site émetteur
+depuis la perspective de l'emplacement du récepteur. Une deuxième trace est tracée entre
+le côté gauche du graphique (emplacement du récepteur) et l'emplacement de l'antenne
+émettrice à droite. Cette trace illustre l'angle d'élévation requis pour qu'un trajet
+en visibilité directe existe entre les emplacements récepteur et émetteur. Si la trace
+intersecte le profil d'élévation à n'importe quel point sur le graphique, alors c'est
+une indication qu'un trajet en visibilité directe n'existe pas sous les conditions
+données, et les obstructions peuvent être clairement identifiées sur le graphique aux
+point(s) d'intersection.
+.PP
+Un graphique illustrant la hauteur de terrain référencée à un trajet en visibilité directe
+entre l'émetteur et le récepteur peut être généré en utilisant l'interrupteur \fI-h\fP :
+.PP
+\fCsplat -t tx_site -r rx_site -h height_profile.png\fR
+.PP
+Un tracé de hauteur de terrain normalisé aux hauteurs d'antenne émetteur et récepteur
+peut être obtenu en utilisant l'interrupteur \fI-H\fP :
+.PP
+\fCsplat -t tx_site -r rx_site -H normalized_height_profile.png\fR
+.PP
+Un contour de la courbure de la Terre est également tracé dans ce mode.
+.PP
+La première zone de Fresnel, et 60% de la première zone de Fresnel peuvent être ajoutés
+aux graphiques de profil de hauteur en ajoutant l'interrupteur \fI-f\fP, et en spécifiant
+une fréquence (en MHz) à laquelle la zone de Fresnel devrait être modélisée :
+.PP
+\fCsplat -t tx_site -r rx_site -f 439.250 -H normalized_height_profile.png\fR
+.PP
+Les dégagements de zone de Fresnel autres que 60% peuvent être spécifiés en utilisant
+l'interrupteur \fI-fz\fP comme suit :
+.PP
+\fCsplat -t tx_site -r rx_site -f 439.250 -fz 75 -H height_profile2.png\fR
+.PP
+Un graphique montrant la perte de trajet ITM peut être tracé en utilisant l'interrupteur
+\fI-l\fP :
+.PP
+\fCsplat -t tx_site -r rx_site -l path_loss_profile.png\fR
+.PP
+Comme auparavant, l'ajout de l'interrupteur \fI-imperial\fP force les graphiques à être
+tracés en utilisant des unités de mesure impériales. L'interrupteur \fI-gpsav\fP indique
+à \fBSPLAT!\fP de préserver (plutôt que de supprimer) les fichiers de travail \fBgnuplot\fP
+générés pendant l'exécution de \fBSPLAT!\fP, permettant à l'utilisateur d'éditer ces fichiers
+et de réexécuter \fBgnuplot\fP si désiré. 
+.PP
+Lors de l'exécution d'une analyse point-à-point, un rapport d'analyse de trajet \fBSPLAT!\fP
+est généré sous la forme d'un fichier texte avec une extension de nom de fichier \fI.txt\fP.
+Le rapport contient les relèvements et distances entre l'émetteur et le récepteur, ainsi que
+la perte de trajet en espace libre et ITM pour le trajet analysé. Le mode de propagation
+pour le trajet est donné comme \fIVisibilitée Directe\fP, \fIHorizon Unique\fP, \fIDouble
+Horizon\fP, \fIDiffraction Dominante\fP, ou \fITroposphère Dominante\fP. De plus, si le
+récepteur est situé au sommet d'une seule obstruction ou au sommet d'une deuxième obstruction,
+\fBSPLAT!\fP rapportera \fIRX au Sommet du Terrain le Long du Trajet\fP lors du fonctionnement
+sous le modèle de propagation ITWOM.
+.PP
+Les distances et emplacements vers les obstructions connues le long du trajet entre l'émetteur
+et le récepteur sont également fournis. Si la puissance rayonnée effective de l'émetteur est
+spécifiée dans le fichier \fI.lrp\fP correspondant de l'émetteur, alors la force de signal
+prédite et la tension d'antenne à l'emplacement de réception sont également fournies dans le
+rapport d'analyse de trajet.
+.PP
+Pour déterminer le rapport signal-sur-bruit (SNR) à un emplacement distant où le bruit
+aléatoire de Johnson (thermique) est le facteur limitant principal dans la réception :
+.PP
+.EQ
+SNR = T - NJ - L + G - NF
+.EN
+.PP
+où \fBT\fP est l'ERP de l'émetteur en dBW dans la direction du récepteur, \fBNJ\fP est le
+bruit de Johnson en dBW (-136 dBW pour un canal de télévision de 6 MHz), \fBL\fP est la perte
+de trajet fournie par \fBSPLAT!\fP en dB (comme un nombre \fIpositif\fP), \fBG\fP est le gain
+d'antenne de réception en dB par rapport à l'isotrope, et \fBNF\fP est le facteur de bruit
+du récepteur en dB.
+.PP
+\fBT\fP peut être calculé comme suit :
+.PP
+.EQ
+T = TI + GT
+.EN
+.PP
+où \fBTI\fP est la quantité réelle de puissance RF délivrée à l'antenne émettrice en dBW,
+\fBGT\fP est le gain d'antenne émettrice (par rapport à l'isotrope) dans la direction du
+récepteur (ou de l'horizon si le récepteur est au-delà de l'horizon).
+.PP
+Pour calculer combien de signal supplémentaire est disponible au-dessus du minimum nécessaire
+pour atteindre un rapport signal-sur-bruit spécifique :
+.PP
+.EQ
+Signal_Margin = SNR - S
+.EN
+.PP
+où \fBS\fP est le rapport SNR minimum requis (15,5 dB pour ATSC (VSB à 8 niveaux) DTV, 42 dB
+pour la télévision NTSC analogique).
+.PP
+Une carte topographique peut être générée par \fBSPLAT!\fP pour visualiser le trajet entre
+les sites émetteur et récepteur depuis encore une autre perspective. Les cartes topographiques
+générées par \fBSPLAT!\fP affichent les élévations en utilisant une échelle de gris logarithmique,
+avec des élévations plus élevées représentées par des nuances de gris plus claires. La plage
+dynamique de l'image est mise à l'échelle entre les élévations les plus élevées et les plus
+basses présentes dans la carte. La seule exception à cela est le niveau de la mer, qui est
+représenté en utilisant la couleur bleue.
+.PP
+La sortie topographique est invoquée en utilisant l'interrupteur \fI-o\fP :
+.PP
+\fCsplat -t tx_site -r rx_site -o topo_map\fR
+.PP
+Par défaut, \fBSPLAT!\fP génère des images au format PNG. L'extension du nom de fichier de
+sortie est optionnelle ; si omise, \fBSPLAT!\fP ajoutera l'extension appropriée basée sur
+le format d'image sélectionné (.png, .jpg, .ppm, ou .tif). Utilisez les interrupteurs \fI-ppm\fP,
+\fI-jpg\fP, ou \fI-tif\fP pour changer le format de sortie. L'interrupteur \fI-proj\fP peut
+être utilisé avec les formats GDAL (-png, -tif, ou -jpg) pour définir la projection de la
+carte (epsg:3857 pour Web Mercator ou epsg:4326 pour WGS84).
+.PP
+Dans cet exemple, \fItopo_map.png\fP illustrera les emplacements des sites émetteur et récepteur
+spécifiés. De plus, le trajet de grand cercle entre les deux sites sera dessiné sur les
+emplacements pour lesquels un trajet non obstrué existe vers l'émetteur à une hauteur d'antenne
+de réception égale à celle du site récepteur (spécifiée dans \fIrx_site.qth\fP).
+.PP
+Il peut être souhaitable de peupler la carte topographique avec les noms et emplacements de
+villes, sites de tours, ou autres emplacements importants. Un fichier de ville peut être passé
+à \fBSPLAT!\fP en utilisant l'interrupteur \fI-s\fP :
+.PP
+\fCsplat -t tx_site -r rx_site -s cities.dat -o topo_map\fR
+.PP
+Jusqu'à cinq fichiers de ville séparés peuvent être passés à \fBSPLAT!\fP à la fois suivant
+l'interrupteur \fI-s\fP.
+.PP
+Les limites de comté et d'État peuvent être ajoutées à la carte en spécifiant jusqu'à cinq
+fichiers de limites cartographiques du Bureau du recensement des États-Unis en utilisant
+l'interrupteur \fI-b\fP :
+.PP
+\fCsplat -t tx_site -r rx_site -b co34_d00.dat -o topo_map\fR
+.PP
+Dans les situations où plusieurs sites émetteurs sont en utilisation, jusqu'à quatre
+emplacements de site peuvent être passés à \fBSPLAT!\fP à la fois pour analyse :
+.PP
+\fCsplat -t tx_site1 tx_site2 tx_site3 tx_site4 -r rx_site -p profile.png\fR
+.PP
+Dans cet exemple, quatre profils de terrain et rapports d'obstruction séparés seront générés
+par \fBSPLAT!\fP. Une seule carte topographique peut être spécifiée en utilisant l'interrupteur
+\fI-o\fP, et les trajets en visibilité directe entre chaque émetteur et le site récepteur indiqué
+seront produits sur la carte, chacun dans sa propre couleur. Le trajet entre le premier émetteur
+spécifié et le récepteur sera en vert, le trajet entre le deuxième émetteur et le récepteur sera
+en cyan, le trajet entre le troisième émetteur et le récepteur sera en violet, et le trajet entre
+le quatrième émetteur et le récepteur sera en sienne.
+.PP
+Les cartes topographiques générées par \fBSPLAT!\fP sont des images TrueColor 24 bits. Par défaut,
+le format PNG est utilisé, qui fournit une compression sans perte et est fortement recommandé pour
+le stockage. Les formats alternatifs (PPM, JPG, ou GeoTIFF) peuvent être sélectionnés en utilisant
+les interrupteurs de ligne de commande appropriés. Les images peuvent être visualisées, éditées,
+ou converties vers d'autres formats graphiques par des applications populaires de visualisation
+d'images telles que \fBxv\fP, \fBThe GIMP\fP, \fBImageMagick\fP, et \fBXPaint\fP.
+.PP
+L'option \fI-ngs\fP assigne tout le terrain à la couleur blanche, et peut être utilisée lorsqu'il
+est souhaitable de générer une carte qui est dépourvue de terrain :
+.PP
+\fCsplat -t tx_site -r rx_site -b co34_d00.dat -ngs -o white_map\fR
+.PP
+Le fichier image résultant peut être converti au format PNG avec un fond transparent en utilisant
+l'utilitaire \fBconvert\fP de \fBImageMagick\fP :
+.PP
+\fCconvert -transparent "#FFFFFF" white_map.png transparent_map.png\fR
+.PP
+L'option \fI-proj\fP vous permet de spécifier la projection de carte pour les formats de sortie
+basés sur GDAL (PNG, JPG, ou GeoTIFF). Cette option n'est disponible que lorsque le support GDAL
+est compilé dans \fBSPLAT!\fP. Deux projections sont prises en charge :
+.PP
+\fCepsg:3857\fR - Projection Web Mercator (utilisée par Google Maps, OpenStreetMap)
+.br
+\fCepsg:4326\fR - Système de coordonnées géographiques WGS84 (latitude/longitude)
+.PP
+Exemple d'utilisation :
+.PP
+\fCsplat -t tx_site -L 30.0 -o coverage -tif -proj epsg:3857\fR
+.PP
+Notez que l'option \fI-proj\fP ne fonctionne qu'avec les formats de sortie GDAL. Si utilisée
+avec une sortie PPM, elle sera ignorée avec un message d'avertissement.
+.SH ANALYSE DE COUVERTURE RÉGIONALE
+\fBSPLAT!\fP peut analyser un site émetteur ou répéteur, ou un réseau
+de sites, et prédire la couverture régionale pour chaque site spécifié.
+Dans ce mode, \fBSPLAT!\fP peut générer une carte topographique affichant
+la zone de couverture géométrique en visibilité directe des sites basée
+sur l'emplacement de chaque site et la hauteur de l'antenne de réception
+souhaitant communiquer avec le site en question. Une analyse régionale
+peut être effectuée par \fBSPLAT!\fP en utilisant l'interrupteur \fI-c\fP
+comme suit :
+.PP
+\fCsplat -t tx_site -c 30.0 -s cities.dat -b co34_d00.dat -o tx_coverage\fR
+.PP
+Dans cet exemple, \fBSPLAT!\fP génère une carte topographique appelée
+\fItx_coverage.png\fP qui illustre la couverture régionale en visibilité
+directe prédite de \fItx_site\fP vers les emplacements de réception ayant
+des antennes à 30,0 pieds au-dessus du niveau du sol (AGL). Si l'interrupteur
+\fI-imperial\fP est utilisé, l'argument suivant l'interrupteur \fI-c\fP est
+interprété comme étant en pieds plutôt qu'en mètres. Le contenu de \fIcities.dat\fP
+est tracé sur la carte, ainsi que les limites cartographiques contenues dans le
+fichier \fIco34_d00.dat\fP.
+.PP
+Lors du tracé des trajets en visibilité directe et des zones de couverture régionale,
+\fBSPLAT!\fP par défaut ne tient pas compte des effets de la courbure atmosphérique.
+Cependant, ce comportement peut être modifié en utilisant l'interrupteur multiplicateur
+de rayon terrestre (\fI-m\fP) :
+.PP
+\fCsplat -t wnjt-dt -c 30.0 -m 1.333 -s cities.dat -b counties.dat -o map\fR
+.PP
+Un multiplicateur de rayon terrestre de 1,333 indique à \fBSPLAT!\fP d'utiliser
+le modèle "quatre tiers de la Terre" pour l'analyse de propagation en visibilité
+directe. Tout multiplicateur de rayon terrestre approprié peut être sélectionné
+par l'utilisateur.
+.PP
+Lors de l'exécution d'une analyse régionale, \fBSPLAT!\fP génère un rapport de site
+pour chaque station analysée. Les rapports de site de \fBSPLAT!\fP contiennent les
+détails de l'emplacement géographique du site, sa hauteur au-dessus du niveau moyen
+de la mer, la hauteur de l'antenne au-dessus du niveau moyen de la mer, la hauteur
+de l'antenne au-dessus du terrain moyen, et la hauteur du terrain moyen calculée
+vers les relèvements de 0, 45, 90, 135, 180, 225, 270 et 315 degrés d'azimut.
+.SH DÉTERMINATION DE MULTIPLES RÉGIONS DE COUVERTURE LOS
+\fBSPLAT!\fP peut également afficher les zones de couverture en visibilité directe
+pour jusqu'à quatre sites émetteurs séparés sur une carte topographique commune.
+Par exemple :
+.PP
+\fCsplat -t site1 site2 site3 site4 -c 10.0 -imperial -o network\fR
+.PP
+trace la couverture régionale en visibilité directe de site1, site2, site3,
+et site4 basée sur une antenne de réception située à 10,0 mètres au-dessus
+du niveau du sol. Une carte topographique est ensuite écrite dans le fichier
+\fInetwork.png\fP. La zone de couverture en visibilité directe des émetteurs
+est tracée comme suit dans les couleurs indiquées (avec leurs valeurs RGB
+correspondantes en décimal) :
+\fC
+
+    site1: Green (0,255,0)
+.br
+    site2: Cyan (0,255,255)
+.br
+    site3: Medium Violet (147,112,219)
+.br
+    site4: Sienna 1 (255,130,71)
+.br
+.br
+    site1 + site2: Yellow (255,255,0)
+.br
+    site1 + site3: Pink (255,192,203)
+.br
+    site1 + site4: Green Yellow (173,255,47)
+.br
+    site2 + site3: Orange (255,165,0)
+.br
+    site2 + site4: Dark Sea Green 1 (193,255,193)
+.br
+    site3 + site4: Dark Turquoise (0,206,209)
+.br
+.br
+    site1 + site2 + site3: Dark Green (0,100,0)
+.br
+    site1 + site2 + site4: Blanched Almond (255,235,205)
+.br
+    site1 + site3 + site4: Medium Spring Green (0,250,154)
+.br
+    site2 + site3 + site4: Tan (210,180,140)
+.br
+.br
+    site1 + site2 + site3 + site4: Gold2 (238,201,0)
+\fR
+.PP
+Si des fichiers \fI.qth\fP séparés sont générés, chacun représentant un emplacement
+de site commun mais une hauteur d'antenne différente, une seule carte topographique
+illustrant la couverture régionale depuis jusqu'à quatre emplacements séparés sur une
+seule tour peut être générée par \fBSPLAT!\fP.
+.SH ANALYSE DE PERTE DE TRAJET
+Si l'interrupteur \fI-c\fP est remplacé par un interrupteur \fI-L\fP, une carte
+de perte de trajet ITM, une carte de force de champ, ou une carte de puissance reçue
+pour le(s) site(s) émetteur(s) spécifié(s) peut être générée. Le type d'analyse
+généré dépend de la présence ou de l'absence d'un interrupteur \fI-erp\fP suivi
+d'un argument à valeur positive (ou entrée ERP équivalente dans le fichier \fI.lrp\fP
+approprié), ou de la présence ou de l'absence de l'interrupteur \fI-dBm\fP. L'exemple
+suivant générerait une carte de perte de trajet ITM :
+.PP
+\fCsplat -t wnjt -L 30.0 -s cities.dat -b co34_d00.dat -o path_loss_map\fR
+.PP
+Dans ce mode, \fBSPLAT!\fP génère une carte multicolore illustrant les niveaux de
+signal attendus dans les zones entourant le site émetteur. Une légende en bas de la
+carte corrèle chaque couleur avec une plage de perte de trajet spécifique en décibels.
+.PP
+L'interrupteur \fI-db\fP permet de définir un seuil au-delà duquel les contours ne
+seront pas tracés sur la carte. Par exemple, si une perte de trajet au-delà de -140 dB
+est sans importance pour l'étude en cours, le tracé de perte de trajet de \fBSPLAT!\fP
+peut être contraint à la région délimitée par le contour d'atténuation de 140 dB comme
+suit :
+.PP
+\fCsplat -t wnjt-dt -L 30.0 -s cities.dat -b co34_d00.dat -db 140 -o plot\fR
+.PP
+Le seuil de contour de perte de trajet peut être exprimé comme une quantité positive
+ou négative.
+.PP
+La plage d'analyse de perte de trajet peut être modifiée à une distance spécifique à
+l'utilisateur en utilisant l'interrupteur \fI-R\fP. L'argument doit être donné en
+kilomètres (ou en miles si l'interrupteur \fI-imperial\fP est utilisé). Si une plage
+plus large que la carte topographique générée est spécifiée, \fBSPLAT!\fP effectuera
+des calculs de perte de trajet ITM entre les quatre coins de la carte de prédiction
+de zone.
+.PP
+Les couleurs utilisées pour illustrer les régions de contour dans les cartes de
+couverture générées par \fBSPLAT!\fP peuvent être personnalisées par l'utilisateur
+en créant ou modifiant les fichiers de définition de couleur de \fBSPLAT!\fP. Les
+fichiers de définition de couleur de \fBSPLAT!\fP ont le même nom de base que le
+fichier \fI.qth\fP de l'émetteur, mais portent les extensions \fI.lcf\fP, \fI.scf\fP,
+et \fI.dcf\fP. Si le fichier nécessaire n'existe pas dans le répertoire de travail
+actuel lorsque \fBSPLAT!\fP est exécuté, un fichier contenant des paramètres de
+définition de couleur par défaut qui convient à l'édition manuelle par l'utilisateur
+est écrit dans le répertoire actuel.
+.PP
+Lorsqu'une analyse ITM régionale est effectuée et que l'ERP de l'émetteur n'est pas
+spécifiée ou est zéro, un fichier de définition de couleur de perte de trajet \fI.lcf\fP
+correspondant au site émetteur (\fI.qth\fP) est lu par \fBSPLAT!\fP depuis le répertoire
+de travail actuel. Si un fichier \fI.lcf\fP correspondant au site émetteur n'est pas trouvé,
+alors un fichier par défaut convenant à l'édition manuelle par l'utilisateur est
+automatiquement généré par \fBSPLAT!\fP.
+.PP
+Un fichier de définition de couleur de perte de trajet possède la structure suivante
+(\fIwnjt-dt.lcf\fP) :
+\fC
+
+ ; Fichier de Définition de Couleur de Perte de Trajet Auto-généré SPLAT! ("wnjt-dt.lcf")
+.br
+ ;
+.br
+ ; Le format pour les paramètres contenus dans ce fichier est le suivant :
+.br
+ ;
+.br
+ ;    dB: rouge, vert, bleu
+.br
+ ;
+.br
+ ; ...où "dB" est la perte de trajet (en dB) et
+.br
+ ; "rouge", "vert", et "bleu" sont les définitions de couleur RGB
+.br
+ ; correspondantes allant de 0 à 255 pour la région spécifiée.
+.br
+ ;
+.br
+ ; Les paramètres suivants peuvent être édités et/ou étendus
+.br
+ ; pour les exécutions futures de SPLAT! Un total de 32 régions de contour
+.br
+ ; peut être défini dans ce fichier.
+.br
+ ;
+.br
+ ;
+.br
+  80: 255,   0,   0
+.br
+  90: 255, 128,   0
+.br
+ 100: 255, 165,   0
+.br
+ 110: 255, 206,   0
+.br
+ 120: 255, 255,   0
+.br
+ 130: 184, 255,   0
+.br
+ 140:   0, 255,   0
+.br
+ 150:   0, 208,   0
+.br
+ 160:   0, 196, 196
+.br
+ 170:   0, 148, 255
+.br
+ 180:  80,  80, 255
+.br
+ 190:   0,  38, 255
+.br
+ 200: 142,  63, 255
+.br
+ 210: 196,  54, 255
+.br
+ 220: 255,   0, 255
+.br
+ 230: 255, 194, 204
+.br
+\fR
+.PP
+Si la perte de trajet est inférieure à 80 dB, la couleur Rouge (RGB = 255, 0, 0) est
+assignée à la région. Si la perte de trajet est supérieure ou égale à 80 dB, mais
+inférieure à 90 dB, alors Orange Foncé (255, 128, 0) est assigné à la région. Orange
+(255, 165, 0) est assigné aux régions ayant une perte de trajet supérieure ou égale
+à 90 dB, mais inférieure à 100 dB, et ainsi de suite. Le terrain en niveaux de gris
+est affiché au-delà du contour de perte de trajet de 230 dB. L'ajout de l'interrupteur
+\fI-sc\fP lissera les transitions entre les niveaux de contour quantifiés spécifiés.
+.SH ANALYSE DE FORCE DE CHAMP
+Si la puissance rayonnée effective (ERP) de l'émetteur est spécifiée dans le fichier
+\fI.lrp\fP de l'émetteur, ou exprimée sur la ligne de commande en utilisant l'interrupteur
+\fI-erp\fP, des contours de force de champ référencés en décibels sur un microvolt par
+mètre (dBuV/m) plutôt que la perte de trajet sont produits :
+.PP
+\fCsplat -t wnjt-dt -L 30.0 -erp 46000 -db 30 -o plot\fR
+.PP
+L'interrupteur \fI-db\fP peut être utilisé dans ce mode comme auparavant pour limiter
+l'étendue à laquelle les contours de force de champ sont tracés. Lors du tracé des
+contours de force de champ, cependant, l'argument donné est interprété comme étant
+exprimé en dBuV/m.
+.PP
+Les fichiers de définition de couleur de force de champ de \fBSPLAT!\fP partagent une
+structure très similaire aux fichiers \fI.lcf\fP utilisés pour tracer la perte de trajet :
+\fC
+
+ ; Fichier de Définition de Couleur de Signal Auto-généré SPLAT! ("wnjt-dt.scf")
+.br
+ ;
+.br
+ ; Le format pour les paramètres contenus dans ce fichier est le suivant :
+.br
+ ;
+.br
+ ;    dBuV/m: rouge, vert, bleu
+.br
+ ;
+.br
+ ; ...où "dBuV/m" est la force du signal (en dBuV/m) et
+.br
+ ; "rouge", "vert", et "bleu" sont les définitions de couleur RGB
+.br
+ ; correspondantes allant de 0 à 255 pour la région spécifiée.
+.br
+ ;
+.br
+ ; Les paramètres suivants peuvent être édités et/ou étendus
+.br
+ ; pour les exécutions futures de SPLAT! Un total de 32 régions de contour
+.br
+ ; peut être défini dans ce fichier.
+.br
+ ;
+.br
+ ;
+.br
+ 128: 255,   0,   0
+.br
+ 118: 255, 165,   0
+.br
+ 108: 255, 206,   0
+.br
+  98: 255, 255,   0
+.br
+  88: 184, 255,   0
+.br
+  78:   0, 255,   0
+.br
+  68:   0, 208,   0
+.br
+  58:   0, 196, 196
+.br
+  48:   0, 148, 255
+.br
+  38:  80,  80, 255
+.br
+  28:   0,  38, 255
+.br
+  18: 142,  63, 255
+.br
+   8: 140,   0, 128
+.br
+\fR
+.PP
+Si la force du signal est supérieure ou égale à 128 dB sur 1 microvolt par mètre
+(dBuV/m), la couleur Rouge (255, 0, 0) est affichée pour la région. Si la force
+du signal est supérieure ou égale à 118 dBuV/m, mais inférieure à 128 dBuV/m,
+alors la couleur Orange (255, 165, 0) est affichée, et ainsi de suite. Le terrain
+en niveaux de gris est affiché pour les régions avec des forces de signal inférieures
+à 8 dBuV/m.
+.PP
+Les contours de force de signal pour certains services de diffusion VHF et UHF
+courants aux États-Unis sont les suivants :
+\fC
+
+
+
+       Analog Television Broadcasting
+.br
+       ------------------------------
+.br
+       Channels 2-6:       City Grade: >= 74 dBuV/m
+.br
+                              Grade A: >= 68 dBuV/m
+.br
+                              Grade B: >= 47 dBuV/m
+.br
+       --------------------------------------------
+.br
+       Channels 7-13:      City Grade: >= 77 dBuV/m
+.br
+                              Grade A: >= 71 dBuV/m
+.br
+                              Grade B: >= 56 dBuV/m
+.br
+       --------------------------------------------
+.br
+       Channels 14-69:   Indoor Grade: >= 94 dBuV/m
+.br
+                           City Grade: >= 80 dBuV/m
+.br
+                              Grade A: >= 74 dBuV/m
+.br
+                              Grade B: >= 64 dBuV/m
+.br
+.br
+       Digital Television Broadcasting
+.br
+       -------------------------------
+.br
+       Channels 2-6:       City Grade: >= 35 dBuV/m
+.br
+                    Service Threshold: >= 28 dBuV/m
+.br
+       --------------------------------------------
+.br
+       Channels 7-13:      City Grade: >= 43 dBuV/m
+.br
+                    Service Threshold: >= 36 dBuV/m
+.br
+       --------------------------------------------
+.br
+       Channels 14-69:     City Grade: >= 48 dBuV/m
+.br
+                    Service Threshold: >= 41 dBuV/m
+.br
+.br
+       NOAA Weather Radio (162.400 - 162.550 MHz)
+.br
+       ------------------------------------------
+.br
+                  Reliable: >= 18 dBuV/m
+.br
+              Not reliable: <  18 dBuV/m
+.br
+       Unlikely to receive: <  0 dBuV/m
+.br
+.br
+       FM Radio Broadcasting (88.1 - 107.9 MHz)
+.br
+       ----------------------------------------
+.br
+       Analog Service Contour:  60 dBuV/m
+.br
+       Digital Service Contour: 65 dBuV/m
+\fR
+.SH ANALYSE DE NIVEAU DE PUISSANCE REÇUE
+Si la puissance rayonnée effective (ERP) de l'émetteur est spécifiée dans le fichier
+\fI.lrp\fP de l'émetteur, ou exprimée sur la ligne de commande en utilisant l'interrupteur
+\fI-erp\fP, et que l'interrupteur \fI-dbm\fP est invoqué, des contours de niveau de puissance
+reçue référencés en décibels sur un milliwatt (dBm) sont produits :
+.PP
+\fCsplat -t wnjt-dt -L 30.0 -erp 46000 -dbm -db -100 -o plot\fR
+.PP
+L'interrupteur \fI-db\fP peut être utilisé pour limiter l'étendue à laquelle les contours
+de niveau de puissance reçue sont tracés. Lors du tracé des contours de niveau de puissance,
+l'argument donné est interprété comme étant exprimé en dBm.
+.PP
+Les fichiers de définition de couleur de niveau de puissance reçue de \fBSPLAT!\fP partagent
+une structure très similaire aux fichiers de définition de couleur décrits précédemment,
+sauf que les niveaux de puissance en dBm peuvent être soit positifs soit négatifs, et sont
+limités à une plage entre +40 dBm et -200 dBm :
+\fC
+
+ ; SPLAT! Auto-generated DBM Signal Level Color Definition ("wnjt-dt.dcf") File
+.br
+ ;
+.br
+ ; Format for the parameters held in this file is as follows:
+.br
+ ;
+.br
+ ;    dBm: red, green, blue
+.br
+ ;
+.br
+ ; ...where "dBm" is the received signal power level between +40 dBm
+.br
+ ; and -200 dBm, and "red", "green", and "blue" are the corresponding
+.br
+ ; RGB color definitions ranging from 0 to 255 for the region specified.
+.br
+ ;
+.br
+ ; The following parameters may be edited and/or expanded
+.br
+ ; for future runs of SPLAT!  A total of 32 contour regions
+.br
+ ; may be defined in this file.
+.br
+ ;
+.br
+ ;
+.br
+   +0: 255,   0,   0
+.br
+  -10: 255, 128,   0
+.br
+  -20: 255, 165,   0
+.br
+  -30: 255, 206,   0
+.br
+  -40: 255, 255,   0
+.br
+  -50: 184, 255,   0
+.br
+  -60:   0, 255,   0
+.br
+  -70:   0, 208,   0
+.br
+  -80:   0, 196, 196
+.br
+  -90:   0, 148, 255
+.br
+ -100:  80,  80, 255
+.br
+ -110:   0,  38, 255
+.br
+ -120: 142,  63, 255
+.br
+ -130: 196,  54, 255
+.br
+ -140: 255,   0, 255
+.br
+ -150: 255, 194, 204
+\fR
+.PP
+.SH PARAMÈTRES DE DIAGRAMME DE RAYONNEMENT D'ANTENNE
+Les diagrammes de tension de champ normalisés pour les plans horizontal et vertical
+d'une antenne émettrice sont importés automatiquement dans \fBSPLAT!\fP lorsqu'une
+analyse de couverture de perte de trajet, de force de champ, ou de niveau de puissance
+reçue est effectuée. Les données de diagramme d'antenne sont lues à partir d'une paire
+de fichiers ayant le même nom de base que les fichiers émetteur et LRP, mais avec les
+extensions \fI.az\fP et \fI.el\fP pour les fichiers de diagramme d'azimut et d'élévation,
+respectivement. Les spécifications concernant la rotation du diagramme (le cas échéant)
+et l'inclinaison mécanique du faisceau et la direction d'inclinaison (le cas échéant)
+sont également contenues dans les fichiers de diagramme d'antenne de \fBSPLAT!\fP.
+.PP
+Par exemple, les premières lignes d'un fichier de diagramme d'azimut \fBSPLAT!\fP
+pourraient apparaître comme suit (\fIkvea.az\fP) :
+\fC
+
+        183.0
+.br
+        0       0.8950590
+.br
+        1       0.8966406
+.br
+        2       0.8981447
+.br
+        3       0.8995795
+.br
+        4       0.9009535
+.br
+        5       0.9022749
+.br
+        6       0.9035517
+.br
+        7       0.9047923
+.br
+        8       0.9060051
+\fR
+.PP
+La première ligne du fichier \fI.az\fP spécifie la quantité de rotation du diagramme
+azimutal (mesurée dans le sens horaire en degrés depuis le Nord vrai) à appliquer par
+\fBSPLAT!\fP aux données contenues dans le fichier \fI.az\fP. Ceci est suivi par les
+caps azimutaux (0 à 360 degrés) et leurs diagrammes de champ normalisés associés
+(0.000 à 1.000) séparés par des espaces.
+.PP
+La structure des fichiers de diagramme d'élévation de \fBSPLAT!\fP est légèrement
+différente. La première ligne du fichier \fI.el\fP spécifie la quantité d'inclinaison
+mécanique du faisceau appliquée à l'antenne. Notez qu'une \fIinclinaison vers le bas\fP
+(sous l'horizon) est exprimée comme un \fIangle positif\fP, tandis qu'une \fIinclinaison
+vers le haut\fP (au-dessus de l'horizon) est exprimée comme un \fIangle négatif\fP. Ces
+données sont suivies par la direction azimutale de l'inclinaison, séparées par des espaces.
+.PP
+Le reste du fichier consiste en angles d'élévation et leurs valeurs de diagramme de
+rayonnement de tension normalisé correspondantes (0.000 à 1.000) séparées par des espaces.
+Les angles d'élévation doivent être spécifiés sur une plage de -10,0 à +90,0 degrés. Comme
+c'était la convention avec l'inclinaison mécanique du faisceau, les \fIangles d'élévation
+négatifs\fP sont utilisés pour représenter les élévations \fIau-dessus de l'horizon\fP,
+tandis que les \fIangles positifs\fP représentent les élévations \fIsous l'horizon\fP.
+.PP
+Par exemple, les premières lignes d'un fichier de diagramme d'élévation \fBSPLAT!\fP
+pourraient apparaître comme suit (\fIkvea.el\fP) :
+\fC
+
+        1.1    130.0
+.br
+       -10.0   0.172
+.br
+       -9.5    0.109
+.br
+       -9.0    0.115
+.br
+       -8.5    0.155
+.br
+       -8.0    0.157
+.br
+       -7.5    0.104
+.br
+       -7.0    0.029
+.br
+       -6.5    0.109
+.br
+       -6.0    0.185
+\fR
+.PP
+Dans cet exemple, l'antenne est mécaniquement inclinée vers le bas de 1,1 degré
+vers un azimut de 130,0 degrés.
+.PP
+Pour de meilleurs résultats, la résolution des données de diagramme d'azimut devrait
+être spécifiée au degré azimutal le plus proche, et la résolution des données de diagramme
+d'élévation devrait être spécifiée au 0,01 degré le plus proche. Si les données de diagramme
+spécifiées n'atteignent pas ce niveau de résolution, \fBSPLAT!\fP interpolera les valeurs
+fournies pour déterminer les données à la résolution requise, bien que cela puisse entraîner
+une perte de précision.
+.SH EXPORTATION ET IMPORTATION DE DONNÉES DE CONTOUR RÉGIONAL
+Effectuer une analyse de couverture régionale basée sur une analyse de trajet ITM peut
+être un processus très long, surtout si l'analyse est effectuée à plusieurs reprises pour
+découvrir quels effets les changements au diagramme de rayonnement d'antenne d'un émetteur
+ont sur la zone de couverture prédite.
+.PP
+Ce processus peut être accéléré en exportant les données de contour produites par \fBSPLAT!\fP
+vers un fichier de sortie alphanumérique \fI(.ano)\fP. Les données contenues dans ce fichier
+peuvent ensuite être modifiées pour incorporer les effets du diagramme d'antenne, et importées
+à nouveau dans \fBSPLAT!\fP pour produire rapidement une carte de contour révisée. Selon la
+façon dont \fBSPLAT!\fP est invoqué, les fichiers de sortie alphanumériques peuvent décrire
+la perte de trajet régionale, la force du signal, ou les niveaux de puissance de signal reçu.
+.PP
+Par exemple, un fichier de sortie alphanumérique contenant des informations de perte de trajet
+peut être généré par \fBSPLAT!\fP pour un site de réception à 30 pieds au-dessus du niveau du
+sol sur un rayon de 50 miles entourant un site émetteur jusqu'à une perte de trajet maximale
+de 140 dB (en supposant que l'ERP n'est pas spécifiée dans le fichier \fI.lrp\fP de l'émetteur)
+en utilisant la syntaxe suivante :
+.PP
+\fCsplat -t kvea -L 30.0 -R 50.0 -db 140 -ano pathloss.dat\fR
+.PP
+Si l'ERP est spécifiée dans le fichier \fI.lrp\fP ou sur la ligne de commande via l'interrupteur
+\fI-erp\fP, le fichier de sortie alphanumérique contiendra plutôt des valeurs de champ prédites
+en dBuV/m. Si l'interrupteur de ligne de commande \fI-dBm\fP est utilisé, alors le fichier de
+sortie alphanumérique contiendra les niveaux de puissance de signal reçu en dBm.
+.PP
+Les fichiers de sortie alphanumériques de \fBSPLAT!\fP peuvent dépasser plusieurs centaines de
+mégaoctets en taille. Ils contiennent des informations relatives aux limites de la région qu'ils
+décrivent suivies de latitudes (degrés Nord), longitudes (degrés Ouest), azimuts (référencés au
+Nord vrai), élévations (vers la première obstruction), suivies soit de perte de trajet (en dB),
+force de champ reçue (en dBuV/m), ou niveau de puissance de signal reçu (en dBm) \fBsans tenir
+compte du diagramme de rayonnement de l'antenne émettrice\fP.
+.PP
+Les premières lignes d'un fichier de sortie alphanumérique \fBSPLAT!\fP pourraient
+prendre l'apparence suivante (\fIpathloss.dat\fP) :
+\fC
+
+        119, 117    ; max_west, min_west
+.br
+        35, 34      ; max_north, min_north
+.br
+        34.2265424, 118.0631096, 48.199, -32.747, 67.70
+.br
+        34.2270358, 118.0624421, 48.199, -19.161, 73.72
+.br
+        34.2275292, 118.0617747, 48.199, -13.714, 77.24
+.br
+        34.2280226, 118.0611072, 48.199, -10.508, 79.74
+.br
+        34.2290094, 118.0597723, 48.199, -11.806, 83.26 *
+.br
+        34.2295028, 118.0591048, 48.199, -11.806, 135.47 *
+.br
+        34.2299962, 118.0584373, 48.199, -15.358, 137.06 *
+.br
+        34.2304896, 118.0577698, 48.199, -15.358, 149.87 *
+.br
+        34.2314763, 118.0564348, 48.199, -15.358, 154.16 *
+.br
+        34.2319697, 118.0557673, 48.199, -11.806, 153.42 *
+.br
+        34.2324631, 118.0550997, 48.199, -11.806, 137.63 *
+.br
+        34.2329564, 118.0544322, 48.199, -11.806, 139.23 *
+.br
+        34.2339432, 118.0530971, 48.199, -11.806, 139.75 *
+.br
+        34.2344365, 118.0524295, 48.199, -11.806, 151.01 *
+.br
+        34.2349299, 118.0517620, 48.199, -11.806, 147.71 *
+.br
+        34.2354232, 118.0510944, 48.199, -15.358, 159.49 *
+.br
+        34.2364099, 118.0497592, 48.199, -15.358, 151.67 *
+\fR
+.PP
+Les commentaires peuvent être placés dans le fichier s'ils sont précédés d'un point-virgule.
+L'éditeur de texte \fBvim\fP s'est avéré capable d'éditer des fichiers de cette taille.
+.PP
+Notez que, comme c'était le cas dans les fichiers de diagramme d'antenne, les angles
+d'élévation négatifs font référence à une inclinaison vers le haut (au-dessus de l'horizon),
+tandis que les angles positifs font référence à une inclinaison vers le bas (sous l'horizon).
+Ces angles font référence à l'élévation vers l'antenne de réception à la hauteur au-dessus
+du niveau du sol spécifiée en utilisant l'interrupteur \fI-L\fP \fIsi\fP le trajet entre
+l'émetteur et le récepteur est non obstrué. Si le trajet entre l'émetteur et le récepteur
+est obstrué, un astérisque (*) est placé à la fin de la ligne, et l'angle d'élévation
+retourné par \fBSPLAT!\fP fait référence à l'angle d'élévation vers la première obstruction
+plutôt que l'emplacement géographique spécifié sur la ligne. Ceci est fait en réponse au
+fait que le modèle ITM considère que l'énergie atteignant un point distant sur un trajet
+obstrué est le résultat de l'énergie dispersée sur le sommet de la première obstruction
+le long du trajet. Puisque l'énergie ne peut pas atteindre l'emplacement obstrué directement,
+l'angle d'élévation réel vers la destination sur un tel trajet devient sans importance.
+.PP
+Lors de la modification des fichiers de perte de trajet de \fBSPLAT!\fP pour refléter les
+données de diagramme d'antenne, \fIseulement la dernière colonne numérique\fP devrait être
+modifiée pour refléter le gain normalisé de l'antenne aux angles d'azimut et d'élévation
+spécifiés dans le fichier. Les programmes et scripts capables d'effectuer cette tâche sont
+laissés comme exercice pour l'utilisateur.
+.PP
+Les fichiers de sortie alphanumériques modifiés peuvent être importés à nouveau dans \fBSPLAT!\fP
+pour générer des cartes de couverture révisées à condition que les options ERP et -dBm soient
+utilisées comme elles l'étaient lorsque le fichier de sortie alphanumérique a été généré
+originalement :
+.PP
+\fCsplat -t kvea -ani pathloss.dat -s city.dat -b county.dat -o map\fR
+.PP
+Notez que les fichiers de sortie alphanumériques générés par \fCsplat\fR ne peuvent pas être
+utilisés avec \fCsplat-hd\fR, ou vice versa en raison de l'incompatibilité de résolution entre
+les deux versions du programme. De plus, chacun des trois types de fichiers de sortie alphanumériques
+sont incompatibles les uns avec les autres, donc un fichier contenant des données de perte de trajet
+ne peut pas être importé dans \fBSPLAT!\fR pour produire des contours de force de signal ou de
+niveau de puissance reçue, etc.
+.SH FICHIERS D'ENTRÉE DE TERRAIN DÉFINIS PAR L'UTILISATEUR
+Un fichier de terrain défini par l'utilisateur est un fichier texte généré par l'utilisateur
+contenant des latitudes, longitudes et hauteurs au-dessus du niveau du sol de caractéristiques
+de terrain spécifiques considérées comme importantes pour l'analyse \fBSPLAT!\fP en cours, mais
+notablement absentes des fichiers SDF utilisés. Un fichier de terrain défini par l'utilisateur
+est importé dans une analyse \fBSPLAT!\fP en utilisant l'interrupteur \fI-udt\fP :
+.PP
+\fC splat -t tx_site -r rx_site -udt udt_file.txt -o map\fR
+.PP
+Un fichier de terrain défini par l'utilisateur a l'apparence et la structure suivantes :
+\fC
+
+       40.32180556, 74.1325, 100.0 meters
+.br
+       40.321805, 74.1315, 300.0
+.br
+       40.3218055, 74.1305, 100.0 meters
+\fR
+.PP
+La hauteur du terrain est interprétée comme étant décrite en pieds au-dessus du niveau
+du sol sauf si elle est suivie du mot \fImeters\fP, et est ajoutée \fIau-dessus\fP du
+terrain spécifié dans les données SDF pour les emplacements spécifiés. Soyez conscient
+que chaque caractéristique de terrain définie par l'utilisateur spécifiée sera interprétée
+comme étant de 3 secondes d'arc en latitude et longitude dans \fCsplat\fR et de 1 seconde
+d'arc en latitude et longitude dans \fCsplat-hd\fR. Les caractéristiques décrites dans
+le fichier de terrain défini par l'utilisateur qui chevauchent des caractéristiques
+précédemment définies dans le fichier sont ignorées par \fBSPLAT!\fP pour éviter
+l'ambiguïté.
+.SH FOUILLIS DE SOL
+La hauteur du fouillis de sol peut être spécifiée en utilisant l'interrupteur \fI-gc\fP :
+\fC
+
+      splat -t wnjt-dt -r kd2bd -gc 30.0 -H wnjt-dt_path.png
+\fR
+.PP
+L'interrupteur \fI-gc\fP a l'effet d'élever le terrain global de la quantité spécifiée
+en mètres (ou en pieds si l'interrupteur \fI-imperial\fP est invoqué), sauf sur les zones
+au niveau de la mer et aux emplacements des antennes émettrice et réceptrice.
+.SH GÉNÉRATION SIMPLE DE CARTE TOPOGRAPHIQUE
+Dans certaines situations, il peut être souhaitable de générer une carte topographique
+d'une région sans tracer les zones de couverture, les trajets en visibilité directe, ou
+générer des rapports d'obstruction. Il y a plusieurs façons de faire cela. Si on souhaite
+générer une carte topographique illustrant l'emplacement d'un site émetteur et récepteur
+ainsi qu'un bref rapport texte décrivant les emplacements et distances entre les sites,
+l'interrupteur \fI-n\fP devrait être invoqué comme suit :
+.PP
+\fCsplat -t tx_site -r rx_site -n -o topo_map\fR
+.PP
+Si aucun rapport texte n'est souhaité, alors l'interrupteur \fI-N\fP est utilisé :
+.PP
+\fCsplat -t tx_site -r rx_site -N -o topo_map\fR
+.PP
+Si une carte topographique centrée sur un seul site jusqu'à un rayon minimum spécifié
+est souhaitée à la place, une commande similaire à la suivante peut être utilisée :
+.PP
+\fCsplat -t tx_site -R 50.0 -s NJ_Cities -b NJ_Counties -o topo_map\fR
+.PP
+où -R spécifie le rayon minimum de la carte en kilomètres (ou en miles si l'interrupteur
+\fI-imperial\fP est utilisé). Notez que le nom et l'emplacement de tx_site ne sont pas
+affichés dans cet exemple. Si l'affichage de ces informations est souhaité, créez simplement
+un fichier de ville \fBSPLAT!\fP (option \fI-s\fP) et ajoutez-le à la liste des options de
+ligne de commande illustrées ci-dessus.
+.PP
+Si l'interrupteur \fI-o\fP et le nom de fichier de sortie sont omis dans ces opérations,
+la sortie topographique est écrite dans un fichier nommé \fItx_site.png\fP dans le répertoire
+de travail actuel par défaut.
+.SH GÉNÉRATION DE FICHIER DE GÉORÉFÉRENCE
+Les cartes topographiques, de couverture (\fI-c\fP), et de contour de perte de trajet (\fI-L\fP)
+générées par \fBSPLAT!\fP peuvent être importées dans le logiciel \fBXastir\fP (X Amateur
+Station Tracking and Information Reporting) en générant un fichier de géoréférence en utilisant
+l'interrupteur \fI-geo\fP de \fBSPLAT!\fP :
+.PP
+\fCsplat -t kd2bd -R 50.0 -s NJ_Cities -b NJ_Counties -geo -o map\fR
+.PP
+Le fichier de géoréférence généré aura le même nom de base que le fichier \fI-o\fP spécifié,
+mais aura une extension \fI .geo\fP, et permettra l'interprétation et l'affichage appropriés
+des graphiques de \fBSPLAT!\fP dans le logiciel \fBXastir\fP.
+.SH GÉNÉRATION DE FICHIER KML GOOGLE MAP
+Les fichiers Keyhole Markup Language compatibles avec \fBGoogle Earth\fP peuvent être générés
+par \fBSPLAT!\fP lors de l'exécution d'analyses de couverture point-à-point ou régionales en
+invoquant l'interrupteur \fI-kml\fP :
+.PP
+\fCsplat -t wnjt-dt -r kd2bd -kml\fR
+.PP
+Le fichier KML généré aura la même structure de nom de fichier qu'un rapport d'analyse de
+trajet pour les noms de sites émetteur et récepteur donnés, sauf qu'il portera une extension
+\fI .kml\fP.
+.PP
+Une fois chargé dans \fBGoogle Earth\fP (Fichier --> Ouvrir), le fichier KML annotera l'affichage
+de la carte avec les noms des emplacements de sites émetteur et récepteur. Le point de vue de
+l'image sera depuis la position du site émetteur regardant vers l'emplacement du récepteur.
+Le trajet point-à-point entre les sites sera affiché comme une ligne blanche tandis que le
+trajet RF en visibilité directe sera affiché en vert. Les outils de navigation de \fBGoogle Earth\fP
+permettent à l'utilisateur de "voler" autour du trajet, identifier des repères, routes et autre
+contenu présenté.
+.PP
+Lors de l'exécution d'une analyse de couverture régionale, le fichier \fI .kml\fP généré par
+\fBSPLAT!\fP permettra aux contours de perte de trajet ou de force de signal d'être superposés
+sur l'affichage de \fBGoogle Earth\fP avec une clé de couleur correspondante dans le coin supérieur
+gauche. Le fichier \fI.kml\fP généré aura le même nom de base que celui du fichier image normalement
+généré.
+.SH DÉTERMINATION DE LA HAUTEUR D'ANTENNE AU-DESSUS DU TERRAIN MOYEN
+\fBSPLAT!\fP détermine la hauteur d'antenne au-dessus du terrain moyen (HAAT) selon la procédure
+définie par la Commission Fédérale des Communications Partie 73.313(d). Selon cette définition,
+les élévations de terrain le long de huit radiaux entre 2 et 10 miles (3 et 16 kilomètres) du
+site analysé sont échantillonnées et moyennées pour chaque 45 degrés d'azimut en commençant par
+le Nord vrai. Si un ou plusieurs radiaux se trouvent entièrement au-dessus de l'eau ou au-dessus
+de terres en dehors des États-Unis (zones pour lesquelles aucune donnée topographique USGS n'est
+disponible), alors ces radiaux sont omis du calcul du terrain moyen.
+.PP
+Notez que les données d'élévation SRTM-3, contrairement aux données USGS plus anciennes, s'étendent
+au-delà des frontières des États-Unis. Par conséquent, les résultats HAAT peuvent ne pas être en
+conformité complète avec la FCC Partie 73.313(d) dans les zones le long des frontières des États-Unis
+si les fichiers SDF utilisés par \fBSPLAT!\fP sont dérivés de SRTM.
+.PP
+Lors de l'exécution d'une analyse de terrain point-à-point, \fBSPLAT!\fP détermine la hauteur
+d'antenne au-dessus du terrain moyen seulement si suffisamment de données topographiques ont déjà
+été chargées par le programme pour effectuer l'analyse point-à-point. Dans la plupart des cas,
+ce sera vrai, sauf si le site en question ne se trouve pas dans les 10 miles de la limite des
+données topographiques en mémoire.
+.PP
+Lors de l'exécution d'une analyse de prédiction de zone, suffisamment de données topographiques
+sont normalement chargées par \fBSPLAT!\fP pour effectuer les calculs de terrain moyen. Dans de
+telles conditions, \fBSPLAT!\fP fournira la hauteur d'antenne au-dessus du terrain moyen ainsi
+que le terrain moyen au-dessus du niveau moyen de la mer pour les azimuts de 0, 45, 90, 135,
+180, 225, 270 et 315 degrés, et inclura ces informations dans le rapport de site généré. Si un
+ou plusieurs des huit radiaux étudiés tombent sur l'eau, ou sur des régions pour lesquelles
+aucune donnée SDF n'est disponible, \fBSPLAT!\fP rapporte \fIAucun Terrain\fP pour les trajets
+radiaux affectés.
+.SH INFORMATIONS SUPPLÉMENTAIRES
+Les dernières nouvelles et informations concernant le logiciel \fBSPLAT!\fP sont disponibles
+via la page web officielle du logiciel \fBSPLAT!\fP située à : \fIhttp://www.qsl.net/kd2bd/splat.html\fP.
+.SH AUTEURS
+.TP
+John A. Magliacane, KD2BD <\fIkd2bd@amsat.org\fP>
+Créateur, Développeur Principal
+.TP
+Doug McDonald <\fImcdonald@scs.uiuc.edu\fP>
+Intégration originale du modèle ITM Longley-Rice
+.TP
+Ron Bentley <\fIronbentley@embarqmail.com\fP>
+Tracé de zone de Fresnel et détermination de dégagement
+
