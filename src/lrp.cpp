@@ -289,10 +289,11 @@ char Lrp::ReadLRParm(const Site &txsite, char forced_read, bool &loadPat,
         rel = 0.50;
         erp = 0.0;
 
-        fprintf(stderr,
-                "\n\n%c*** There were problems parsing your \"%s\" file! "
-                "***\nDefault parameters have been assumed for this analysis.\n",
-                7, filename.c_str());
+        fprintf(
+            stderr,
+            "\n\n%c*** There were problems parsing your \"%s\" file! "
+            "***\nDefault parameters have been assumed for this analysis.\n",
+            7, filename.c_str());
 
         return_value = 1;
     }

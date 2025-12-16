@@ -92,11 +92,11 @@ static void write_le32(unsigned char *buf, unsigned int val) {
 }
 
 static unsigned short read_le16(const unsigned char *buf) {
-  return buf[0] | (buf[1] << 8);
+  return buf[0] | ((unsigned int)buf[1] << 8);
 }
 
 static unsigned int read_le32(const unsigned char *buf) {
-  return buf[0] | (buf[1] << 8) | (buf[2] << 16) | (buf[3] << 24);
+  return buf[0] | ((unsigned int)buf[1] << 8) | ((unsigned int)buf[2] << 16) | ((unsigned int)buf[3] << 24);
 }
 
 static const char *base_name(const char *name) {
@@ -175,12 +175,12 @@ static char *strrpl(const char *str, size_t n, char oldchar, char newchar) {
 static void dos_date_time(time_t t, unsigned short *dos_date, unsigned short *dos_time) {
   struct tm *tm_time = localtime(&t);
   if (tm_time) {
-    *dos_date = ((tm_time->tm_year - 80) << 9) | 
-                ((tm_time->tm_mon + 1) << 5) | 
-                tm_time->tm_mday;
-    *dos_time = (tm_time->tm_hour << 11) | 
-                (tm_time->tm_min << 5) | 
-                (tm_time->tm_sec / 2);
+    *dos_date = ((unsigned int)(tm_time->tm_year - 80) << 9) | 
+                ((unsigned int)(tm_time->tm_mon + 1) << 5) | 
+                (unsigned int)tm_time->tm_mday;
+    *dos_time = ((unsigned int)tm_time->tm_hour << 11) | 
+                ((unsigned int)tm_time->tm_min << 5) | 
+                ((unsigned int)tm_time->tm_sec / 2);
   } else {
     *dos_date = 0;
     *dos_time = 0;
