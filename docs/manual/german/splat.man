@@ -435,8 +435,6 @@ der Befehlszeilenoptionen von \fBSPLAT!\fP zurück:
 .br
      -o filename of topographic map to generate (without suffix)
 .br
-     -u filename of user-defined terrain file to import
-.br
      -d sdf file directory path (overrides path in ~/.splat_path file)
 .br
      -m earth radius multiplier
@@ -1436,32 +1434,143 @@ Ausgabedateien untereinander inkompatibel, sodass eine Datei mit Pfadverlustdate
 \fBSPLAT!\fR importiert werden kann, um Signalstärke- oder empfangene Leistungspegel-Konturen
 usw. zu erzeugen.
 .SH BENUTZERDEFINIERTE TERRAIN-EINGABEDATEIEN
-Eine benutzerdefinierte Terrain-Datei ist eine vom Benutzer erstellte Textdatei, die Breitengrade,
-Längengrade und Höhen über dem Bodenniveau spezifischer Geländemerkmale enthält, von denen
-angenommen wird, dass sie für die durchgeführte \fBSPLAT!\fP-Analyse von Bedeutung sind, aber
-auffällig in den verwendeten SDF-Dateien fehlen. Eine benutzerdefinierte Terrain-Datei wird
-mit dem Schalter \fI-udt\fP in eine \fBSPLAT!\fP-Analyse importiert:
-.PP
-\fC splat -t tx_site -r rx_site -udt udt_file.txt -o map\fR
-.PP
-Eine benutzerdefinierte Terrain-Datei hat folgendes Aussehen und Struktur:
+Benutzerdefinierte Terrain-Dateien (UDT) ermöglichen es Benutzern, benutzerdefinierte
+Geländemerkmale zum digitalen Höhenmodell hinzuzufügen, um Gebäude, Türme, Hügel oder
+andere Strukturen zu modellieren, die in den Basis-SDF-Geländedaten nicht vorhanden sind.
+Diese Dateien sind besonders nützlich für städtische Umgebungen, Funkinfrastruktur und
+bekannte Hindernisse im Signalpfad.
+.SS Dateiformat
+Eine benutzerdefinierte Terrain-Datei (\fI.udt\fP) ist eine CSV-formatierte Textdatei, die
+Breitengrade, Längengrade und Höhen über dem Bodenniveau spezifischer Geländemerkmale enthält.
+Die Datei hat folgende Struktur:
 \fC
 
-       40.32180556, 74.1325, 100.0 meters
+       ; Kommentare erlaubt (Zeilen, die mit Semikolon beginnen)
 .br
-       40.321805, 74.1315, 300.0
+       breitengrad_0, längengrad_0, höhe_0
 .br
-       40.3218055, 74.1305, 100.0 meters
+       breitengrad_1, längengrad_1, höhe_1
+.br
+       ...
 \fR
+.SS Feldbeschreibungen
+.IP "\fBBreitengrad\fP:" 4
+Geografischer Breitengrad in Dezimalgraden oder DMS-Format
+.RS 4
+.IP \(bu 3
+Dezimalformat: \fI40.2828\fP (positiv = Nord, negativ = Süd)
+.IP \(bu 3
+DMS-Format: \fI40 48 8.0\fP (Grad Minuten Sekunden)
+.IP \(bu 3
+Bereich: -90.0 bis +90.0
+.RE
+.IP "\fBLängengrad\fP:" 4
+Geografischer Längengrad in Dezimalgraden oder DMS-Format
+.RS 4
+.IP \(bu 3
+Dezimalformat: \fI74.6864\fP (Grad West: 0-360)
+.IP \(bu 3
+DMS-Format: \fI74 14 47.0\fP (Grad Minuten Sekunden)
+.IP \(bu 3
+Bereich: 0-360 (West) oder 0 bis -360 (Ost)
+.RE
+.IP "\fBHöhe\fP:" 4
+Höhe des Geländemerkmals über dem Bodenniveau
+.RS 4
+.IP \(bu 3
+Standardeinheiten: Fuß (wenn keine Einheit angegeben ist)
+.IP \(bu 3
+Metrische Einheiten: \fIm\fP, \fIM\fP oder \fImeters\fP nach der Zahl hinzufügen
+.IP \(bu 3
+Beispiele: \fI100.0\fP, \fI30.5 m\fP, \fI150 M\fP, \fI100.0 meters\fP
+.IP \(bu 3
+Nur positive Werte werden zum Geländemodell hinzugefügt
+.RE
+.SS Verwendung
+Eine benutzerdefinierte Terrain-Datei wird mit dem Schalter \fI-udt\fP in eine
+\fBSPLAT!\fP-Analyse importiert:
 .PP
-Die Geländehöhe wird als in Fuß über dem Bodenniveau beschrieben interpretiert, es sei denn,
-sie wird von dem Wort \fImeters\fP gefolgt, und wird \fIauf\fP dem in den SDF-Daten für die
-angegebenen Standorte angegebenen Gelände hinzugefügt. Seien Sie sich bewusst, dass jedes
-angegebene benutzerdefinierte Geländemerkmal als 3 Bogensekunden sowohl in Breiten- als auch
-in Längengrad in \fCsplat\fR und 1 Bogensekunde in Breiten- und Längengrad in \fCsplat-hd\fR
-interpretiert wird. Merkmale, die in der benutzerdefinierten Terrain-Datei beschrieben werden
-und sich mit zuvor definierten Merkmalen in der Datei überschneiden, werden von \fBSPLAT!\fP
-ignoriert, um Mehrdeutigkeit zu vermeiden.
+\fC splat -t tx_site -r rx_site -udt buildings.udt -o map\fR
+.PP
+Mehrere UDT-Dateien können geladen werden, indem der Schalter \fI-udt\fP mehrmals
+angegeben wird:
+.PP
+\fC splat -t tx_site -r rx_site -udt buildings.udt -udt towers.udt -o map\fR
+.SS Beispiel-UDT-Datei
+\fC
+
+       ; Benutzerdefiniertes Terrain für die Innenstadt
+.br
+       ; Format: Breitengrad, Längengrad, Höhe
+.br
+
+.br
+       ; Bürogebäude bei 40.748\(de N, 73.985\(de W, 200 Fuß hoch
+.br
+       40.748, 73.985, 200.0
+.br
+
+.br
+       ; Funkturm bei 40.75\(de N, 74.0\(de W, 150 Meter hoch
+.br
+       40.75, 74.0, 150 m
+.br
+
+.br
+       ; Wasserturm mit DMS-Koordinaten, 80 Fuß
+.br
+       40 45 0.0, 74 0 30.0, 80
+.br
+
+.br
+       ; Mobilfunkmast
+.br
+       40.752, 74.012, 120.0  ; 120 Fuß AGL
+\fR
+.SS Verarbeitungsdetails
+.IP \(bu 3
+\fBKommentare\fP: Zeilen, die mit \fI;\fP beginnen, werden ignoriert, ebenso Text
+nach \fI;\fP auf jeder Zeile
+.IP \(bu 3
+\fBKoordinatenformate\fP: Sowohl Dezimalgrade als auch DMS (Grad Minuten Sekunden)
+werden unterstützt
+.IP \(bu 3
+\fBEinheitenumrechnung\fP: Höhen ohne Einheiten werden als Fuß angenommen;
+Höhen mit \fIM\fP, \fIm\fP oder \fImeters\fP werden als Meter behandelt
+.IP \(bu 3
+\fBDuplikatebehandlung\fP: Mehrfacheinträge an denselben Koordinaten werden zusammengeführt,
+wobei die maximale Höhe verwendet wird
+.IP \(bu 3
+\fBAuflösung\fP: Merkmale werden als 3 Bogensekunden in Breiten- und Längengrad
+im Standardmodus und 1 Bogensekunde im HD-Modus interpretiert
+.IP \(bu 3
+\fBIntegration\fP: UDT-Merkmale werden \fIauf\fP vorhandenen SDF-Geländehöhen hinzugefügt,
+nicht ersetzt
+.SS Anwendungsfälle
+.IP \(bu 3
+\fBStädtische Umgebungen\fP: Gebäude, Wolkenkratzer und städtische Unordnung modellieren
+.IP \(bu 3
+\fBFunkinfrastruktur\fP: Türme, Antennen und andere hohe Strukturen hinzufügen
+.IP \(bu 3
+\fBBekannte Hindernisse\fP: Spezifische Hindernisse im Signalpfad modellieren
+.IP \(bu 3
+\fBGeländekorrekturen\fP: Niedrig aufgelöste DEM-Daten mit bekannten Merkmalen ergänzen
+.IP \(bu 3
+\fBBenutzerdefinierte Szenarien\fP: Ausbreitung mit geplanten oder temporären Strukturen testen
+.SS Wichtige Hinweise
+.IP \(bu 3
+Merkmale werden zur Basisgeländehöhe aus SDF-Dateien hinzugefügt
+.IP \(bu 3
+Null- oder negative Höhen werden ignoriert
+.IP \(bu 3
+Koordinaten müssen innerhalb der geladenen Geländeregion liegen
+.IP \(bu 3
+Die Auflösung ist durch die SDF-Datenauflösung begrenzt (Standard: 3 Bogensekunden,
+HD: 1 Bogensekunde)
+.IP \(bu 3
+Große UDT-Dateien können aufgrund der Duplikatprüfung Zeit zum Verarbeiten benötigen
+.IP \(bu 3
+Merkmale, die kleiner als ein Geländepixel sind, werden durch ein einzelnes Pixel dargestellt
 .SH BODENGEWIMMEL
 Die Höhe des Bodengewimmels kann mit dem Schalter \fI-gc\fP angegeben werden:
 \fC

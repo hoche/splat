@@ -450,8 +450,6 @@ de las opciones de l�nea de comando de \fBSPLAT!\fP:
 .br
        -o nombre de archivo para generar el mapa topogr�fico (.ppm)
 .br
-       -u nombre del archivo del terreno definido-por-el-usuario a importar
-.br
        -d ruta al directorio que contiene los archivos sdf (en lugar de ~/.splat_path)
 .br
        -m multiplicador del radio de la tierra
@@ -1452,37 +1450,143 @@ p�rdidas por trayectoria, no puede ser importado dentro de \fBSPLAT!\fR
 para producir contornos de nivel de intensidad de se�al o de  niveles de
 potencia recibida, etc.
 .SH ARCHIVOS DE ENTRADA DE TERRENO DEFINIDOS POR EL USUARIO 
-Un archivo de terreno definido por el usuario es un archivo de texto 
-generado-por-el-usuario que contiene latitudes, longitudes, y alturas sobre 
-el nivel de la tierra de caracter�sticas de terreno espec�fica que se cree 
-son de importancia para el an�lisis que \fBSPLAT!\fP est� desarrollando, 
-pero perceptiblemente ausentes de los archivos SDF que est�n siendo usados. 
-Un archivo de terreno definido-por-el-usuario es importado dentro de un 
-an�lisis de \fBSPLAT!\fP usando la opci�n \fI-udt\fP:
-.PP
-\fC splat -t tx_site -r rx_site -udt udt_file.txt -o map\fR
-.PP
-Un archivo de terreno definido-por-el-usuario tiene la siguiente apariencia 
-y estructura:
+Los archivos de terreno definidos por el usuario (UDT) permiten a los usuarios a�adir
+caracter�sticas de terreno personalizadas al modelo de elevaci�n digital para modelar
+edificios, torres, colinas u otras estructuras que no est�n presentes en los datos de
+terreno SDF base. Estos archivos son particularmente �tiles para entornos urbanos,
+infraestructura de radio y obst�culos conocidos en la trayectoria de la se�al.
+.SS Formato de archivo
+Un archivo de terreno definido por el usuario (\fI.udt\fP) es un archivo de texto en
+formato CSV que contiene latitudes, longitudes y alturas sobre el nivel del suelo de
+caracter�sticas de terreno espec�ficas. El archivo tiene la siguiente estructura:
 \fC
 
-       40.32180556, 74.1325, 100.0 meters
+       ; Comentarios permitidos (l�neas que comienzan con punto y coma)
 .br
-       40.321805, 74.1315, 300.0
+       latitud_0, longitud_0, altura_0
 .br
-       40.3218055, 74.1305, 100.0 meters
+       latitud_1, longitud_1, altura_1
+.br
+       ...
 \fR
+.SS Descripci�n de campos
+.IP "\fBLatitud\fP:" 4
+Latitud geogr�fica en grados decimales o formato DMS
+.RS 4
+.IP \(bu 3
+Formato decimal: \fI40.2828\fP (positivo = Norte, negativo = Sur)
+.IP \(bu 3
+Formato DMS: \fI40 48 8.0\fP (grados minutos segundos)
+.IP \(bu 3
+Rango: -90.0 a +90.0
+.RE
+.IP "\fBLongitud\fP:" 4
+Longitud geogr�fica en grados decimales o formato DMS
+.RS 4
+.IP \(bu 3
+Formato decimal: \fI74.6864\fP (grados Oeste: 0-360)
+.IP \(bu 3
+Formato DMS: \fI74 14 47.0\fP (grados minutos segundos)
+.IP \(bu 3
+Rango: 0-360 (Oeste) o 0 a -360 (Este)
+.RE
+.IP "\fBAltura\fP:" 4
+Altura de la caracter�stica del terreno sobre el nivel del suelo
+.RS 4
+.IP \(bu 3
+Unidades predeterminadas: Pies (si no se especifica ninguna unidad)
+.IP \(bu 3
+Unidades m�tricas: Agregar \fIm\fP, \fIM\fP o \fImeters\fP despu�s del n�mero
+.IP \(bu 3
+Ejemplos: \fI100.0\fP, \fI30.5 m\fP, \fI150 M\fP, \fI100.0 meters\fP
+.IP \(bu 3
+Solo valores positivos se agregan al modelo de terreno
+.RE
+.SS Uso
+Un archivo de terreno definido por el usuario se importa en un an�lisis de
+\fBSPLAT!\fP usando la opci�n \fI-udt\fP:
 .PP
-La altura del terreno es interpretada en pies sobre el nivel del suelo a
-menos que sea seguido por la palabra meters, y es adicionado en la parte
-superior de el terreno especificado en los datos SDF para la localizaci�n
-especificada. Debe saber que las caracter�sticas especificadas en los
-archivos de terreno especificados-por-el-usuario ser�n interpretados
-en \fBSPLAT!\fP, como 3-arco segundos en latitud y longitud y como
-como 1-arco segundos en latitud y longitud en \fCsplat-hd\fR. Las
-caracter�sticas descritas en el archivo de terreno definido-por-el-usuario
-que traslapen las caracter�sticas previamente definidas en el archivo
-son ignoradas por \fBSPLAT!\fP para evitar ambig�edades.
+\fC splat -t tx_site -r rx_site -udt buildings.udt -o map\fR
+.PP
+Se pueden cargar m�ltiples archivos UDT especificando la opci�n \fI-udt\fP
+varias veces:
+.PP
+\fC splat -t tx_site -r rx_site -udt buildings.udt -udt towers.udt -o map\fR
+.SS Ejemplo de archivo UDT
+\fC
+
+       ; Terreno definido por el usuario para el �rea del centro
+.br
+       ; Formato: latitud, longitud, altura
+.br
+
+.br
+       ; Edificio de oficinas en 40.748\(de N, 73.985\(de O, 200 pies de altura
+.br
+       40.748, 73.985, 200.0
+.br
+
+.br
+       ; Torre de radio en 40.75\(de N, 74.0\(de O, 150 metros de altura
+.br
+       40.75, 74.0, 150 m
+.br
+
+.br
+       ; Torre de agua usando coordenadas DMS, 80 pies
+.br
+       40 45 0.0, 74 0 30.0, 80
+.br
+
+.br
+       ; Torre celular
+.br
+       40.752, 74.012, 120.0  ; 120 pies AGL
+\fR
+.SS Detalles de procesamiento
+.IP \(bu 3
+\fBComentarios\fP: Las l�neas que comienzan con \fI;\fP se ignoran, as� como el texto
+despu�s de \fI;\fP en cualquier l�nea
+.IP \(bu 3
+\fBFormatos de coordenadas\fP: Se admiten tanto grados decimales como DMS (grados minutos
+segundos)
+.IP \(bu 3
+\fBConversi�n de unidades\fP: Las alturas sin unidades se suponen en pies;
+las alturas con \fIM\fP, \fIm\fP o \fImeters\fP se tratan como metros
+.IP \(bu 3
+\fBManejo de duplicados\fP: Las entradas m�ltiples en las mismas coordenadas se fusionan,
+utilizando la altura m�xima
+.IP \(bu 3
+\fBResoluci�n\fP: Las caracter�sticas se interpretan como de 3 segundos de arco en
+latitud y longitud en modo est�ndar, y 1 segundo de arco en modo HD
+.IP \(bu 3
+\fBIntegraci�n\fP: Las caracter�sticas UDT se agregan \fIsobre\fP las elevaciones de
+terreno SDF existentes, no las reemplazan
+.SS Casos de uso
+.IP \(bu 3
+\fBEntornos urbanos\fP: Modelar edificios, rascacielos y desorden urbano
+.IP \(bu 3
+\fBInfraestructura de radio\fP: Agregar torres, antenas y otras estructuras altas
+.IP \(bu 3
+\fBObst�culos conocidos\fP: Modelar obst�culos espec�ficos en la trayectoria de la se�al
+.IP \(bu 3
+\fBCorrecciones de terreno\fP: Complementar datos DEM de baja resoluci�n con caracter�sticas conocidas
+.IP \(bu 3
+\fBEscenarios personalizados\fP: Probar la propagaci�n con estructuras planificadas o temporales
+.SS Notas importantes
+.IP \(bu 3
+Las caracter�sticas se agregan a la elevaci�n del terreno base de los archivos SDF
+.IP \(bu 3
+Las alturas cero o negativas se ignoran
+.IP \(bu 3
+Las coordenadas deben estar dentro de la regi�n de terreno cargada
+.IP \(bu 3
+La resoluci�n est� limitada por la resoluci�n de los datos SDF (est�ndar: 3 segundos de arco,
+HD: 1 segundo de arco)
+.IP \(bu 3
+Los archivos UDT grandes pueden tardar tiempo en procesarse debido a la verificaci�n de duplicados
+.IP \(bu 3
+Las caracter�sticas m�s peque�as que un p�xel de terreno se representar�n con un solo p�xel
 .SH CLUTTER DEL TERRENO
 **Wikipedia:Ruido provocado por los ecos o reflexiones, en elementos ajenos 
 al sistema (monta�as, superficie del mar, etc.)

@@ -143,7 +143,6 @@ int main(int argc, const char *argv[]) {
                "       -l filename of path loss graph to plot\n"
                "       -o filename of topographic map to generate (without "
                "suffix)\n"
-               "       -u filename of user-defined terrain file to import\n"
                "       -d sdf file directory path (overrides path in "
                "~/.splat_path file)\n"
                "       -m earth radius multiplier\n"

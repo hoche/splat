@@ -16,6 +16,7 @@ This document provides a comprehensive guide to all data file formats used by SP
      - [LCF Files (Path Loss Color Definition)](#lcf-files-path-loss-color-definition)
      - [SCF Files (Signal Strength Color Definition)](#scf-files-signal-strength-color-definition)
      - [DCF Files (dBm Color Definition)](#dcf-files-dbm-color-definition)
+   - [UDT Files (User-Defined Terrain)](#udt-files-user-defined-terrain)
 4. [Output Files](#output-files)
    - [ANO Files (Alphanumeric Output)](#ano-files-alphanumeric-output)
 5. [File Naming Conventions](#file-naming-conventions)
@@ -603,6 +604,124 @@ dBm_threshold_1: red_1, green_1, blue_1
 
 ---
 
+### UDT Files (User-Defined Terrain)
+
+**Extension**: `.udt`  
+**Purpose**: Adds custom terrain features to the digital elevation model (DEM) for modeling buildings, towers, hills, or other structures not present in the base terrain data.
+
+**File Structure**:
+```
+; Comments allowed
+latitude_0, longitude_0, height_0
+latitude_1, longitude_1, height_1
+...
+```
+
+**Field Descriptions**:
+
+1. **Latitude**: Geographic latitude in decimal degrees or DMS format
+   - **Decimal format**: `40.2828` (positive = North, negative = South)
+   - **DMS format**: `40 48 8.0` (degrees minutes seconds)
+   - Range: -90.0 to +90.0
+
+2. **Longitude**: Geographic longitude in decimal degrees or DMS format
+   - **Decimal format**: `74.6864` (degrees West: 0-360)
+   - **DMS format**: `74 14 47.0` (degrees minutes seconds)
+   - Range: 0-360 (West) or 0 to -360 (East)
+
+3. **Height**: Height of terrain feature above ground level
+   - **Default units**: Feet (if no unit specified)
+   - **Metric units**: Add `m` or `M` after the number
+   - Examples: `100.0`, `30.5 m`, `150 M`
+   - Only positive values are added to the terrain model
+
+**Format Details**:
+- CSV format: values separated by commas
+- Comments supported:
+  - Lines starting with `;` are ignored
+  - Text after `;` on a line is ignored
+- Whitespace around commas is allowed
+- Duplicate coordinates are automatically detected
+  - If duplicates exist, the maximum height is used
+
+**Example UDT File** (`custom_terrain.udt`):
+```
+; User-Defined Terrain for downtown area
+; Format: latitude, longitude, height
+;
+; Office building at 40.748° N, 73.985° W, 200 feet tall
+40.748, 73.985, 200.0
+
+; Radio tower at 40.75° N, 74.0° W, 150 meters tall
+40.75, 74.0, 150 m
+
+; Water tower using DMS coordinates, 80 feet
+40 45 0.0, 74 0 30.0, 80
+
+; Cell tower
+40.752, 74.012, 120.0  ; 120 feet AGL
+```
+
+**Usage Example**:
+```bash
+splat -t transmitter -r receiver -udt buildings.udt -o coverage.png
+```
+
+**Processing Details**:
+
+1. **Coordinate Conversion**: 
+   - Coordinates are converted to pixel positions based on the current resolution
+   - Negative longitudes are automatically normalized to 0-360 range
+
+2. **Unit Conversion**:
+   - Heights without units are assumed to be in feet
+   - Heights with 'M' or 'm' suffix are treated as meters
+   - All heights are internally converted to meters
+   - Values are rounded to nearest integer
+
+3. **Duplicate Handling**:
+   - Multiple entries at the same coordinate are merged
+   - The maximum height among duplicates is used
+   - Improves processing efficiency for large files
+
+4. **Integration with DEM**:
+   - UDT features are added to the base terrain elevation
+   - Does not replace terrain data, but augments it
+   - Useful for adding structures built on existing terrain
+
+**Use Cases**:
+
+- **Urban Environments**: Model buildings, skyscrapers, and urban clutter
+- **Infrastructure**: Add radio towers, water towers, and other tall structures
+- **Obstructions**: Model known obstacles in the signal path
+- **Terrain Corrections**: Supplement low-resolution DEM data with known features
+- **Custom Scenarios**: Test propagation with planned structures or temporary obstacles
+
+**Important Notes**:
+
+- UDT files are processed after SDF terrain data is loaded
+- Features are added to existing terrain elevations (not replacing them)
+- Large UDT files may take time to process due to duplicate checking
+- Coordinates must fall within the loaded terrain region
+- Zero or negative heights are ignored
+- File can be specified multiple times to load multiple UDT files
+
+**Limitations**:
+
+- Processing is slower for very large UDT files (thousands of features)
+- Resolution is limited by the loaded terrain data resolution (standard: 3 arc-seconds, HD: 1 arc-second)
+- Features smaller than one terrain pixel will be represented by a single pixel
+- No automatic interpolation for structures spanning multiple pixels
+
+**Performance Tips**:
+
+- Pre-sort entries by coordinate to improve duplicate detection
+- Remove duplicate entries before processing for faster loading
+- Use coarser resolution for less critical features
+- Consider the terrain resolution when modeling small structures
+
+---
+
 ## Output Files
 
 ### ANO Files (Alphanumeric Output)
@@ -774,6 +893,7 @@ graph TD
 | Path Loss Colors | `.lcf` | No | Map color scheme | < 1 KB |
 | Signal Colors | `.scf` | No | Map color scheme | < 1 KB |
 | dBm Colors | `.dcf` | No | Map color scheme | < 1 KB |
+| User-Defined Terrain | `.udt` | No | Custom terrain features | 1-100 KB |
 | Alphanumeric Output | `.ano`/`.ani` | No | Export/import data | 1-1000 MB |
 
 ---

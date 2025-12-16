@@ -440,8 +440,6 @@ la ligne de commande retournera un résumé des options de ligne de commande de 
 .br
      -o filename of topographic map to generate (without suffix)
 .br
-     -u filename of user-defined terrain file to import
-.br
      -d sdf file directory path (overrides path in ~/.splat_path file)
 .br
      -m earth radius multiplier
@@ -1466,33 +1464,142 @@ sont incompatibles les uns avec les autres, donc un fichier contenant des donné
 ne peut pas être importé dans \fBSPLAT!\fR pour produire des contours de force de signal ou de
 niveau de puissance reçue, etc.
 .SH FICHIERS D'ENTRÉE DE TERRAIN DÉFINIS PAR L'UTILISATEUR
-Un fichier de terrain défini par l'utilisateur est un fichier texte généré par l'utilisateur
+Les fichiers de terrain définis par l'utilisateur (UDT) permettent aux utilisateurs d'ajouter
+des caractéristiques de terrain personnalisées au modèle d'élévation numérique pour modéliser
+des bâtiments, des tours, des collines ou d'autres structures non présentes dans les données
+de terrain SDF de base. Ces fichiers sont particulièrement utiles pour les environnements urbains,
+les infrastructures radio et les obstacles connus dans le trajet du signal.
+.SS Format de fichier
+Un fichier de terrain défini par l'utilisateur (\fI.udt\fP) est un fichier texte au format CSV
 contenant des latitudes, longitudes et hauteurs au-dessus du niveau du sol de caractéristiques
-de terrain spécifiques considérées comme importantes pour l'analyse \fBSPLAT!\fP en cours, mais
-notablement absentes des fichiers SDF utilisés. Un fichier de terrain défini par l'utilisateur
-est importé dans une analyse \fBSPLAT!\fP en utilisant l'interrupteur \fI-udt\fP :
-.PP
-\fC splat -t tx_site -r rx_site -udt udt_file.txt -o map\fR
-.PP
-Un fichier de terrain défini par l'utilisateur a l'apparence et la structure suivantes :
+de terrain spécifiques. Le fichier a la structure suivante :
 \fC
 
-       40.32180556, 74.1325, 100.0 meters
+       ; Commentaires autorisés (lignes commençant par point-virgule)
 .br
-       40.321805, 74.1315, 300.0
+       latitude_0, longitude_0, hauteur_0
 .br
-       40.3218055, 74.1305, 100.0 meters
+       latitude_1, longitude_1, hauteur_1
+.br
+       ...
 \fR
+.SS Description des champs
+.IP "\fBLatitude\fP:" 4
+Latitude géographique en degrés décimaux ou format DMS
+.RS 4
+.IP \(bu 3
+Format décimal : \fI40.2828\fP (positif = Nord, négatif = Sud)
+.IP \(bu 3
+Format DMS : \fI40 48 8.0\fP (degrés minutes secondes)
+.IP \(bu 3
+Plage : -90.0 à +90.0
+.RE
+.IP "\fBLongitude\fP:" 4
+Longitude géographique en degrés décimaux ou format DMS
+.RS 4
+.IP \(bu 3
+Format décimal : \fI74.6864\fP (degrés Ouest : 0-360)
+.IP \(bu 3
+Format DMS : \fI74 14 47.0\fP (degrés minutes secondes)
+.IP \(bu 3
+Plage : 0-360 (Ouest) ou 0 à -360 (Est)
+.RE
+.IP "\fBHauteur\fP:" 4
+Hauteur de la caractéristique de terrain au-dessus du niveau du sol
+.RS 4
+.IP \(bu 3
+Unités par défaut : Pieds (si aucune unité n'est spécifiée)
+.IP \(bu 3
+Unités métriques : Ajouter \fIm\fP, \fIM\fP ou \fImeters\fP après le nombre
+.IP \(bu 3
+Exemples : \fI100.0\fP, \fI30.5 m\fP, \fI150 M\fP, \fI100.0 meters\fP
+.IP \(bu 3
+Seules les valeurs positives sont ajoutées au modèle de terrain
+.RE
+.SS Utilisation
+Un fichier de terrain défini par l'utilisateur est importé dans une analyse \fBSPLAT!\fP
+en utilisant l'interrupteur \fI-udt\fP :
 .PP
-La hauteur du terrain est interprétée comme étant décrite en pieds au-dessus du niveau
-du sol sauf si elle est suivie du mot \fImeters\fP, et est ajoutée \fIau-dessus\fP du
-terrain spécifié dans les données SDF pour les emplacements spécifiés. Soyez conscient
-que chaque caractéristique de terrain définie par l'utilisateur spécifiée sera interprétée
-comme étant de 3 secondes d'arc en latitude et longitude dans \fCsplat\fR et de 1 seconde
-d'arc en latitude et longitude dans \fCsplat-hd\fR. Les caractéristiques décrites dans
-le fichier de terrain défini par l'utilisateur qui chevauchent des caractéristiques
-précédemment définies dans le fichier sont ignorées par \fBSPLAT!\fP pour éviter
-l'ambiguïté.
+\fC splat -t tx_site -r rx_site -udt buildings.udt -o map\fR
+.PP
+Plusieurs fichiers UDT peuvent être chargés en spécifiant l'interrupteur \fI-udt\fP
+plusieurs fois :
+.PP
+\fC splat -t tx_site -r rx_site -udt buildings.udt -udt towers.udt -o map\fR
+.SS Exemple de fichier UDT
+\fC
+
+       ; Terrain défini par l'utilisateur pour le centre-ville
+.br
+       ; Format : latitude, longitude, hauteur
+.br
+
+.br
+       ; Immeuble de bureaux à 40.748\(de N, 73.985\(de W, 200 pieds de haut
+.br
+       40.748, 73.985, 200.0
+.br
+
+.br
+       ; Tour radio à 40.75\(de N, 74.0\(de W, 150 mètres de haut
+.br
+       40.75, 74.0, 150 m
+.br
+
+.br
+       ; Château d'eau en coordonnées DMS, 80 pieds
+.br
+       40 45 0.0, 74 0 30.0, 80
+.br
+
+.br
+       ; Tour cellulaire
+.br
+       40.752, 74.012, 120.0  ; 120 pieds AGL
+\fR
+.SS Détails de traitement
+.IP \(bu 3
+\fBCommentaires\fP : Les lignes commençant par \fI;\fP sont ignorées, ainsi que le texte
+après \fI;\fP sur n'importe quelle ligne
+.IP \(bu 3
+\fBFormats de coordonnées\fP : Les degrés décimaux et DMS (degrés minutes secondes) sont pris en charge
+.IP \(bu 3
+\fBConversion d'unités\fP : Les hauteurs sans unités sont supposées être en pieds ;
+les hauteurs avec \fIM\fP, \fIm\fP ou \fImeters\fP sont traitées comme des mètres
+.IP \(bu 3
+\fBGestion des doublons\fP : Les entrées multiples aux mêmes coordonnées sont fusionnées,
+la hauteur maximale étant utilisée
+.IP \(bu 3
+\fBRésolution\fP : Les caractéristiques sont interprétées comme étant de 3 secondes d'arc en
+latitude et longitude en mode standard, et de 1 seconde d'arc en mode HD
+.IP \(bu 3
+\fBIntégration\fP : Les caractéristiques UDT sont ajoutées \fIau-dessus\fP des élévations de terrain
+SDF existantes, ne les remplaçant pas
+.SS Cas d'utilisation
+.IP \(bu 3
+\fBEnvironnements urbains\fP : Modéliser les bâtiments, les gratte-ciel et l'encombrement urbain
+.IP \(bu 3
+\fBInfrastructure radio\fP : Ajouter des tours, des antennes et d'autres structures hautes
+.IP \(bu 3
+\fBObstructions connues\fP : Modéliser des obstacles spécifiques dans le trajet du signal
+.IP \(bu 3
+\fBCorrections de terrain\fP : Compléter les données DEM basse résolution avec des caractéristiques connues
+.IP \(bu 3
+\fBScénarios personnalisés\fP : Tester la propagation avec des structures planifiées ou temporaires
+.SS Notes importantes
+.IP \(bu 3
+Les caractéristiques sont ajoutées à l'élévation de terrain de base des fichiers SDF
+.IP \(bu 3
+Les hauteurs nulles ou négatives sont ignorées
+.IP \(bu 3
+Les coordonnées doivent se situer dans la région de terrain chargée
+.IP \(bu 3
+La résolution est limitée par la résolution des données SDF (standard : 3 secondes d'arc,
+HD : 1 seconde d'arc)
+.IP \(bu 3
+Les fichiers UDT volumineux peuvent prendre du temps à traiter en raison de la vérification des doublons
+.IP \(bu 3
+Les caractéristiques plus petites qu'un pixel de terrain seront représentées par un seul pixel
 .SH FOUILLIS DE SOL
 La hauteur du fouillis de sol peut être spécifiée en utilisant l'interrupteur \fI-gc\fP :
 \fC

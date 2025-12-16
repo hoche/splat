@@ -443,8 +443,6 @@ line will return a summary of \fBSPLAT!\fP's command line options:
 .br
      -o filename of topographic map to generate (without suffix)
 .br
-     -u filename of user-defined terrain file to import
-.br
      -d sdf file directory path (overrides path in ~/.splat_path file)
 .br
      -m earth radius multiplier
@@ -1496,34 +1494,143 @@ the three types of alphanumeric output files are incompatible with one
 another, so a file containing path loss data cannot be imported into
 \fBSPLAT!\fR to produce signal strength or received power level contours, etc. 
 .SH USER-DEFINED TERRAIN INPUT FILES
-A user-defined terrain file is a user-generated text file containing
-latitudes, longitudes, and heights above ground level of specific terrain
-features believed to be of importance to the \fBSPLAT!\fP analysis
-being conducted, but noticeably absent from the SDF files being used.
+User-defined terrain (UDT) files allow users to add custom terrain features
+to the digital elevation model for modeling buildings, towers, hills, or other
+structures not present in the base SDF terrain data. These files are
+particularly useful for urban environments, radio infrastructure, and known
+obstacles in the signal path.
+.SS File Format
+A user-defined terrain file (\fI.udt\fP) is a CSV-formatted text file
+containing latitudes, longitudes, and heights above ground level of specific
+terrain features. The file has the following structure:
+\fC
+
+       ; Comments allowed (lines starting with semicolon)
+.br
+       latitude_0, longitude_0, height_0
+.br
+       latitude_1, longitude_1, height_1
+.br
+       ...
+\fR
+.SS Field Descriptions
+.IP "\fBLatitude\fP:" 4
+Geographic latitude in decimal degrees or DMS format
+.RS 4
+.IP \(bu 3
+Decimal format: \fI40.2828\fP (positive = North, negative = South)
+.IP \(bu 3
+DMS format: \fI40 48 8.0\fP (degrees minutes seconds)
+.IP \(bu 3
+Range: -90.0 to +90.0
+.RE
+.IP "\fBLongitude\fP:" 4
+Geographic longitude in decimal degrees or DMS format
+.RS 4
+.IP \(bu 3
+Decimal format: \fI74.6864\fP (degrees West: 0-360)
+.IP \(bu 3
+DMS format: \fI74 14 47.0\fP (degrees minutes seconds)
+.IP \(bu 3
+Range: 0-360 (West) or 0 to -360 (East)
+.RE
+.IP "\fBHeight\fP:" 4
+Height of terrain feature above ground level
+.RS 4
+.IP \(bu 3
+Default units: Feet (if no unit specified)
+.IP \(bu 3
+Metric units: Add \fIm\fP, \fIM\fP, or \fImeters\fP after the number
+.IP \(bu 3
+Examples: \fI100.0\fP, \fI30.5 m\fP, \fI150 M\fP, \fI100.0 meters\fP
+.IP \(bu 3
+Only positive values are added to the terrain model
+.RE
+.SS Usage
 A user-defined terrain file is imported into a \fBSPLAT!\fP analysis
 using the \fI-udt\fP switch:
 .PP
-\fC splat -t tx_site -r rx_site -udt udt_file.txt -o map\fR
+\fC splat -t tx_site -r rx_site -udt buildings.udt -o map\fR
 .PP
-A user-defined terrain file has the following appearance and structure:
+Multiple UDT files can be loaded by specifying the \fI-udt\fP switch
+multiple times:
+.PP
+\fC splat -t tx_site -r rx_site -udt buildings.udt -udt towers.udt -o map\fR
+.SS Example UDT File
 \fC
 
-       40.32180556, 74.1325, 100.0 meters
+       ; User-Defined Terrain for downtown area
 .br
-       40.321805, 74.1315, 300.0
+       ; Format: latitude, longitude, height
 .br
-       40.3218055, 74.1305, 100.0 meters
+
+.br
+       ; Office building at 40.748\(de N, 73.985\(de W, 200 feet tall
+.br
+       40.748, 73.985, 200.0
+.br
+
+.br
+       ; Radio tower at 40.75\(de N, 74.0\(de W, 150 meters tall
+.br
+       40.75, 74.0, 150 m
+.br
+
+.br
+       ; Water tower using DMS coordinates, 80 feet
+.br
+       40 45 0.0, 74 0 30.0, 80
+.br
+
+.br
+       ; Cell tower
+.br
+       40.752, 74.012, 120.0  ; 120 feet AGL
 \fR
-.PP
-Terrain height is interpreted as being described in feet above ground
-level unless followed by the word \fImeters\fP, and is added \fIon top of\fP
-the terrain specified in the SDF data for the locations specified.  Be
-aware that each user-defined terrain feature specified will be interpreted
-as being 3-arc seconds in both latitude and longitude in \fCsplat\fR and
-1 arc-second in latitude and longitude in \fCsplat-hd\fR.  Features
-described in the user-defined terrain file that overlap previously
-defined features in the file are ignored by \fBSPLAT!\fP to avoid
-ambiguity.
+.SS Processing Details
+.IP \(bu 3
+\fBComments\fP: Lines starting with \fI;\fP are ignored, as is text
+after \fI;\fP on any line
+.IP \(bu 3
+\fBCoordinate formats\fP: Both decimal degrees and DMS (degrees minutes
+seconds) are supported
+.IP \(bu 3
+\fBUnit conversion\fP: Heights without units are assumed to be in feet;
+heights with \fIM\fP, \fIm\fP, or \fImeters\fP are treated as meters
+.IP \(bu 3
+\fBDuplicate handling\fP: Multiple entries at the same coordinate are
+merged, with the maximum height being used
+.IP \(bu 3
+\fBResolution\fP: Features are interpreted as being 3 arc-seconds in
+latitude and longitude in standard mode, and 1 arc-second in HD mode
+.IP \(bu 3
+\fBIntegration\fP: UDT features are added \fIon top of\fP existing SDF
+terrain elevations, not replacing them
+.SS Use Cases
+.IP \(bu 3
+\fBUrban environments\fP: Model buildings, skyscrapers, and urban clutter
+.IP \(bu 3
+\fBRadio infrastructure\fP: Add towers, antennas, and other tall structures
+.IP \(bu 3
+\fBKnown obstructions\fP: Model specific obstacles in the signal path
+.IP \(bu 3
+\fBTerrain corrections\fP: Supplement low-resolution DEM data with known features
+.IP \(bu 3
+\fBCustom scenarios\fP: Test propagation with planned or temporary structures
+.SS Important Notes
+.IP \(bu 3
+Features are added to the base terrain elevation from SDF files
+.IP \(bu 3
+Zero or negative heights are ignored
+.IP \(bu 3
+Coordinates must fall within the loaded terrain region
+.IP \(bu 3
+Resolution is limited by the SDF data resolution (standard: 3 arc-seconds,
+HD: 1 arc-second)
+.IP \(bu 3
+Large UDT files may take time to process due to duplicate checking
+.IP \(bu 3
+Features smaller than one terrain pixel will be represented by a single pixel
 .SH GROUND CLUTTER
 The height of ground clutter can be specified using the \fI-gc\fP switch:
 \fC
