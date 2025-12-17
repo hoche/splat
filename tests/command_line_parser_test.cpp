@@ -94,7 +94,7 @@ TEST_F(CommandLineParserTest, ShowHelp) {
     EXPECT_TRUE(options.show_help);
 }
 
-// Test no arguments
+// Test no arguments - should fail with error (missing required -t)
 TEST_F(CommandLineParserTest, NoArguments) {
     std::vector<std::string> args = {"splat"};
     auto argv = MakeArgv(args);
@@ -102,7 +102,7 @@ TEST_F(CommandLineParserTest, NoArguments) {
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
 
     EXPECT_FALSE(result);
-    EXPECT_TRUE(options.show_help);
+    EXPECT_TRUE(options.parse_error);
 }
 
 // Test -t (transmitter site) flag
@@ -174,8 +174,8 @@ TEST_F(CommandLineParserTest, PathLossMap) {
 
 // Test -s (city files) flag
 TEST_F(CommandLineParserTest, CityFiles) {
-    std::vector<std::string> args = {"splat", "-t",      "tx.qth", "-s",
-                                     "city1.dat", "city2.dat"};
+    std::vector<std::string> args = {"splat", "-t",        "tx.qth",
+                                     "-s",    "city1.dat", "city2.dat"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
@@ -188,8 +188,9 @@ TEST_F(CommandLineParserTest, CityFiles) {
 
 // Test -b (boundary files) flag
 TEST_F(CommandLineParserTest, BoundaryFiles) {
-    std::vector<std::string> args = {"splat", "-t",     "tx.qth",     "-b",
-                                     "bound1.dat", "bound2.dat", "bound3.dat"};
+    std::vector<std::string> args = {"splat",     "-t",         "tx.qth",
+                                     "-b",        "bound1.dat", "bound2.dat",
+                                     "bound3.dat"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
@@ -203,8 +204,8 @@ TEST_F(CommandLineParserTest, BoundaryFiles) {
 
 // Test -p (terrain profile) flag
 TEST_F(CommandLineParserTest, TerrainProfile) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-r", "rx.qth",
-                                     "-p",     "terrain.png"};
+    std::vector<std::string> args = {"splat",  "-t", "tx.qth",     "-r",
+                                     "rx.qth", "-p", "terrain.png"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
@@ -217,8 +218,8 @@ TEST_F(CommandLineParserTest, TerrainProfile) {
 
 // Test -e (elevation plot) flag
 TEST_F(CommandLineParserTest, ElevationPlot) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-r", "rx.qth",
-                                     "-e",     "elevation.png"};
+    std::vector<std::string> args = {"splat",  "-t", "tx.qth",       "-r",
+                                     "rx.qth", "-e", "elevation.png"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
@@ -229,10 +230,10 @@ TEST_F(CommandLineParserTest, ElevationPlot) {
     EXPECT_TRUE(sr.pt2pt_mode);
 }
 
-// Test -h (height plot) flag
+// Test --height-plot flag (CLI11 reserves -h for help)
 TEST_F(CommandLineParserTest, HeightPlot) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-r", "rx.qth",
-                                     "-h",     "height.png"};
+    std::vector<std::string> args = {
+        "splat", "-t", "tx.qth", "-r", "rx.qth", "--height-plot", "height.png"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
@@ -246,8 +247,8 @@ TEST_F(CommandLineParserTest, HeightPlot) {
 
 // Test -H (normalized height plot) flag
 TEST_F(CommandLineParserTest, NormalizedHeightPlot) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-r", "rx.qth",
-                                     "-H",     "height_norm.png"};
+    std::vector<std::string> args = {"splat",  "-t", "tx.qth",         "-r",
+                                     "rx.qth", "-H", "height_norm.png"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
@@ -261,8 +262,8 @@ TEST_F(CommandLineParserTest, NormalizedHeightPlot) {
 
 // Test -l (longley plot) flag
 TEST_F(CommandLineParserTest, LongleyPlot) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-r", "rx.qth",
-                                     "-l",     "longley.png"};
+    std::vector<std::string> args = {"splat",  "-t", "tx.qth",     "-r",
+                                     "rx.qth", "-l", "longley.png"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
@@ -317,17 +318,18 @@ TEST_F(CommandLineParserTest, EarthRadiusMultiplierTooSmall) {
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
 
     EXPECT_TRUE(result);
-    EXPECT_DOUBLE_EQ(sr.er_mult, 1.0); // Should be clamped to 1.0
+    EXPECT_DOUBLE_EQ(sr.er_mult, 1.0);  // Should be clamped to 1.0
 }
 
 TEST_F(CommandLineParserTest, EarthRadiusMultiplierTooLarge) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-m", "2000000.0"};
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-m",
+                                     "2000000.0"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
 
     EXPECT_TRUE(result);
-    EXPECT_DOUBLE_EQ(sr.er_mult, 1.0e6); // Should be clamped to 1e6
+    EXPECT_DOUBLE_EQ(sr.er_mult, 1.0e6);  // Should be clamped to 1e6
 }
 
 // Test -n (no LOS path) flag
@@ -371,7 +373,7 @@ TEST_F(CommandLineParserTest, FrequencyTooLow) {
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
 
     EXPECT_TRUE(result);
-    EXPECT_DOUBLE_EQ(sr.forced_freq, 0.0); // Should be set to 0
+    EXPECT_DOUBLE_EQ(sr.forced_freq, 0.0);  // Should be set to 0
 }
 
 TEST_F(CommandLineParserTest, FrequencyTooHigh) {
@@ -381,7 +383,7 @@ TEST_F(CommandLineParserTest, FrequencyTooHigh) {
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
 
     EXPECT_TRUE(result);
-    EXPECT_DOUBLE_EQ(sr.forced_freq, 20.0e3); // Should be clamped to 20000
+    EXPECT_DOUBLE_EQ(sr.forced_freq, 20.0e3);  // Should be clamped to 20000
 }
 
 // Test -R (range) flag
@@ -402,7 +404,7 @@ TEST_F(CommandLineParserTest, RangeNegative) {
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
 
     EXPECT_TRUE(result);
-    EXPECT_DOUBLE_EQ(sr.max_range, 0.0); // Should be clamped to 0
+    EXPECT_DOUBLE_EQ(sr.max_range, 0.0);  // Should be clamped to 0
 }
 
 TEST_F(CommandLineParserTest, RangeTooLarge) {
@@ -412,7 +414,7 @@ TEST_F(CommandLineParserTest, RangeTooLarge) {
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
 
     EXPECT_TRUE(result);
-    EXPECT_DOUBLE_EQ(sr.max_range, 1000.0); // Should be clamped to 1000
+    EXPECT_DOUBLE_EQ(sr.max_range, 1000.0);  // Should be clamped to 1000
 }
 
 // Test -v (verbosity) flag
@@ -428,7 +430,7 @@ TEST_F(CommandLineParserTest, Verbosity) {
 
 // Test -st (single thread) flag
 TEST_F(CommandLineParserTest, SingleThread) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-st"};
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "--st"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
@@ -439,7 +441,7 @@ TEST_F(CommandLineParserTest, SingleThread) {
 
 // Test -hd (high definition) flag
 TEST_F(CommandLineParserTest, HighDefinition) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-hd"};
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "--hd"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
@@ -450,7 +452,7 @@ TEST_F(CommandLineParserTest, HighDefinition) {
 
 // Test -sc (smooth contours) flag
 TEST_F(CommandLineParserTest, SmoothContours) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-sc"};
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "--sc"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
@@ -461,7 +463,7 @@ TEST_F(CommandLineParserTest, SmoothContours) {
 
 // Test -db (contour threshold) flag
 TEST_F(CommandLineParserTest, ContourThreshold) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-db", "-100"};
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "--db", "-100"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
@@ -471,7 +473,7 @@ TEST_F(CommandLineParserTest, ContourThreshold) {
 }
 
 TEST_F(CommandLineParserTest, ContourThresholdAlternateCase) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-dB", "-90"};
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "--db", "-90"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
@@ -482,7 +484,7 @@ TEST_F(CommandLineParserTest, ContourThresholdAlternateCase) {
 
 // Test -nf (no fresnel) flag
 TEST_F(CommandLineParserTest, NoFresnel) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-nf"};
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "--nf"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
@@ -493,38 +495,38 @@ TEST_F(CommandLineParserTest, NoFresnel) {
 
 // Test -fz (fresnel zone clearance) flag
 TEST_F(CommandLineParserTest, FresnelZoneClearance) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-fz", "80"};
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "--fz", "80"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
 
     EXPECT_TRUE(result);
-    EXPECT_DOUBLE_EQ(sr.fzone_clearance, 0.8); // 80% -> 0.8
+    EXPECT_DOUBLE_EQ(sr.fzone_clearance, 0.8);  // 80% -> 0.8
 }
 
 TEST_F(CommandLineParserTest, FresnelZoneClearanceNegative) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-fz", "-10"};
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "--fz", "-10"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
 
     EXPECT_TRUE(result);
-    EXPECT_DOUBLE_EQ(sr.fzone_clearance, 0.6); // Should default to 60%
+    EXPECT_DOUBLE_EQ(sr.fzone_clearance, 0.6);  // Should default to 60%
 }
 
 TEST_F(CommandLineParserTest, FresnelZoneClearanceTooLarge) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-fz", "150"};
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "--fz", "150"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
 
     EXPECT_TRUE(result);
-    EXPECT_DOUBLE_EQ(sr.fzone_clearance, 0.6); // Should default to 60%
+    EXPECT_DOUBLE_EQ(sr.fzone_clearance, 0.6);  // Should default to 60%
 }
 
 // Test -gc (ground clutter) flag
 TEST_F(CommandLineParserTest, GroundClutter) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-gc", "30.0"};
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "--gc", "30.0"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
@@ -534,19 +536,19 @@ TEST_F(CommandLineParserTest, GroundClutter) {
 }
 
 TEST_F(CommandLineParserTest, GroundClutterNegative) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-gc", "-5.0"};
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "--gc", "-5.0"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
 
     EXPECT_TRUE(result);
-    EXPECT_DOUBLE_EQ(sr.clutter, 0.0); // Should be clamped to 0
+    EXPECT_DOUBLE_EQ(sr.clutter, 0.0);  // Should be clamped to 0
 }
 
 // Test image format flags
 #ifdef HAVE_LIBPNG
 TEST_F(CommandLineParserTest, PPMFormat) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-ppm"};
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "--ppm"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
@@ -558,7 +560,7 @@ TEST_F(CommandLineParserTest, PPMFormat) {
 
 #ifdef HAVE_LIBJPEG
 TEST_F(CommandLineParserTest, JPGFormat) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-jpg"};
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "--jpg"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
@@ -570,7 +572,7 @@ TEST_F(CommandLineParserTest, JPGFormat) {
 
 #ifdef HAVE_LIBGDAL
 TEST_F(CommandLineParserTest, TIFFormat) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-tif"};
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "--tif"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
@@ -582,7 +584,7 @@ TEST_F(CommandLineParserTest, TIFFormat) {
 
 // Test -ngs (no greyscale) flag
 TEST_F(CommandLineParserTest, NoGreyscale) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-ngs"};
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "--ngs"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
@@ -593,7 +595,8 @@ TEST_F(CommandLineParserTest, NoGreyscale) {
 
 // Test -erp (effective radiated power) flag
 TEST_F(CommandLineParserTest, ERP) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-erp", "1000.0"};
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "--erp",
+                                     "1000.0"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
@@ -603,18 +606,18 @@ TEST_F(CommandLineParserTest, ERP) {
 }
 
 TEST_F(CommandLineParserTest, ERPNegative) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-erp", "-10.0"};
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "--erp", "-10.0"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
 
     EXPECT_TRUE(result);
-    EXPECT_DOUBLE_EQ(sr.forced_erp, -1.0); // Should be set to -1
+    EXPECT_DOUBLE_EQ(sr.forced_erp, -1.0);  // Should be set to -1
 }
 
 // Test -ano (alphanumeric output) flag
 TEST_F(CommandLineParserTest, AlphanumericOutput) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-ano",
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "--ano",
                                      "output.txt"};
     auto argv = MakeArgv(args);
 
@@ -626,7 +629,7 @@ TEST_F(CommandLineParserTest, AlphanumericOutput) {
 
 // Test -ani (alphanumeric input) flag
 TEST_F(CommandLineParserTest, AlphanumericInput) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-ani",
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "--ani",
                                      "input.txt"};
     auto argv = MakeArgv(args);
 
@@ -638,7 +641,7 @@ TEST_F(CommandLineParserTest, AlphanumericInput) {
 
 // Test -udt (user defined terrain) flag
 TEST_F(CommandLineParserTest, UserDefinedTerrain) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-udt",
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "--udt",
                                      "terrain.udt"};
     auto argv = MakeArgv(args);
 
@@ -650,7 +653,7 @@ TEST_F(CommandLineParserTest, UserDefinedTerrain) {
 
 // Test -kml flag
 TEST_F(CommandLineParserTest, KMLOutput) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-kml"};
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "--kml"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
@@ -661,7 +664,7 @@ TEST_F(CommandLineParserTest, KMLOutput) {
 
 // Test -kmz flag
 TEST_F(CommandLineParserTest, KMZOutput) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-kmz"};
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "--kmz"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
@@ -672,7 +675,7 @@ TEST_F(CommandLineParserTest, KMZOutput) {
 
 // Test -geo flag
 TEST_F(CommandLineParserTest, GeoOutput) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-geo"};
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "--geo"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
@@ -683,7 +686,7 @@ TEST_F(CommandLineParserTest, GeoOutput) {
 
 // Test -dbm flag
 TEST_F(CommandLineParserTest, DBMOutput) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-dbm"};
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "--dbm"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
@@ -694,7 +697,7 @@ TEST_F(CommandLineParserTest, DBMOutput) {
 
 // Test -log flag
 TEST_F(CommandLineParserTest, LogOutput) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-log",
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "--log",
                                      "command.log"};
     auto argv = MakeArgv(args);
 
@@ -707,7 +710,7 @@ TEST_F(CommandLineParserTest, LogOutput) {
 
 // Test -json flag
 TEST_F(CommandLineParserTest, JSONOutput) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-json"};
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "--json"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
@@ -718,7 +721,7 @@ TEST_F(CommandLineParserTest, JSONOutput) {
 
 // Test -gpsav flag
 TEST_F(CommandLineParserTest, GnuplotSave) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-gpsav"};
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "--gpsav"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
@@ -729,7 +732,7 @@ TEST_F(CommandLineParserTest, GnuplotSave) {
 
 // Test -itwom flag
 TEST_F(CommandLineParserTest, ITWOMModel) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-itwom"};
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "--itwom"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
@@ -740,7 +743,7 @@ TEST_F(CommandLineParserTest, ITWOMModel) {
 
 // Test -imperial flag
 TEST_F(CommandLineParserTest, ImperialUnits) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-imperial"};
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "--imperial"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
@@ -751,7 +754,7 @@ TEST_F(CommandLineParserTest, ImperialUnits) {
 
 // Test -msl flag
 TEST_F(CommandLineParserTest, MSLAltitude) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-msl"};
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "--msl"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
@@ -762,7 +765,8 @@ TEST_F(CommandLineParserTest, MSLAltitude) {
 
 // Test -maxpages flag
 TEST_F(CommandLineParserTest, MaxPages) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-maxpages", "25"};
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "--maxpages",
+                                     "25"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
@@ -772,7 +776,7 @@ TEST_F(CommandLineParserTest, MaxPages) {
 }
 
 TEST_F(CommandLineParserTest, MaxPagesInvalid) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-maxpages",
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "--maxpages",
                                      "invalid"};
     auto argv = MakeArgv(args);
 
@@ -784,7 +788,7 @@ TEST_F(CommandLineParserTest, MaxPagesInvalid) {
 
 // Test -sdelim flag
 TEST_F(CommandLineParserTest, SDFDelimiter) {
-    std::vector<std::string> args = {"splat", "-t", "tx.qth", "-sdelim", ":"};
+    std::vector<std::string> args = {"splat", "-t", "tx.qth", "--sdelim", ":"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
@@ -813,7 +817,7 @@ TEST_F(CommandLineParserTest, ValidateValidConfiguration) {
 // Test validation - invalid maxpages
 TEST_F(CommandLineParserTest, ValidateInvalidMaxPages) {
     options.tx_site_files.push_back("tx.qth");
-    sr.maxpages = 7; // Invalid value
+    sr.maxpages = 7;  // Invalid value
 
     bool result = ValidateCommandLine(sr, options);
 
@@ -844,9 +848,9 @@ TEST_F(CommandLineParserTest, ValidateMaxPages1WithHD) {
 
 // Test multiple flags combined
 TEST_F(CommandLineParserTest, MultipleFlagsCombined) {
-    std::vector<std::string> args = {"splat", "-t",  "tx.qth",     "-r",
-                                     "rx.qth", "-hd", "-itwom",     "-imperial",
-                                     "-nf",    "-sc", "-maxpages", "36"};
+    std::vector<std::string> args = {
+        "splat",   "-t",         "tx.qth", "-r",   "rx.qth",     "--hd",
+        "--itwom", "--imperial", "--nf",   "--sc", "--maxpages", "36"};
     auto argv = MakeArgv(args);
 
     bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
@@ -865,7 +869,7 @@ TEST_F(CommandLineParserTest, MultipleFlagsCombined) {
 // Test conflicting options (coverage and path loss)
 TEST_F(CommandLineParserTest, ConflictingCoverageAndPathLoss) {
     std::vector<std::string> args = {"splat", "-t", "tx.qth", "-c",
-                                     "10.0",   "-L", "20.0"};
+                                     "10.0",  "-L", "20.0"};
     auto argv = MakeArgv(args);
 
     // Parser allows both, but coverage takes precedence (L ignored with warning)

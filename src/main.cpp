@@ -119,7 +119,7 @@ int main(int argc, const char *argv[]) {
 
     // Parse command-line arguments
     CommandLineOptions options;
-    if (!ParseCommandLine(argc, argv, sr, options)) {
+    if (! ParseCommandLine(argc, argv, sr, options)) {
         if (options.parse_error) {
             std::cerr << "\n*** ERROR: " << options.error_message << "\n\n";
             return -1;
@@ -133,12 +133,12 @@ int main(int argc, const char *argv[]) {
     }
 
     // Load receiver site if specified
-    if (!options.rx_site_file.empty()) {
+    if (! options.rx_site_file.empty()) {
         rx_site.LoadQTH(options.rx_site_file);
     }
 
     // Validate the parsed configuration
-    if (!ValidateCommandLine(sr, options)) {
+    if (! ValidateCommandLine(sr, options)) {
         return -1;
     }
 
@@ -156,7 +156,7 @@ int main(int argc, const char *argv[]) {
         exit(-1);
     }
 
-    if (!sr.coverage && !sr.LRmap && options.ani_filename.empty() &&
+    if (! sr.coverage && ! sr.LRmap && options.ani_filename.empty() &&
         rx_site.lat == 91.0 && rx_site.lon == 361.0) {
         if (sr.max_range != 0.0 && tx_site.size() != 0) {
             /* Plot topographic map of radius "sr.max_range" */
@@ -287,7 +287,7 @@ int main(int argc, const char *argv[]) {
     CityFile cf;
     Region region;
 
-    if (!options.ani_filename.empty()) {
+    if (! options.ani_filename.empty()) {
         /* read alphanumeric output file from previous simulations if given */
 
         // TODO: Here's an instance where reading the LRParms may say to load
@@ -512,7 +512,7 @@ int main(int argc, const char *argv[]) {
         em_p->LoadTopoData(max_lon, min_lon, max_lat, min_lat, sdf);
     }
 
-    if (!options.udt_file.empty()) {
+    if (! options.udt_file.empty()) {
         Udt udt(sr);
         udt.LoadUDT(options.udt_file, *em_p);
     }
@@ -596,9 +596,9 @@ int main(int argc, const char *argv[]) {
             oss << "." << ext;
 
             AntennaPattern pat;
-            if (!sr.nositereports) {
+            if (! sr.nositereports) {
                 filename = options.longley_file + oss.str();
-                bool longly_file_exists = !options.longley_file.empty();
+                bool longly_file_exists = ! options.longley_file.empty();
 
                 bool loadPat;
                 std::string patFilename;
@@ -657,8 +657,8 @@ int main(int argc, const char *argv[]) {
                 }
 
                 if (flag) {
-                    em_p->PlotLRMap(tx_site[x], sr.altitudeLR, options.ano_filename,
-                                    *p_pat, lrp);
+                    em_p->PlotLRMap(tx_site[x], sr.altitudeLR,
+                                    options.ano_filename, *p_pat, lrp);
                 }
             }
 
@@ -670,7 +670,7 @@ int main(int argc, const char *argv[]) {
     if (sr.map || sr.topomap) {
         /* Label the map */
 
-        if (!(sr.kml || sr.imagetype == IMAGETYPE_GEOTIFF)) {
+        if (! (sr.kml || sr.imagetype == IMAGETYPE_GEOTIFF)) {
             for (x = 0; x < tx_site.size(); x++)
                 em_p->PlaceMarker(tx_site[x]);
         }
@@ -713,14 +713,14 @@ int main(int argc, const char *argv[]) {
         }
     }
 
-    if (sr.command_line_log && !options.logfile.empty()) {
+    if (sr.command_line_log && ! options.logfile.empty()) {
         std::fstream fs;
         fs.open(options.logfile.c_str(), std::fstream::out);
 
         // TODO: Should we fail silently if we can't open the logfile. Shouldn't
         // we WARN?
         if (fs) {
-            for (x = 0; x < (size_t)argc; x++) {
+            for (x = 0; x < (size_t) argc; x++) {
                 fs << argv[x] << " ";
             }
             fs << std::endl;

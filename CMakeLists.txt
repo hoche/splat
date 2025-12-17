@@ -115,6 +115,7 @@ target_link_libraries(splat PRIVATE
     ${ZLIB_LIBRARIES}
     ${BZIP2_LIBRARIES}
     Threads::Threads
+    CLI11::CLI11
 )
 
 # Link optional libraries if found
@@ -138,9 +139,19 @@ install(TARGETS splat DESTINATION bin)
 # Enable testing
 enable_testing()
 
+# Fetch external dependencies
+include(FetchContent)
+
+# CLI11 - Modern command-line parser
+FetchContent_Declare(
+    cli11
+    GIT_REPOSITORY https://github.com/CLIUtils/CLI11.git
+    GIT_TAG v2.4.1
+)
+FetchContent_MakeAvailable(cli11)
+
 # Find or fetch GoogleTest and GoogleMock
 # Stick to 1.17 as long as we're C++17 compatible
-include(FetchContent)
 FetchContent_Declare(
     googletest
     GIT_REPOSITORY https://github.com/google/googletest.git
@@ -209,6 +220,7 @@ target_link_libraries(splat_tests PRIVATE
     ${ZLIB_LIBRARIES}
     ${BZIP2_LIBRARIES}
     Threads::Threads
+    CLI11::CLI11
 )
 
 # Link optional libraries to tests if found

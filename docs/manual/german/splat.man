@@ -2,11 +2,23 @@
 .SH NAME
 splat Ein RF-\fBS\fPignal-\fBP\fPropagations-, \fBV\fPerlust- und \fBT\fPerrain-Analysetool
 .SH SYNOPSIS
-splat
+.B splat
+[\fIOPTIONEN\fP]
+.PP
+\fBWichtiger Hinweis (Version 2.0):\fP Ab Version 2.0 benötigen mehrbuchstabige 
+Optionen doppelte Bindestriche (\fB--\fP). Verwenden Sie beispielsweise 
+\fB--hd\fP statt \fB-hd\fP und \fB--sc\fP statt \fB-sc\fP.
+.PP
+Für die vollständige und aktualisierte Syntax lesen Sie bitte die englische 
+Dokumentation oder verwenden Sie den Befehl:
 .br
-[-t  \fItransmitter_site.qth\fP]
+.B splat --help
+.PP
+.B Hauptoptionen:
 .br
-[-r \fIreceiver_site.qth\fP]
+[-t, --transmitter  \fItransmitter_site.qth\fP]
+.br
+[-r, --receiver \fIreceiver_site.qth\fP]
 .br
 [-c \fIRx-Antennenhöhe für LOS-Abdeckungsanalyse (Fuß/Meter) (Gleitkomma)\fP]
 .br

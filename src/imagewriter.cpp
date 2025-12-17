@@ -30,7 +30,7 @@
  * file.
  *
  *
- * @author Michel Hoche-Mong
+ * @author Michel Hoche-Mong (KF6ZST)
  *
  */
 

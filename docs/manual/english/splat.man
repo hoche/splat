@@ -2,99 +2,180 @@
 .SH NAME
 splat An RF \fBS\fPignal \fBP\fPropagation, \fBL\fPoss, \fBA\fPnd \fBT\fPerrain analysis tool
 .SH SYNOPSIS
-splat
-.br
-[-t  \fItransmitter_site.qth\fP]
-.br
-[-r \fIreceiver_site.qth\fP]
-.br
-[-c \fIrx antenna height for LOS coverage analysis (feet/meters) (float)\fP]
-.br
-[-L \fIrx antenna height for ITM coverage analysis (feet/meters) (float)\fP]
-.br
-[-p \fIterrain_profile.ext\fP]
-.br
-[-e \fIelevation_profile.ext\fP]
-.br
-[-h \fIheight_profile.ext\fP]
-.br
-[-H \fInormalized_height_profile.ext\fP]
-.br
-[-l \fIITM_profile.ext\fP]
-.br
-[-o \fItopographic_map_filename\fP]
-.br
-[-b \fIcartographic_boundary_filename.dat\fP]
-.br
-[-s \fIsite/city_database.dat\fP]
-.br
-[-d \fIsdf_directory_path\fP]
-.br
-[-m \fIearth radius multiplier (float)\fP]
-.br
-[-f \fIfrequency (MHz) for Fresnel zone calculations (float)\fP]
-.br
-[-R \fImaximum coverage radius (miles/kilometers) (float)\fP]
-.br
-[-dB \fIthreshold beyond which contours will not be displayed\fP]
-.br
-[-gc \fIground clutter height (feet/meters) (float)\fP]
-.br
-[-fz \fIFresnel zone clearance percentage (default = 60)\fP]
-.br
-[-ano \fIalphanumeric output file name\fP]
-.br
-[-ani \fIalphanumeric input file name\fP]
-.br
-[-udt \fIuser_defined_terrain_file.dat\fP]
-.br
-[-log \fIlogfile.ext\fP]
-.br
-[-json]
-.br
-[-v \fIN\fP]
-.br
-[-n]
-.br
-[-N]
-.br
-[-nf]
-.br
-[-sc]
-.br
-[-dbm]
-.br
-[-ngs]
-.br
-[-jpg]
-.br
-[-ppm]
-.br
-[-tif]
-.br
-[-proj \fIprojection\fP]
-.br
-[-geo]
-.br
-[-kml]
-.br
-[-kmz]
-.br
-[-gpsav]
-.br
-[-itwom]
-.br
-[-imperial]
-.br
-[-maxpages \fIN\fP]
-.br
-[-sdelim \fIcharacter\fP]
-.br
-[-hd]
-.br
-[-st]
-.br
-[-msl]
+.B splat
+[\fIOPTIONS\fP]
+.SH OPTIONS
+.PP
+\fBNote:\fP As of version 2.0, multi-character options require double dashes (\fB--\fP).
+.PP
+.B Required:
+.TP
+.BR "-t, --transmitter " \fIfile\fP
+Transmitter site .qth file (required)
+.PP
+.B Site Options:
+.TP
+.BR "-r, --receiver " \fIfile\fP
+Receiver site .qth file
+.TP
+.BR "-s, --cities " \fIfile(s)\fP
+City/site files to import (max 5)
+.TP
+.BR "-b, --boundaries " \fIfile(s)\fP
+Cartographic boundary files (max 5)
+.PP
+.B Analysis Modes:
+.TP
+.BR "-c, --coverage " \fIheight\fP
+Plot LOS coverage with RX antenna at specified height (feet/meters AGL)
+.TP
+.BR "-L, --pathloss " \fIheight\fP
+Plot path loss map with RX at specified height (feet/meters AGL)
+.PP
+.B Plot Output:
+.TP
+.BR "-p, --terrain-profile " \fIfile\fP
+Terrain profile graph filename
+.TP
+.BR "-e, --elevation-plot " \fIfile\fP
+Terrain elevation graph filename
+.TP
+.BR "--height-plot " \fIfile\fP
+Terrain height graph filename
+.TP
+.BR "-H, --normalized-height " \fIfile\fP
+Normalized height graph filename
+.TP
+.BR "-l, --longley-plot " \fIfile\fP
+Path loss graph filename
+.TP
+.BR "-o, --output-map " \fIfile\fP
+Topographic map filename (without suffix)
+.PP
+.B Data Files:
+.TP
+.BR "-d, --sdf-path " \fIdirectory\fP
+SDF directory path (overrides ~/.splat_path)
+.TP
+.BR "--udt, --user-terrain " \fIfile\fP
+User-defined terrain file
+.TP
+.BR "--ani, --alphanum-input " \fIfile\fP
+Alphanumeric input file
+.TP
+.BR "--ano, --alphanum-output " \fIfile\fP
+Alphanumeric output file
+.TP
+.BR "--log, --command-log " \fIfile\fP
+Command line log file
+.PP
+.B Propagation Parameters:
+.TP
+.BR "-f, --frequency " \fIMHz\fP
+Frequency for Fresnel zone calculation (20-20000 MHz)
+.TP
+.BR "-R, --range " \fIdistance\fP
+Maximum range for -c or -L (miles/km, 0-1000)
+.TP
+.BR "-m, --earth-multiplier " \fIvalue\fP
+Earth radius multiplier (0.1-1e6, default 1.0)
+.TP
+.BR "--erp, --effective-power " \fIwatts\fP
+Override ERP in .lrp file (Watts)
+.TP
+.BR "--fz, --fresnel-clearance " \fIpercent\fP
+Fresnel zone clearance percentage (default 60)
+.TP
+.BR "--gc, --ground-clutter " \fIheight\fP
+Ground clutter height (feet/meters)
+.TP
+.BR "--db, --contour-threshold " \fIdB\fP
+Threshold beyond which contours will not be displayed
+.PP
+.B Display Options:
+.TP
+.BR "-n, --no-los-path"
+Don't plot LOS paths in maps
+.TP
+.BR "-N, --no-reports"
+Don't produce site or obstruction reports
+.TP
+.BR "--nf, --no-fresnel"
+Don't plot Fresnel zones in height plots
+.TP
+.BR "--sc, --smooth-contours"
+Display smooth rather than quantized contour levels
+.TP
+.BR "--ngs, --no-greyscale"
+Display greyscale topography as white
+.PP
+.B Image Formats (mutually exclusive):
+.TP
+.BR "--ppm"
+Generate PPM images
+.TP
+.BR "--jpg"
+Generate JPEG images
+.TP
+.BR "--tif"
+Generate GeoTIFF images
+.TP
+.BR "--proj, --projection " \fIprojection\fP
+Map projection (epsg:3857 or epsg:4326)
+.PP
+.B Output Formats:
+.TP
+.BR "--kml"
+Generate Google Earth .kml output
+.TP
+.BR "--kmz"
+Generate Google Earth .kmz output (compressed)
+.TP
+.BR "--geo"
+Generate Xastir .geo georeference file
+.TP
+.BR "--json"
+Create JSON configuration file
+.TP
+.BR "--dbm"
+Plot signal power level (dBm) rather than field strength
+.PP
+.B Execution Options:
+.TP
+.BR "-v, --verbose " \fIlevel\fP
+Verbosity level (0=quiet, 1=normal, default 1)
+.TP
+.BR "--st, --single-thread"
+Use single CPU thread (classic mode)
+.TP
+.BR "--hd, --high-definition"
+High definition mode (3600 ppd vs 1200 ppd, requires SRTM-1 SDF files)
+.TP
+.BR "--itwom"
+Use ITWOM propagation model instead of Longley-Rice
+.TP
+.BR "--imperial"
+Use imperial units rather than metric for all I/O
+.TP
+.BR "--msl"
+TX/RX site altitudes are MSL instead of AGL
+.TP
+.BR "--gpsav"
+Preserve gnuplot temporary working files after execution
+.TP
+.BR "--maxpages " \fIN\fP
+Maximum analysis region capability: 1, 4, 9, 16, 25, 36, 49, 64 (default 16)
+.TP
+.BR "--sdelim, --sdf-delimiter " \fIcharacter\fP
+Latitude and longitude delimiter in SDF filenames (default "_")
+.PP
+.B Help:
+.TP
+.BR "-?, --help"
+Show help message and exit
+.TP
+.BR "--version"
+Display program version information and exit
 .br
 .SH DESCRIPTION
 \fBSPLAT!\fP is a powerful terrestrial RF propagation and terrain

@@ -3,11 +3,23 @@
 splat es una herramienta para el an�lisis de Propagaci�n de Se�ales RF, P�rdidas , y Caracter�sticas 
 del Terreno (\fBS\fPignal \fBP\fPropagation, \fBL\fPoss, \fBA\fPnd \fBT\fPerrain analysis tool \fBSPLAT!\fP)  
 .SH SINOPSIS
-splat
+.B splat
+[\fIOPCIONES\fP]
+.PP
+\fBNota importante (Versi�n 2.0):\fP A partir de la versi�n 2.0, las opciones 
+de m�ltiples caracteres requieren guiones dobles (\fB--\fP). Por ejemplo, 
+use \fB--hd\fP en lugar de \fB-hd\fP, y \fB--sc\fP en lugar de \fB-sc\fP.
+.PP
+Para la sintaxis completa y actualizada, consulte la documentaci�n en ingl�s 
+o use el comando:
 .br
-[-t  \fIsitio_transmisor.qth\fP]
+.B splat --help
+.PP
+.B Opciones principales:
 .br
-[-r \fIsitio_receptor.qth\fP]
+[-t, --transmitter  \fIsitio_transmisor.qth\fP]
+.br
+[-r, --receiver \fIsitio_receptor.qth\fP]
 .br
 [-c \fIrx altura de la antena para el an�lisis de cobertura LOS (pies/metros) (flotante)\fP]
 .br
