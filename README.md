@@ -86,6 +86,20 @@ After building, run
 
     make install
 
+## Important: Version 2.0 Command-Line Changes
+
+**SPLAT! 2.0 uses a new command-line parser (CLI11) with improved help and error messages.**
+
+**Breaking Change:** Multi-character options now require double dashes (`--`) instead of single dash (`-`).
+
+**Examples:**
+- Old: `splat -t tx.qth -hd -sc -itwom`
+- New: `splat -t tx.qth --hd --sc --itwom`
+
+Single-character options like `-t`, `-r`, `-c`, `-L` remain unchanged.
+
+For full details, see [CLI11_MIGRATION.md](CLI11_MIGRATION.md) or run `splat --help`.
+
 ## Running
 
 Topography data must be downloaded and SPLAT Data Files must

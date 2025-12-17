@@ -12,55 +12,85 @@
 ## SYNOPSIS
 
 ```
-splat
-       -t txsite(s).qth (max of 4 with -c, max of 30 with -L)
-       -r sr.rxsite.qth
-       -c plot LOS coverage of TX(s) with an RX antenna at X feet/meters AGL
-       -L plot path loss map of TX based on an RX at X feet/meters AGL
-       -s filename(s) of city/site file(s) to import (5 max)
-       -b filename(s) of cartographic boundary file(s) to import (5 max)
-       -p filename of terrain profile graph to plot
-       -e filename of terrain elevation graph to plot
-       -h filename of terrain height graph to plot
-       -H filename of normalized terrain height graph to plot
-       -l filename of path loss graph to plot
-       -o filename of topographic map to generate (without suffix)
-       -d sdf file directory path (overrides path in ~/.splat_path file)
-       -m earth radius multiplier
-       -n do not plot LOS paths in maps
-       -N do not produce unnecessary site or obstruction reports
-       -f frequency for Fresnel zone calculation (MHz)
-       -R modify default range for -c or -L (miles/kilometers)
-       -v N verbosity level. Default is 1. Set to 0 to quiet everything.
-      -st use a single CPU thread (classic mode)
-      -hd Use High Definition mode (3600 ppd vs 1200 ppd). Requires SRTM-1 SDF files.
-      -sc display smooth rather than quantized contour levels
-      -db threshold beyond which contours will not be displayed
-      -nf do not plot Fresnel zones in height plots
-      -fz Fresnel zone clearance percentage (default = 60)
-      -gc ground clutter height (feet/meters)
-     -jpg when generating maps, create jpgs instead of pngs or ppms
-     -ppm when generating maps, create ppms instead of pngs or jpgs
-     -tif create geotiff instead of png or jpeg
-     -proj set projection for GDAL output (epsg:3857 or epsg:4326)
-     -ngs display greyscale topography as white in images
-     -erp override ERP in .lrp file (Watts)
-     -ano name of alphanumeric output file
-     -ani name of alphanumeric input file
-     -udt name of user defined terrain input file
-     -kml generate Google Earth (.kml) compatible output
-     -kmz generate Google Earth compressed (.kmz) output
-     -geo generate an Xastir .geo georeference file (with image output)
-     -dbm plot signal power level contours rather than field strength
-     -log copy command line std::string to this output file
-     -json create JSON file containing configuration 
-   -gpsav preserve gnuplot temporary working files after SPLAT! execution
-   -itwom invoke the ITWOM model instead of using Longley-Rice
-  -imperial employ imperial rather than metric units for all user I/O
--maxpages [16] Maximum Analysis Region capability: 1, 4, 9, 16, 25, 36, 49, 64 
-  -sdelim [_] Lat and lon delimeter in SDF filenames 
-     -msl assume TX and RX site altitudes are referenced from MSL instead of AGL
+splat [OPTIONS]
+
+Required:
+       -t, --transmitter <file(s)>  Transmitter site(s) .qth file(s)
+                                    (max of 4 with -c, max of 30 with -L)
+
+Site Options:
+       -r, --receiver <file>        Receiver site .qth file
+       -s, --cities <file(s)>       City/site file(s) to import (max 5)
+       -b, --boundaries <file(s)>   Cartographic boundary file(s) (max 5)
+
+Analysis Modes:
+       -c, --coverage <height>      Plot LOS coverage with RX antenna at 
+                                    specified height (feet/meters AGL)
+       -L, --pathloss <height>      Plot path loss map with RX at specified 
+                                    height (feet/meters AGL)
+
+Plot Output:
+       -p, --terrain-profile <file> Terrain profile graph filename
+       -e, --elevation-plot <file>  Terrain elevation graph filename
+       --height-plot <file>         Terrain height graph filename
+       -H, --normalized-height <file> Normalized height graph filename
+       -l, --longley-plot <file>    Path loss graph filename
+       -o, --output-map <file>      Topographic map filename (no suffix)
+
+Data Files:
+       -d, --sdf-path <dir>         SDF directory (overrides ~/.splat_path)
+       --udt, --user-terrain <file> User-defined terrain file
+       --ani, --alphanum-input <file> Alphanumeric input file
+       --ano, --alphanum-output <file> Alphanumeric output file
+       --log, --command-log <file>  Command line log file
+
+Propagation Parameters:
+       -f, --frequency <MHz>        Frequency for Fresnel calculation (20-20000 MHz)
+       -R, --range <dist>           Maximum range for -c or -L (miles/km, 0-1000)
+       -m, --earth-multiplier <val> Earth radius multiplier (0.1-1e6, default 1.0)
+       --erp, --effective-power <W> Override ERP in .lrp file (Watts)
+       --fz, --fresnel-clearance <pct> Fresnel zone clearance % (default 60)
+       --gc, --ground-clutter <height> Ground clutter height (feet/meters)
+       --db, --contour-threshold <dB> Threshold for contour display
+
+Display Options:
+       -n, --no-los-path            Don't plot LOS paths in maps
+       -N, --no-reports             Don't produce site/obstruction reports
+       --nf, --no-fresnel           Don't plot Fresnel zones in height plots
+       --sc, --smooth-contours      Display smooth contour levels
+       --ngs, --no-greyscale        Display greyscale topography as white
+
+Image Formats (mutually exclusive):
+       --ppm                        Generate PPM images
+       --jpg                        Generate JPEG images
+       --tif                        Generate GeoTIFF images
+       --proj, --projection <proj>  Map projection (epsg:3857 or epsg:4326)
+
+Output Formats:
+       --kml                        Generate Google Earth .kml output
+       --kmz                        Generate Google Earth .kmz output (compressed)
+       --geo                        Generate Xastir .geo georeference file
+       --json                       Create JSON configuration file
+       --dbm                        Plot power level (dBm) vs field strength
+
+Execution Options:
+       -v, --verbose <level>        Verbosity (0=quiet, 1=normal, default 1)
+       --st, --single-thread        Use single CPU thread (classic mode)
+       --hd, --high-definition      HD mode (3600 ppd, requires SRTM-1 SDF)
+       --itwom                      Use ITWOM model instead of Longley-Rice
+       --imperial                   Use imperial units for all I/O
+       --msl                        TX/RX altitudes are MSL instead of AGL
+       --gpsav                      Preserve gnuplot temp files after execution
+       --maxpages <n>               Analysis region: 1,4,9,16,25,36,49,64 (default 16)
+       --sdelim, --sdf-delimiter <c> Lat/lon delimiter in SDF filenames (default "_")
+
+Help:
+       -?, --help                   Show this help message
+       --version                    Show version information
 ```
+
+**Note:** As of version 2.0, multi-character options require double dashes (`--`). 
+For example, use `--hd` instead of `-hd`, and `--sc` instead of `-sc`.
 
 ## DESCRIPTION
 
