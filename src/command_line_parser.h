@@ -1,6 +1,6 @@
 /** @file command_line_parser.h
  *
- * Command-line argument parser for SPLAT!
+ * Command-line argument parser for SPLAT! using CLI11
  * Extracts and validates command-line arguments into SplatRun configuration
  * 
  * @copyright 1997 - 2018 John A. Magliacane (KD2BD) and contributors.
@@ -11,8 +11,9 @@
 #ifndef COMMAND_LINE_PARSER_H
 #define COMMAND_LINE_PARSER_H
 
-#include "splat_run.h"
 #include "site.h"
+#include "splat_run.h"
+#include <CLI/CLI.hpp>
 #include <string>
 #include <vector>
 
@@ -34,10 +35,7 @@ struct CommandLineOptions {
     std::string ani_filename;
     std::string ano_filename;
     std::string logfile;
-    
-    // SplatRun configuration (will be populated into sr)
-    // Most settings will be set directly in sr parameter
-    
+
     // Parse status
     bool show_help = false;
     bool parse_error = false;
@@ -45,7 +43,16 @@ struct CommandLineOptions {
 };
 
 /**
- * Parse command-line arguments and populate SplatRun configuration
+ * Setup CLI11 application with all SPLAT! command-line options
+ * 
+ * @param app CLI11 app object to configure
+ * @param sr SplatRun object to populate with parsed settings
+ * @param options CommandLineOptions structure to populate with file paths
+ */
+void SetupCLI11(CLI::App &app, SplatRun &sr, CommandLineOptions &options);
+
+/**
+ * Parse command-line arguments using CLI11
  * 
  * @param argc Number of command-line arguments
  * @param argv Array of command-line argument strings
@@ -65,9 +72,4 @@ bool ParseCommandLine(int argc, const char *argv[], SplatRun &sr,
  */
 bool ValidateCommandLine(const SplatRun &sr, const CommandLineOptions &options);
 
-/**
- * Print help message showing available command-line options
- */
-void PrintHelp(const SplatRun &sr);
-
-#endif // COMMAND_LINE_PARSER_H
+#endif  // COMMAND_LINE_PARSER_H

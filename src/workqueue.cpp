@@ -1,5 +1,12 @@
-// Simple workqueue loosely adapted from stackexchange
-// https://codereview.stackexchange.com/questions/60363/thread-pool-worker-implementation
+/** @file workqueue.cpp
+ *
+ * Simple workqueue
+ * File created by Michel Hoche-Mong (KF6ZST)
+ * Derived from original project code.
+ * Splat!
+ * See revision control history for contributions.
+ * This file is covered by the LICENSE.md file in the root of this project.
+ */
 
 #include "workqueue.h"
 

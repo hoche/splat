@@ -1,6 +1,5 @@
 /** @file itwom3.0.h
  *
- * File created by Peter Watkins (KE7IST) 1/8/18.
  * Derived from original project code.
  * Splat!
  * @copyright 1997 - 2018 John A. Magliacane (KD2BD) and contributors.

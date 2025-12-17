@@ -1,7 +1,8 @@
 /** @file command_line_parser.cpp
  *
- * Command-line argument parser for SPLAT!
- * 
+ * File created by Michel Hoche-Mong (KF6ZST) 12/16/2025
+ * Derived from original project code.
+ * Splat!
  * @copyright 1997 - 2018 John A. Magliacane (KD2BD) and contributors.
  * See revision control history for contributions.
  * This file is covered by the LICENSE.md file in the root of this project.
@@ -9,519 +10,345 @@
 
 #include "command_line_parser.h"
 #include "splat_run.h"
-#include <cstring>
+#include <CLI/CLI.hpp>
 #include <iostream>
 
-void PrintHelp(const SplatRun &sr) {
-    std::cout
-        << "\n\t\t --==[ " << SplatRun::splat_name << " v"
-        << SplatRun::splat_version
-        << " Available Options... ]==--\n\n"
-           "       -t txsite(s).qth\n"
-           "       -r sr.rxsite.qth\n"
-           "       -c plot LOS coverage of TX(s) with an RX antenna at X "
-           "feet/meters AGL\n"
-           "       -L plot path loss map of TX based on an RX at X "
-           "feet/meters AGL\n"
-           "       -s filename(s) of city/site file(s) to import (5 max)\n"
-           "       -b filename(s) of cartographic boundary file(s) to "
-           "import (5 max)\n"
-           "       -p filename of terrain profile graph to plot\n"
-           "       -e filename of terrain elevation graph to plot\n"
-           "       -h filename of terrain height graph to plot\n"
-           "       -H filename of normalized terrain height graph to plot\n"
-           "       -l filename of path loss graph to plot\n"
-           "       -o filename of topographic map to generate (without "
-           "suffix)\n"
-           "       -d sdf file directory path (overrides path in "
-           "~/.splat_path file)\n"
-           "       -m earth radius multiplier\n"
-           "       -n do not plot LOS paths in maps\n"
-           "       -N do not produce unnecessary site or obstruction "
-           "reports\n"
-           "       -f frequency for Fresnel zone calculation (MHz)\n"
-           "       -R modify default range for -c or -L "
-           "(miles/kilometers)\n"
-           "       -v N verbosity level. Default is 1. Set to 0 to quiet "
-           "everything.\n"
-           "      -st use a single CPU thread (classic mode)\n"
-           "      -hd Use High Definition mode (3600 ppd vs 1200 ppd). "
-           "Requires SRTM-1 SDF files.\n"
-           "      -sc display smooth rather than quantized contour levels\n"
-           "      -db threshold beyond which contours will not be "
-           "displayed\n"
-           "      -nf do not plot Fresnel zones in height plots\n"
-           "      -fz Fresnel zone clearance percentage (default = 60)\n"
-           "      -gc ground clutter height (feet/meters)\n"
-           "     -jpg when generating maps, create jpgs instead of pngs or "
-           "ppms\n"
-#ifdef HAVE_LIBPNG
-           "     -ppm when generating maps, create ppms instead of pngs or "
-           "jpgs\n"
-#endif
-           "     -tif create geotiff instead of png or jpeg\n"
-           "     -ngs display greyscale topography as white in images\n"
-           "     -erp override ERP in .lrp file (Watts)\n"
-           "     -ano name of alphanumeric output file\n"
-           "     -ani name of alphanumeric input file\n"
-           "     -udt name of user defined terrain input file\n"
-           "     -kml generate Google Earth (.kml) compatible output\n"
-           "     -kmz generate Google Earth compressed (.kmz) output\n"
-           "     -geo generate an Xastir .geo georeference file (with "
-           "image output)\n"
-           "     -dbm plot signal power level contours rather than field "
-           "strength\n"
-           "     -log copy command line std::string to this output file\n"
-           "     -json create JSON file containing configuration \n"
-           "   -gpsav preserve gnuplot temporary working files after "
-           "SPLAT! execution\n"
-           "   -itwom invoke the ITWOM model instead of using "
-           "Longley-Rice\n"
-           "  -imperial employ imperial rather than metric units for all "
-           "user I/O\n"
-           "  -msl use MSL for TX/RX altitudes instead of AGL\n"
-           "-maxpages ["
-        << sr.maxpages
-        << "] Maximum Analysis Region capability: 1, 4, 9, 16, 25, 36, 49, "
-           "64 \n"
-           "  -sdelim ["
-        << sr.sdf_delimiter
-        << "] Lat and lon delimeter in SDF filenames \n"
-           "\n"
-           "See the documentation for more details.\n\n";
+void SetupCLI11(CLI::App &app, SplatRun &sr, CommandLineOptions &options) {
+    app.description("SPLAT!: An RF Signal Path Loss And Terrain Analysis Tool");
+    app.set_version_flag("--version", std::string(SplatRun::splat_name) + " v" +
+                                          std::string(SplatRun::splat_version));
+
+    // Disable default help flags and add custom one
+    app.set_help_flag();  // Clear default -h,--help
+    app.set_help_all_flag("--help,-?", "Print help message and exit");
+
+    // Required options
+    app.add_option("-t,--transmitter", options.tx_site_files,
+                   "Transmitter site(s) .qth file(s)")
+        ->required();
+
+    // Site and location options
+    app.add_option("-r,--receiver", options.rx_site_file,
+                   "Receiver site .qth file");
+
+    app.add_option("-s,--cities", options.city_files,
+                   "City/site file(s) to import (max 5)");
+
+    app.add_option("-b,--boundaries", options.boundary_files,
+                   "Cartographic boundary file(s) to import (max 5)");
+
+    // Coverage and analysis modes
+    auto coverage_opt = app.add_option("-c,--coverage", sr.altitude,
+                                       "Plot LOS coverage with RX antenna at "
+                                       "specified height (feet/meters AGL)");
+
+    auto pathloss_opt = app.add_option(
+        "-L,--pathloss", sr.altitudeLR,
+        "Plot path loss map with RX at specified height (feet/meters AGL)");
+
+    // Note: Original SPLAT! allows both -c and -L, with a warning
+    // CLI11 would make them mutually exclusive, but for backward compatibility:
+    // coverage_opt->excludes(pathloss_opt);
+    // pathloss_opt->excludes(coverage_opt);
+
+    // Plot output options
+    app.add_option("-p,--terrain-profile", options.terrain_file,
+                   "Filename of terrain profile graph to plot");
+
+    app.add_option("-e,--elevation-plot", options.elevation_file,
+                   "Filename of terrain elevation graph to plot");
+
+    // Note: Can't use -h (reserved for help), use long form only
+    auto height_opt =
+        app.add_option("--height-plot", options.height_file,
+                       "Filename of terrain height graph to plot");
+
+    auto norm_height_opt =
+        app.add_option("-H,--normalized-height", options.height_file,
+                       "Filename of normalized terrain height graph to plot");
+
+    height_opt->excludes(norm_height_opt);
+    norm_height_opt->excludes(height_opt);
+
+    app.add_option("-l,--longley-plot", options.longley_file,
+                   "Filename of path loss graph to plot");
+
+    app.add_option("-o,--output-map", options.mapfile,
+                   "Filename of topographic map to generate (without suffix)");
+
+    // Data file options
+    app.add_option("-d,--sdf-path", sr.sdf_path,
+                   "SDF file directory path (overrides ~/.splat_path)");
+
+    app.add_option("--udt,--user-terrain", options.udt_file,
+                   "User-defined terrain input file");
+
+    app.add_option("--ani,--alphanum-input", options.ani_filename,
+                   "Alphanumeric input file from previous simulation");
+
+    app.add_option("--ano,--alphanum-output", options.ano_filename,
+                   "Alphanumeric output file");
+
+    // Propagation parameters - with clamping to match original behavior
+    app.add_option("-f,--frequency", sr.forced_freq,
+                   "Frequency for Fresnel zone calculation (MHz)");
+
+    app.add_option("-R,--range", sr.max_range,
+                   "Maximum analysis range (miles/kilometers)");
+
+    app.add_option("-m,--earth-multiplier", sr.er_mult,
+                   "Earth radius multiplier (for atmospheric refraction)")
+        ->default_val(1.0);
+
+    app.add_option("--erp,--effective-power", sr.forced_erp,
+                   "Override ERP in .lrp file (Watts)");
+
+    app.add_option("--fz,--fresnel-clearance", sr.fzone_clearance,
+                   "Fresnel zone clearance percentage (default 60)");
+
+    app.add_option("--gc,--ground-clutter", sr.clutter,
+                   "Ground clutter height (feet/meters)");
+
+    app.add_option("--db,--contour-threshold", sr.contour_threshold,
+                   "Threshold beyond which contours will not be displayed");
+
+    // Display and output flags
+    app.add_flag("-n,--no-los-path", sr.nolospath,
+                 "Do not plot LOS paths in maps");
+
+    app.add_flag(
+        "-N,--no-reports",
+        [&sr](size_t) {
+            sr.nolospath = true;
+            sr.nositereports = true;
+        },
+        "Do not produce site or obstruction reports");
+
+    app.add_flag(
+        "--nf,--no-fresnel", [&sr](size_t) { sr.fresnel_plot = false; },
+        "Do not plot Fresnel zones in height plots");
+
+    app.add_flag("--sc,--smooth-contours", sr.smooth_contours,
+                 "Display smooth rather than quantized contour levels");
+
+    app.add_flag("--ngs,--no-greyscale", sr.ngs,
+                 "Display greyscale topography as white in images");
+
+    // Image format options
+    auto ppm_flag = app.add_flag(
+        "--ppm", [&sr](size_t) { sr.imagetype = IMAGETYPE_PPM; },
+        "Generate PPM images");
+
+    auto jpg_flag = app.add_flag(
+        "--jpg", [&sr](size_t) { sr.imagetype = IMAGETYPE_JPG; },
+        "Generate JPEG images");
+
+    auto tif_flag = app.add_flag(
+        "--tif", [&sr](size_t) { sr.imagetype = IMAGETYPE_GEOTIFF; },
+        "Generate GeoTIFF images");
+
+    // Make image formats mutually exclusive
+    ppm_flag->excludes(jpg_flag)->excludes(tif_flag);
+    jpg_flag->excludes(ppm_flag)->excludes(tif_flag);
+    tif_flag->excludes(ppm_flag)->excludes(jpg_flag);
+
+    app.add_option(
+           "--proj,--projection",
+           [&sr](CLI::results_t res) {
+               std::string proj = res[0];
+               if (proj == "epsg:3857") {
+                   sr.projection = PROJ_EPSG_3857;
+                   return true;
+               } else if (proj == "epsg:4326") {
+                   sr.projection = PROJ_EPSG_4326;
+                   return true;
+               }
+               return false;
+           },
+           "Map projection (epsg:3857 or epsg:4326)")
+        ->check(CLI::IsMember({"epsg:3857", "epsg:4326"}));
+
+    // Output format options
+    app.add_flag("--kml", sr.kml,
+                 "Generate Google Earth (.kml) compatible output");
+
+    app.add_flag("--kmz", sr.kmz,
+                 "Generate Google Earth compressed (.kmz) output");
+
+    app.add_flag("--geo", sr.geo, "Generate Xastir .geo georeference file");
+
+    app.add_flag("--json", sr.json,
+                 "Create JSON file containing configuration");
+
+    app.add_flag(
+        "--dbm", sr.dbm,
+        "Plot signal power level contours (dBm) rather than field strength");
+
+    app.add_option("--log,--command-log", options.logfile,
+                   "Copy command line to this output file");
+
+    // Execution options
+    app.add_option("-v,--verbose", sr.verbose,
+                   "Verbosity level (0=quiet, 1=normal)")
+        ->default_val(1);
+
+    app.add_flag(
+        "--st,--single-thread", [&sr](size_t) { sr.multithread = false; },
+        "Use single CPU thread (classic mode)");
+
+    app.add_flag(
+        "--hd,--high-definition", sr.hd_mode,
+        "Use high definition mode (3600 ppd vs 1200 ppd, requires SRTM-1)");
+
+    app.add_flag(
+        "--itwom", [&sr](size_t) { sr.propagation_model = PROP_ITWOM; },
+        "Use ITWOM propagation model instead of Longley-Rice");
+
+    app.add_flag(
+        "--imperial", [&sr](size_t) { sr.metric = false; },
+        "Use imperial units rather than metric for all I/O");
+
+    app.add_flag("--msl", sr.msl, "Use MSL for TX/RX altitudes instead of AGL");
+
+    app.add_flag("--gpsav", sr.gpsav,
+                 "Preserve gnuplot temporary working files after execution");
+
+    app.add_option(
+           "--maxpages", sr.maxpages,
+           "Maximum analysis region capability (1, 4, 9, 16, 25, 36, 49, 64)")
+        ->default_val(16);
+
+    app.add_option("--sdelim,--sdf-delimiter", sr.sdf_delimiter,
+                   "Latitude and longitude delimiter in SDF filenames")
+        ->default_val("_");
+
+    // Callback to set flags and clamp values based on parsed options
+    app.parse_complete_callback([&sr, &options, &app, height_opt,
+                                 norm_height_opt, coverage_opt,
+                                 pathloss_opt]() {
+        // Clamp frequency to valid range (20-20000 MHz)
+        if (sr.forced_freq < 20.0)
+            sr.forced_freq = 0.0;
+        if (sr.forced_freq > 20.0e3)
+            sr.forced_freq = 20.0e3;
+
+        // Clamp range to valid range (0-1000)
+        if (sr.max_range < 0.0)
+            sr.max_range = 0.0;
+        if (sr.max_range > 1000.0)
+            sr.max_range = 1000.0;
+
+        // Clamp earth radius multiplier
+        if (sr.er_mult < 0.1)
+            sr.er_mult = 1.0;
+        if (sr.er_mult > 1.0e6)
+            sr.er_mult = 1.0e6;
+
+        // Clamp ERP
+        if (sr.forced_erp < 0.0)
+            sr.forced_erp = -1.0;
+
+        // Clamp and convert Fresnel zone clearance
+        if (app["--fz"]->count() > 0) {
+            if (sr.fzone_clearance < 0.0 || sr.fzone_clearance > 100.0)
+                sr.fzone_clearance = 0.6;  // Default 60% as decimal
+            else
+                sr.fzone_clearance /= 100.0;  // Convert percentage to decimal
+        }
+
+        // Clamp ground clutter
+        if (sr.clutter < 0.0)
+            sr.clutter = 0.0;
+
+        // Set mode flags based on what was parsed
+        if (coverage_opt->count() > 0) {
+            sr.map = true;
+            sr.coverage = true;
+            sr.area_mode = true;
+        }
+
+        if (pathloss_opt->count() > 0) {
+            sr.map = true;
+            sr.LRmap = true;
+            sr.area_mode = true;
+        }
+
+        if (! options.terrain_file.empty()) {
+            sr.terrain_plot = true;
+            sr.pt2pt_mode = true;
+        }
+
+        if (! options.elevation_file.empty()) {
+            sr.elevation_plot = true;
+            sr.pt2pt_mode = true;
+        }
+
+        if (! options.height_file.empty()) {
+            sr.height_plot = true;
+            sr.pt2pt_mode = true;
+            sr.norm = (norm_height_opt->count() > 0);
+        }
+
+        if (! options.longley_file.empty()) {
+            sr.longley_plot = true;
+            sr.pt2pt_mode = true;
+        }
+
+        if (! options.rx_site_file.empty()) {
+            sr.rxsite = true;
+            sr.pt2pt_mode = true;
+        }
+
+        if (! options.mapfile.empty()) {
+            sr.map = true;
+        }
+
+        if (! options.logfile.empty()) {
+            sr.command_line_log = true;
+        }
+
+        // Apply earth radius multiplier
+        if (app["--earth-multiplier"]->count() > 0) {
+            sr.earthradius *= sr.er_mult;
+        }
+    });
 }
 
 bool ParseCommandLine(int argc, const char *argv[], SplatRun &sr,
                       CommandLineOptions &options) {
-    // Check for help or no arguments
-    if (argc == 1 || (argc == 2 && strcmp(argv[1], "--help") == 0)) {
-        options.show_help = true;
-        PrintHelp(sr);
+    CLI::App app;
+    SetupCLI11(app, sr, options);
+
+    try {
+        app.parse(argc, argv);
+    } catch (const CLI::ParseError &e) {
+        // Handle help and version specially
+        if (e.get_exit_code() == static_cast<int>(CLI::ExitCodes::Success)) {
+            options.show_help = true;
+            return false;
+        }
+
+        // Handle errors
+        options.parse_error = true;
+        options.error_message = e.what();
+        std::cerr << app.help() << std::endl;
         return false;
     }
-
-    size_t x, y, z = 0;
-
-    /* Scan for command line arguments */
-    y = argc - 1;
-
-    for (x = 1; x <= y; x++) {
-        if (strcmp(argv[x], "-R") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                sscanf(argv[z], "%lf", &sr.max_range);
-
-                if (sr.max_range < 0.0)
-                    sr.max_range = 0.0;
-
-                if (sr.max_range > 1000.0)
-                    sr.max_range = 1000.0;
-            }
-        }
-
-        if (strcmp(argv[x], "-m") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                sscanf(argv[z], "%lf", &sr.er_mult);
-
-                if (sr.er_mult < 0.1)
-                    sr.er_mult = 1.0;
-
-                if (sr.er_mult > 1.0e6)
-                    sr.er_mult = 1.0e6;
-
-                sr.earthradius *= sr.er_mult;
-            }
-        }
-
-        if (strcmp(argv[x], "-v") == 0) {
-            z = x + 1;
-
-            if (z < (size_t)argc && argv[z][0] && argv[z][0] != '-') {
-                int verbose;
-                sscanf(argv[z], "%d", &verbose);
-                sr.verbose = verbose != 0;
-            }
-        }
-
-        if (strcmp(argv[x], "-gc") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                sscanf(argv[z], "%lf", &sr.clutter);
-
-                if (sr.clutter < 0.0)
-                    sr.clutter = 0.0;
-            }
-        }
-
-        if (strcmp(argv[x], "-fz") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                sscanf(argv[z], "%lf", &sr.fzone_clearance);
-
-                if (sr.fzone_clearance < 0.0 || sr.fzone_clearance > 100.0)
-                    sr.fzone_clearance = 60.0;
-
-                sr.fzone_clearance /= 100.0;
-            }
-        }
-
-        if (strcmp(argv[x], "-o") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-')
-                options.mapfile = argv[z];
-            sr.map = true;
-        }
-
-        if (strcmp(argv[x], "-log") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-')
-                options.logfile = argv[z];
-
-            sr.command_line_log = true;
-        }
-
-        if (strcmp(argv[x], "-udt") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-')
-                options.udt_file = argv[z];
-        }
-
-        if (strcmp(argv[x], "-c") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                sscanf(argv[z], "%lf", &sr.altitude);
-                sr.map = true;
-                sr.coverage = true;
-                sr.area_mode = true;
-            }
-        }
-
-        if (strcmp(argv[x], "-db") == 0 || strcmp(argv[x], "-dB") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0]) /* A minus argument is legal here */
-                sscanf(argv[z], "%d", &sr.contour_threshold);
-        }
-
-        if (strcmp(argv[x], "-p") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                options.terrain_file = argv[z];
-                sr.terrain_plot = true;
-                sr.pt2pt_mode = true;
-            }
-        }
-
-        if (strcmp(argv[x], "-e") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                options.elevation_file = argv[z];
-                sr.elevation_plot = true;
-                sr.pt2pt_mode = true;
-            }
-        }
-
-        if (strcmp(argv[x], "-h") == 0 || strcmp(argv[x], "-H") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                options.height_file = argv[z];
-                sr.height_plot = true;
-                sr.pt2pt_mode = true;
-            }
-
-            sr.norm = strcmp(argv[x], "-H") == 0 ? true : false;
-        }
-
-        bool imagetype_set = false;
-#ifdef HAVE_LIBPNG
-        if (strcmp(argv[x], "-ppm") == 0) {
-            if (imagetype_set && sr.imagetype != IMAGETYPE_PPM) {
-                fprintf(stdout,
-                        "-jpg and -ppm are exclusive options, ignoring -ppm.\n");
-            } else {
-                sr.imagetype = IMAGETYPE_PPM;
-                imagetype_set = true;
-            }
-        }
-#endif
-#ifdef HAVE_LIBGDAL
-        if (strcmp(argv[x], "-tif") == 0) {
-            if (imagetype_set && sr.imagetype != IMAGETYPE_PPM) {
-                fprintf(stdout,
-                        "-tif and -ppm are exclusive options, ignoring -ppm.\n");
-            } else {
-                sr.imagetype = IMAGETYPE_GEOTIFF;
-                imagetype_set = true;
-            }
-        }
-#endif
-#ifdef HAVE_LIBJPEG
-        if (strcmp(argv[x], "-jpg") == 0) {
-            if (imagetype_set && sr.imagetype != IMAGETYPE_JPG) {
-#ifdef HAVE_LIBPNG
-                fprintf(stdout,
-                        "-jpg and -ppm are exclusive options, ignoring -jpg.\n");
-#else
-                fprintf(stdout,
-                        "-jpg and -png are exclusive options, ignoring -jpg.\n");
-#endif
-            } else {
-                sr.imagetype = IMAGETYPE_JPG;
-                imagetype_set = true;
-            }
-        }
-#endif
-
-#ifdef HAVE_LIBGDAL
-        if (strcmp(argv[x], "-proj") == 0) {
-            if (sr.imagetype == IMAGETYPE_GEOTIFF ||
-                sr.imagetype == IMAGETYPE_PNG || sr.imagetype == IMAGETYPE_JPG) {
-                z = x + 1;
-                if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                    if (strcmp(argv[z], "epsg:3857") == 0) {
-                        sr.projection = PROJ_EPSG_3857;
-                    } else if (strcmp(argv[z], "epsg:4326") == 0) {
-                        sr.projection = PROJ_EPSG_4326;
-                    } else {
-                        std::cerr << "Ignoring unknown projection " << argv[z]
-                                  << " and taking epsg:4326 instead.\n";
-                    }
-                }
-            } else {
-                std::cerr << "-proj supports only gdal output formats. Please "
-                             "use -png, -tif or -jpg.\n";
-            }
-        }
-#endif
-
-        if (strcmp(argv[x], "-imperial") == 0)
-            sr.metric = false;
-
-        if (strcmp(argv[x], "-msl") == 0)
-            sr.msl = true;
-
-        if (strcmp(argv[x], "-gpsav") == 0)
-            sr.gpsav = true;
-
-        if (strcmp(argv[x], "-geo") == 0)
-            sr.geo = true;
-
-        if (strcmp(argv[x], "-kml") == 0)
-            sr.kml = true;
-
-        if (strcmp(argv[x], "-kmz") == 0)
-            sr.kmz = true;
-
-        if (strcmp(argv[x], "-json") == 0)
-            sr.json = true;
-
-        if (strcmp(argv[x], "-nf") == 0)
-            sr.fresnel_plot = false;
-
-        if (strcmp(argv[x], "-ngs") == 0)
-            sr.ngs = true;
-
-        if (strcmp(argv[x], "-n") == 0)
-            sr.nolospath = true;
-
-        if (strcmp(argv[x], "-dbm") == 0)
-            sr.dbm = true;
-
-        if (strcmp(argv[x], "-sc") == 0)
-            sr.smooth_contours = true;
-
-        if (strcmp(argv[x], "-st") == 0)
-            sr.multithread = false;
-
-        if (strcmp(argv[x], "-itwom") == 0)
-            sr.propagation_model = PROP_ITWOM;
-
-        if (strcmp(argv[x], "-N") == 0) {
-            sr.nolospath = true;
-            sr.nositereports = true;
-        }
-
-        if (strcmp(argv[x], "-d") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-')
-                sr.sdf_path = argv[z];
-        }
-
-        if (strcmp(argv[x], "-t") == 0) {
-            /* Read Transmitter Location */
-
-            z = x + 1;
-
-            while (z <= y && argv[z][0] && argv[z][0] != '-' &&
-                   options.tx_site_files.size() < 30) {
-                options.tx_site_files.push_back(argv[z]);
-                z++;
-            }
-
-            z--;
-        }
-
-        if (strcmp(argv[x], "-L") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                sscanf(argv[z], "%lf", &sr.altitudeLR);
-                sr.map = true;
-                sr.LRmap = true;
-                sr.area_mode = true;
-
-                if (sr.coverage)
-                    fprintf(stdout,
-                            "c and L are exclusive options, ignoring L.\n");
-            }
-        }
-
-        if (strcmp(argv[x], "-l") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                options.longley_file = argv[z];
-                sr.longley_plot = true;
-                sr.pt2pt_mode = true;
-            }
-        }
-
-        if (strcmp(argv[x], "-r") == 0) {
-            /* Read Receiver Location */
-
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                options.rx_site_file = argv[z];
-                sr.rxsite = true;
-                sr.pt2pt_mode = true;
-            }
-        }
-
-        if (strcmp(argv[x], "-s") == 0) {
-            /* Read city file(s) */
-
-            z = x + 1;
-
-            while (z <= y && argv[z][0] && argv[z][0] != '-') {
-                options.city_files.push_back(argv[z]);
-                z++;
-            }
-
-            z--;
-        }
-
-        if (strcmp(argv[x], "-b") == 0) {
-            /* Read Boundary File(s) */
-
-            z = x + 1;
-
-            while (z <= y && argv[z][0] && argv[z][0] != '-') {
-                options.boundary_files.push_back(argv[z]);
-                z++;
-            }
-
-            z--;
-        }
-
-        if (strcmp(argv[x], "-f") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                sscanf(argv[z], "%lf", &(sr.forced_freq));
-
-                if (sr.forced_freq < 20.0)
-                    sr.forced_freq = 0.0;
-
-                if (sr.forced_freq > 20.0e3)
-                    sr.forced_freq = 20.0e3;
-            }
-        }
-
-        if (strcmp(argv[x], "-erp") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                sscanf(argv[z], "%lf", &(sr.forced_erp));
-
-                if (sr.forced_erp < 0.0)
-                    sr.forced_erp = -1.0;
-            }
-        }
-
-        if (strcmp(argv[x], "-ano") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-')
-                options.ano_filename = argv[z];
-        }
-
-        if (strcmp(argv[x], "-ani") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-')
-                options.ani_filename = argv[z];
-        }
-
-        if (strcmp(argv[x], "-maxpages") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                std::string maxpages_str = argv[z];
-                if (sscanf(maxpages_str.c_str(), "%d", &sr.maxpages) != 1) {
-                    options.parse_error = true;
-                    options.error_message =
-                        "Could not parse maxpages: " + maxpages_str;
-                    return false;
-                }
-            }
-        }
-
-        if (strcmp(argv[x], "-sdelim") == 0) {
-            z = x + 1;
-
-            if (z <= y && argv[z][0] && argv[z][0] != '-') {
-                sr.sdf_delimiter = argv[z];
-            }
-        }
-
-        if (strcmp(argv[x], "-hd") == 0) {
-            sr.hd_mode = true;
-        }
-    } /* end of command line argument scanning */
 
     return true;
 }
 
-bool ValidateCommandLine(const SplatRun &sr, const CommandLineOptions &options) {
+bool ValidateCommandLine(const SplatRun &sr,
+                         const CommandLineOptions &options) {
     // Check for transmitter sites
     if (options.tx_site_files.empty()) {
         std::cerr << "\n*** ERROR: No transmitter site(s) specified!\n\n";
         return false;
     }
 
-    // Validate maxpages
+    // Validate maxpages is one of the allowed values
     switch (sr.maxpages) {
     case 1:
-        if (!sr.hd_mode) {
-            std::cerr
-                << "\n*** ERROR: -maxpages must be >= 4 if not in HD mode!\n\n";
-            return false;
-        }
-        break;
     case 4:
     case 9:
     case 16:
@@ -531,8 +358,16 @@ bool ValidateCommandLine(const SplatRun &sr, const CommandLineOptions &options) 
     case 64:
         break;
     default:
-        std::cerr << "\n*** ERROR: -maxpages must be one of 1, 4, 9, 16, 25, 36, "
-                     "49, 64\n\n";
+        std::cerr
+            << "\n*** ERROR: -maxpages must be one of 1, 4, 9, 16, 25, 36, "
+               "49, 64\n\n";
+        return false;
+    }
+
+    // Validate maxpages with HD mode
+    if (sr.maxpages == 1 && ! sr.hd_mode) {
+        std::cerr
+            << "\n*** ERROR: -maxpages must be >= 4 if not in HD mode!\n\n";
         return false;
     }
 
