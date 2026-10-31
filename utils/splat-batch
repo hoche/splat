@@ -1,0 +1,23 @@
+#!/usr/bin/env python3
+"""splat-batch entry point; see utils/splat_batch/README.md."""
+
+import os
+import sys
+
+_HERE = os.path.dirname(os.path.realpath(__file__))
+_CANDIDATES = [
+    _HERE,  # running from the source tree (utils/)
+    # installed: bin/splat-batch with package under share/splat/
+    os.path.normpath(os.path.join(_HERE, "..", "share", "splat")),
+    os.path.normpath(os.path.join(_HERE, "..", "lib", "splat")),
+]
+for path in _CANDIDATES:
+    if os.path.isdir(os.path.join(path, "splat_batch")):
+        if path not in sys.path:
+            sys.path.insert(0, path)
+        break
+
+from splat_batch.cli import main  # noqa: E402
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -14,9 +14,9 @@
 
 class Region {
   public:
-    unsigned char color[32][3];
-    int level[32];
-    int levels;
+    unsigned char color[32][3] = {};
+    int level[32] = {};
+    int levels = 0;
 
     void LoadLossColors(const Site &xmtr);
     void LoadDBMColors(const Site &xmtr);

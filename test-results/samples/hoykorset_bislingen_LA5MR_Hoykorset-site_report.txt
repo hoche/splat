@@ -1,0 +1,21 @@
+
+	--==[ SPLAT! v2.0-alpha Site Analysis Report For: LA5MR_Hoykorset ]==--
+
+---------------------------------------------------------------------------
+
+Site location: 60.4782 North / 349.3982 West (60° 28' 41" N / 349° 23' 53" W)
+Ground elevation: 737.00 meters AMSL
+Antenna height: 6.00 meters AGL / 743.00 meters AMSL
+Antenna height above average terrain: 269.32 meters
+
+Average terrain at   0 degrees azimuth: 506.11 meters AMSL
+Average terrain at  45 degrees azimuth: 522.02 meters AMSL
+Average terrain at  90 degrees azimuth: 612.80 meters AMSL
+Average terrain at 135 degrees azimuth: 658.97 meters AMSL
+Average terrain at 180 degrees azimuth: 424.02 meters AMSL
+Average terrain at 225 degrees azimuth: 254.10 meters AMSL
+Average terrain at 270 degrees azimuth: 340.37 meters AMSL
+Average terrain at 315 degrees azimuth: 471.05 meters AMSL
+
+---------------------------------------------------------------------------
+

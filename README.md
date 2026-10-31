@@ -2,6 +2,23 @@
 
 A Terrestrial RF Path and Terrain Analysis Tool for Unix/Linux
 
+## Table of contents
+
+- [About](#about)
+- [Dependencies / packages](#dependencies--packages)
+- [Building](#building)
+- [Installation](#installation)
+- [Running](#running)
+- [Mapterhorn](#mapterhorn-terrain-optional)
+- [splat-batch](#splat-batch)
+- [Testing / test results](#testing-and-code-quality)
+- [LA5MR batch results](docs/la5mr_batch_results.md)
+- [test-results/](test-results/) (checked-in LA5MR batch outputs)
+- [Changes](#changes)
+- [To Do](#to-do)
+- [Note about lrp files](#note-about-lrp-files)
+- [Acknowledgements](#acknowledgements)
+
 ## About
 
 This version is a refactoring of the code in 1.5, along with some enhancements to support GDAL.
@@ -17,11 +34,97 @@ card in the hopes of even more speed improvements. In preparation for this, itwo
 made fully C99-compliant, as all the current implementations of OpenCL drivers require
 that. (Later versions of OpenCL allow C++, but none of the common GPU drivers support that).
 
+Optional **Mapterhorn** terrain support builds SDF pages on demand from PMTiles WebP
+elevation tiles (`-mapterhorn`). The **splat-batch** Python driver runs many per-repeater
+coverage jobs and writes GeoJSON / FlatGeobuf polygons. See the sections below and
+[docs/test_results.md](docs/test_results.md) for verified acceptance results.
+
+## Dependencies / packages
+
+### Required for SPLAT!
+
+- CMake (3.16 or newer)
+- A C++17 compiler (gcc or clang)
+- zlib
+- libbz2 (bzip2)
+
+### Optional image libraries
+
+SPLAT! builds without these, but output will be large, low-quality `.ppm` files unless
+PNG/JPEG (and optionally GDAL) are present:
+
+- libpng
+- libjpeg
+- libgdal
+
+### Optional: Mapterhorn (`-mapterhorn`, `mapterhorn2sdf`)
+
+- libcurl
+- libwebp
+
+Without libcurl and libwebp, SPLAT! still builds normally, but the `-mapterhorn`
+options and the `mapterhorn2sdf` helper are disabled.
+
+### Optional: splat-batch
+
+- Python 3
+- numpy
+- shapely
+- GDAL CLI tools: `gdal_translate`, `gdal_polygonize` (or `gdal_polygonize.py`), `ogr2ogr`
+
+### Graphs
+
+- gnuplot (for path-profile graphs)
+
+### Centos 7
+
+```
+yum install cmake gcc-c++ bzip2-devel zlib-devel libpng-devel libjpeg-turbo-devel \
+  gdal-devel libcurl-devel libwebp-devel gnuplot \
+  python3 python3-numpy python3-shapely gdal
+```
+
+Package names for Python/GDAL CLI vary by CentOS/RHEL release; adjust if needed.
+
+### Debian and Ubuntu
+
+Supported examples:
+
+- Debian Trixie and Ubuntu 24.04 LTS
+- Debian Bookworm and Ubuntu 22.04 LTS
+- Debian Bullseye and Ubuntu 20.04 LTS
+- Debian Buster and Ubuntu 18.04 LTS
+
+```
+apt-get install cmake g++ clang libbz2-dev zlib1g-dev \
+  libjpeg-dev libpng-dev libgdal-dev \
+  libcurl4-openssl-dev libwebp-dev gnuplot \
+  python3 python3-numpy python3-shapely gdal-bin
+```
+
+### macOS / Homebrew
+
+Works on both Intel and Apple Silicon (ARM). Install [Homebrew](https://brew.sh/), then:
+
+```
+brew install cmake ninja jpeg libpng libgdal curl webp bzip2 zlib gnuplot python numpy
+```
+
+Install shapely (`pip3 install shapely` or `brew install shapely`) and ensure GDAL CLI
+tools are on `PATH` (Homebrew `gdal` provides them).
+
+### Windows
+
+See [Building on Windows](#building-on-windows) below and
+[README_VisualStudio.md](README_VisualStudio.md) for Visual Studio details.
+
 ## Building
 
-For this version, you must have CMake and either gcc or clang installed, and it must be a version that supports at least C++17.
+You must have CMake and a C++17 compiler (gcc, clang, or MSVC on Windows).
 
-**Note**: The build system automatically prefers Clang if available (for better sanitizer support), but will fall back to GCC if Clang is not found. You can override this by setting `CC` and `CXX` environment variables:
+**Note**: On Unix-like systems the build prefers Clang if available (for better sanitizer
+support), but falls back to GCC if Clang is not found. You can override this by setting
+`CC` and `CXX` environment variables:
 
 ```bash
 # Use GCC explicitly
@@ -34,64 +137,148 @@ CC=clang CXX=clang++ cmake -B build
 cmake -B build
 ```
 
-You also need a few utility libraries:
-* libbzip2
-* zlib
+### Compile on Linux (CMake)
 
-In addition, the following image-generation libraries are helpful. It will work without them but will create poor-quality and large .ppm files:
-* libpng
-* libjpeg
-* libgdal
+From the repository root:
 
-Finally, you need gnuplot for generating graphs.
+```bash
+git clone https://github.com/Supermagnum/splat.git
+cd splat
+mkdir build
+cd build
+cmake ..
+cmake --build . -j
+```
 
+Equivalently, from the repository root with the top-level Makefile (creates `build/`,
+runs `cmake --fresh`, then `cmake --build`):
 
-You can generally get these via system packages. For instance:
+```bash
+make
+```
 
-### Centos 7:
+CMake reports whether Mapterhorn support is enabled. If libcurl or libwebp is missing,
+you will see `Mapterhorn support disabled`; `splat` and the other utilities still build.
 
-`yum install cmake bzip2-devel zlib-devel libpng-devel libjpeg-turbo-devel libgdal-devel gnuplot`
+### Example build on Ubuntu 24.04 LTS
 
-### Debian and Ubuntu
-
-- Debian Trixie and Ubuntu 24.04 LTS
-- Debian Bookworm and Ubuntu 22.04 LTS
-- Debian Bullseye and Ubuntu 20.04 LTS
-- Debian Buster and Ubuntu 18.04 LTS
-
-`apt-get install cmake libbz2-dev zlib1g-dev libjpeg-dev libpng-dev libgdal-dev gnuplot`
-
-### OSX (High Sierra):
-
-#### Homebrew
-
-`brew install cmake jpeg libpng libgdal gnuplot`
-
-### Example Build on Ubuntu 24.04 LTS
-As an example, a build on Ubuntu 24.04 LTS might look like this after installing packages as indicated above:
+After installing packages as indicated above:
 
 ```
-git clone https://github.com/hoche/splat.git
+git clone https://github.com/Supermagnum/splat.git
 mkdir splat/build
 cd splat/build
 cmake ..
 make
 ```
 
-### Microsoft Windows
-See [README_VisualStudio.md](README_VisualStudio.md)
+### Building on macOS
+
+After installing Homebrew packages as indicated above:
+
+```bash
+git clone https://github.com/Supermagnum/splat.git
+cd splat
+cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j
+```
+
+On Apple Silicon, if CMake cannot find Homebrew libraries under `/opt/homebrew`, pass the
+prefix explicitly:
+
+```bash
+cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_PREFIX_PATH="$(brew --prefix)"
+cmake --build build -j
+```
+
+The `splat` binary is then at `build/splat`. Install with:
+
+```bash
+cmake --install build
+```
+
+### Building on Windows
+
+SPLAT! is a console application. Use Visual Studio 2019 or newer (Community Edition is
+fine), or another C++17 toolchain, with [CMake](https://cmake.org/) and
+[vcpkg](https://vcpkg.io/) for dependencies.
+
+**Note:** On Windows, SDF filenames must use `_` instead of `:` (for example
+`44_45_120_121.sdf` instead of `44:45:120:121.sdf`). Unix and macOS accept either form.
+
+#### 1. Install tools
+
+- Visual Studio 2019+ with the "Desktop development with C++" workload, **or**
+  Build Tools for Visual Studio
+- [Git](https://git-scm.com/)
+- CMake (or `choco install cmake ninja`)
+
+#### 2. Install libraries with vcpkg
+
+From a Developer PowerShell or Command Prompt:
+
+```powershell
+git clone https://github.com/Microsoft/vcpkg.git
+.\vcpkg\bootstrap-vcpkg.bat
+.\vcpkg\vcpkg install bzip2:x64-windows zlib:x64-windows libpng:x64-windows `
+  libjpeg-turbo:x64-windows gdal:x64-windows curl:x64-windows libwebp:x64-windows
+```
+
+Adjust the triplet (`x64-windows`, `arm64-windows`, …) to match your platform.
+
+#### 3. Configure and build
+
+```powershell
+git clone https://github.com/Supermagnum/splat.git
+cd splat
+cmake -B build -DCMAKE_TOOLCHAIN_FILE="..\vcpkg\scripts\buildsystems\vcpkg.cmake" `
+  -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release -j
+```
+
+If `vcpkg` lives elsewhere, set `CMAKE_TOOLCHAIN_FILE` to that clone's
+`scripts\buildsystems\vcpkg.cmake`. The executable is typically
+`build\Release\splat.exe` (or `build\splat.exe` with Ninja).
+
+#### 4. Optional: Visual Studio GUI
+
+Open the repository folder in Visual Studio (File -> Open -> Folder), ensure the CMake
+settings use the vcpkg toolchain file, then build from the CMake menu. See
+[README_VisualStudio.md](README_VisualStudio.md) for more detail.
+
+For path-profile graphs, install [gnuplot](https://sourceforge.net/projects/gnuplot/)
+or `choco install gnuplot`.
 
 ## Installation
-After building, run
 
-    make install
+From the `build` directory after a successful compile:
+
+```bash
+cmake --install .
+# or:
+make install
+```
+
+Default install layout (prefix is usually `/usr/local`):
+
+| Target | When installed | Destination |
+|--------|----------------|-------------|
+| `splat` | always | `bin/` |
+| `mapterhorn2sdf` | only if libcurl and libwebp were found at configure time | `bin/` |
+| `splat-batch` | always (Python launcher) | `bin/` |
+| `splat_batch` package | always | `share/splat/splat_batch/` |
+| other utils (`srtm2sdf`, `bearing`, ...) | always | `bin/` |
+
+Use `cmake --install . --prefix /path/to/prefix` to choose a non-default prefix.
 
 ## Running
 
 Topography data must be downloaded and SPLAT Data Files must
 be generated using the included `srtm2sdf`, `postdownload`, or `usgs2sdf`
 utilities before using SPLAT!  Instructions for doing so are included
-in the documentation.
+in the documentation. Alternatively, use [Mapterhorn](#mapterhorn-terrain-optional)
+to generate SDF pages on demand.
 
 It is a good practice to create a working directory for SPLAT! use
 under your home directory:
@@ -113,6 +300,40 @@ need to be available for the entire region surrounding the site(s)
 being analyzed.  SPLAT! Data Files can be placed under your SPLAT!
 working directory, or under a separate directory specified in your
 `$HOME/.splat_path` file so SPLAT! can easily find them.
+
+### Mapterhorn terrain (optional)
+
+Instead of generating SDF files by hand, SPLAT! can build them on demand from
+[Mapterhorn](https://mapterhorn.com) terrain data stored in a PMTiles archive.
+Add `-mapterhorn` to the command line; the needed 1x1 degree SDF pages are
+generated by the `mapterhorn2sdf` helper into the directory given by `-mt-cache`
+(default: the `-d` directory, else `./sdf-cache`):
+
+    splat -hd -t site.qth -L 1.5 -R 100 -mapterhorn \
+          -mt-source /data/mapterhorn/norway.pmtiles -mt-cache /data/sdf -o site
+
+This requires libcurl and libwebp at build time. For production use, point
+`-mt-source` at a local PMTiles extract rather than the public server. See the
+Mapterhorn section of [docs/manual/english/splat.md](docs/manual/english/splat.md),
+the `mapterhorn2sdf` and `splat-batch` sections of [utils/README.md](utils/README.md),
+and [docs/data_file_formats.md](docs/data_file_formats.md) for details.
+
+Terrain data: Mapterhorn. Attribution is required: https://mapterhorn.com/attribution
+
+### splat-batch
+
+`splat-batch` (installed from `utils/splat-batch`, package under `utils/splat_batch`)
+runs many independent SPLAT! coverage jobs from a repeater list (`.joz`, GeoJSON, or
+CSV), optionally prefetches Mapterhorn terrain, polygonizes hear/talk areas, and writes
+per-county GeoJSON and FlatGeobuf. Example:
+
+    splat-batch --input repeaters.joz --out-dir ./out \
+      --mapterhorn --mt-source /data/norway.pmtiles --mt-cache /data/sdf \
+      --splat-bin ./build/splat --hd --workers 4
+
+See [utils/README.md](utils/README.md) and [utils/splat_batch/README.md](utils/splat_batch/README.md)
+for inputs, caching, ITM error handling, and options. Python/numpy/shapely and the GDAL
+CLI tools listed under [Dependencies](#dependencies--packages) are required.
 
 Please read the README file under the utils directory for information
 on the utilities included with SPLAT!.
@@ -185,6 +406,12 @@ The build system has been converted to CMake.
     
   * Much much code documenting was done. There remains a lot to do though.
 
+* Mapterhorn and splat-batch
+
+  * Optional `-mapterhorn` / `-mt-*` flags generate SDF pages on demand via `mapterhorn2sdf`
+    (requires libcurl and libwebp).
+  * `splat-batch` batch-runs coverage jobs and writes per-county polygons.
+
 ## To Do
 
 * Since we have to link to zlib for the pngs, we might as well create kmz files if asked.
@@ -202,7 +429,16 @@ in your ~/.vimrc.
 
 ## Testing and Code Quality
 
-SPLAT! includes comprehensive testing and code quality tools:
+SPLAT! includes comprehensive testing and code quality tools.
+
+Verified acceptance results for Mapterhorn and splat-batch (unit-test counts, terrain
+checks, path-loss comparison, batch dry-run, despike, ITM error handling, and related
+notes) are in **[docs/test_results.md](docs/test_results.md)**.
+
+A limited LA5MR-network-only splat-batch run (11 jobs; full Norway not run) is
+documented in **[docs/la5mr_batch_results.md](docs/la5mr_batch_results.md)**.
+County GeoJSON/FlatGeobuf, Google Earth KML/KMZ, coverage-map and gnuplot
+path-profile samples from that run are in **[test-results/](test-results/)**.
 
 ### Running Tests
 
@@ -249,5 +485,6 @@ make check-all      # Run all checks (comprehensive)
 For detailed information about each tool, see [TESTING.md](TESTING.md).
 
 ## Acknowledgements
+
 This project and code is based on the original SPLAT! version 1.4.2 by John A. Magliacane, KD2BD:
 http://www.qsl.net/kd2bd/splat.html

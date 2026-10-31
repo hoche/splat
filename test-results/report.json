@@ -1,0 +1,71 @@
+{
+ "attribution": {
+  "terrain": "Mapterhorn",
+  "url": "https://mapterhorn.com/attribution",
+  "note": "Required whenever these coverage polygons are redistributed or shown in an application."
+ },
+ "jobs_run": 11,
+ "jobs_cached": 0,
+ "jobs_failed": 0,
+ "jobs_skipped": 0,
+ "itm_error_3": 11,
+ "itm_error_ge_4": 0,
+ "itm_error_3_jobs": [
+  "LA2KRR_434650",
+  "LA2TRR_145238",
+  "LA5MR_12635462528_145625",
+  "LA5MR_1473491257_145625",
+  "LA5MR_5576503609_145625",
+  "LA5MR_BISLINGEN_145638",
+  "LA5MR_HOYKORSET_145625",
+  "LA5TRR_145725",
+  "LA6JRR_145662",
+  "LA6NR_145775",
+  "LA9AR_145600"
+ ],
+ "skip_reasons": {},
+ "run": [
+  "LA2KRR_434650",
+  "LA2TRR_145238",
+  "LA5MR_12635462528_145625",
+  "LA5MR_1473491257_145625",
+  "LA5MR_5576503609_145625",
+  "LA5MR_BISLINGEN_145638",
+  "LA5MR_HOYKORSET_145625",
+  "LA5TRR_145725",
+  "LA6JRR_145662",
+  "LA6NR_145775",
+  "LA9AR_145600"
+ ],
+ "cached": [],
+ "failed": [],
+ "skipped": [],
+ "outputs": [
+  {
+   "path": "/tmp/splat-batch-la5mr/Buskerud.fgb",
+   "bytes": 13704080
+  },
+  {
+   "path": "/tmp/splat-batch-la5mr/Buskerud.geojson",
+   "bytes": 16910731
+  },
+  {
+   "path": "/tmp/splat-batch-la5mr/Innlandet.fgb",
+   "bytes": 126416112
+  },
+  {
+   "path": "/tmp/splat-batch-la5mr/Innlandet.geojson",
+   "bytes": 160776778
+  },
+  {
+   "path": "/tmp/splat-batch-la5mr/Unknown.fgb",
+   "bytes": 14228144
+  },
+  {
+   "path": "/tmp/splat-batch-la5mr/Unknown.geojson",
+   "bytes": 17694794
+  }
+ ],
+ "total_output_bytes": 349730639,
+ "elapsed_s": 1645.4
+}

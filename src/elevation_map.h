@@ -19,6 +19,7 @@
 #include "site.h"
 #include "splat_run.h"
 
+#include <atomic>
 #include <stdio.h>
 #include <string>
 #include <vector>
@@ -32,6 +33,7 @@ class ElevationMap {
     const SplatRun &sr;
     double avgpathlen;
     int totalpaths;
+    std::atomic<int> max_itm_errnum{0};
 
   public:
     std::vector<Dem> dem;

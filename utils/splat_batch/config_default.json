@@ -1,0 +1,95 @@
+{
+  "params_version": "1",
+
+  "splat_bin": "splat",
+  "hd": false,
+  "splat_extra_args": [],
+  "auto_maxpages": true,
+  "splat_timeout_s": 7200,
+
+  "tx_height_m": 6.0,
+  "rx_height_m": 1.5,
+
+  "radius_km": 100.0,
+  "radius_high_km": 150.0,
+  "high_site_elevation_m": 600.0,
+  "high_site_height_m": 100.0,
+  "high_site_callsigns": [],
+
+  "lrp": {
+    "dielectric": 15.0,
+    "conductivity": 0.005,
+    "bending": 301.0,
+    "polarization": 1,
+    "fraction_situations": 0.9,
+    "fraction_time": 0.9,
+    "erp": 0
+  },
+
+  "climates": {
+    "default": 7,
+    "by_county": {},
+    "by_callsign": {}
+  },
+
+  "bands": [
+    {"name": "2m",   "min_mhz": 144.0, "max_mhz": 146.0, "hear_db": 153, "talk_db": 145},
+    {"name": "70cm", "min_mhz": 430.0, "max_mhz": 440.0, "hear_db": 160, "talk_db": 152}
+  ],
+
+  "colors": {
+    "talk": [0, 255, 0],
+    "hear": [255, 255, 0]
+  },
+
+  "skip": {
+    "flags": ["qrt"],
+    "data_only_modulations": ["20K0F2D", "12K5F1D"],
+    "skip_data_only": true,
+    "layers": ["fylker"],
+    "disagreement_flag": "disagreement",
+    "allow_single_position_disagreement": true,
+    "position_tolerance_m": 50.0
+  },
+
+  "tags": {
+    "callsign": ["callsign"],
+    "frequency": ["frequency", "communication:amateur_radio:repeater:frequency_out", "frequency_out"],
+    "modulation": ["communication:amateur_radio:repeater:modulation", "modulation"],
+    "flags": ["flags"],
+    "county": ["county"],
+    "elevation": ["ele", "elevation"],
+    "height": ["height", "tx_height"],
+    "resolved_lat": ["resolved_lat"],
+    "resolved_lon": ["resolved_lon"]
+  },
+
+  "mapterhorn": {
+    "enabled": false,
+    "source": null,
+    "cache": null,
+    "zoom": null,
+    "bin": "mapterhorn2sdf",
+    "bbox_margin_deg": 0.1,
+    "splat_args": ["-mapterhorn", "-mt-source", "{source}", "-mt-cache", "{cache}"],
+    "zoom_args": ["-mt-zoom", "{zoom}"]
+  },
+
+  "postprocess": {
+    "simplify_tolerance_m": 100.0,
+    "min_area_ha": 2.0,
+    "coord_decimals": 6
+  },
+
+  "output": {
+    "formats": ["geojson", "flatgeobuf"]
+  },
+
+  "tools": {
+    "gdal_translate": "gdal_translate",
+    "gdal_polygonize": null,
+    "ogr2ogr": "ogr2ogr"
+  },
+
+  "keep_work": false
+}

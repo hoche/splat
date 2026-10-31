@@ -87,6 +87,17 @@ void PrintHelp(const SplatRun &sr) {
            "  -sdelim ["
         << sr.sdf_delimiter
         << "] Lat and lon delimeter in SDF filenames \n"
+#ifdef HAVE_MAPTERHORN
+           "-mapterhorn use Mapterhorn as the terrain source (generates SDF "
+           "files on demand)\n"
+           "-mt-source <path|url> PMTiles source (default "
+           "https://download.mapterhorn.com/planet.pmtiles)\n"
+           "-mt-zoom <z> Mapterhorn zoom level (default 12 with -hd, 10 "
+           "otherwise)\n"
+           "-mt-cache <dir> directory for generated SDF files (default: the "
+           "-d directory, else ./sdf-cache)\n"
+           "-mt-offline never use the network; fail if tiles are missing\n"
+#endif
            "\n"
            "See the documentation for more details.\n\n";
 }
@@ -309,6 +320,11 @@ bool ParseCommandLine(int argc, const char *argv[], SplatRun &sr,
         if (strcmp(argv[x], "-imperial") == 0)
             sr.metric = false;
 
+        /* Classic SPLAT! accepted -metric; metric units are already the
+         * default in this build, so the switch is a no-op for compatibility. */
+        if (strcmp(argv[x], "-metric") == 0)
+            sr.metric = true;
+
         if (strcmp(argv[x], "-msl") == 0)
             sr.msl = true;
 
@@ -500,6 +516,54 @@ bool ParseCommandLine(int argc, const char *argv[], SplatRun &sr,
 
         if (strcmp(argv[x], "-hd") == 0) {
             sr.hd_mode = true;
+        }
+
+        if (strcmp(argv[x], "-mapterhorn") == 0) {
+#ifdef HAVE_MAPTERHORN
+            sr.mapterhorn = true;
+#else
+            options.parse_error = true;
+            options.error_message =
+                "SPLAT! was built without Mapterhorn support (libcurl/libwebp "
+                "required)";
+            return false;
+#endif
+        }
+
+        if (strcmp(argv[x], "-mt-offline") == 0) {
+            sr.mt_offline = true;
+        }
+
+        if (strcmp(argv[x], "-mt-source") == 0) {
+            z = x + 1;
+
+            if (z <= y && argv[z][0] && argv[z][0] != '-') {
+                sr.mt_source = argv[z];
+            }
+        }
+
+        if (strcmp(argv[x], "-mt-cache") == 0) {
+            z = x + 1;
+
+            if (z <= y && argv[z][0] && argv[z][0] != '-') {
+                sr.mt_cache = argv[z];
+            }
+        }
+
+        if (strcmp(argv[x], "-mt-zoom") == 0) {
+            z = x + 1;
+
+            if (z <= y && argv[z][0] && argv[z][0] != '-') {
+                std::string zoom_str = argv[z];
+                if (sscanf(zoom_str.c_str(), "%d", &sr.mt_zoom) != 1 ||
+                    sr.mt_zoom < 1 || sr.mt_zoom > 20) {
+                    options.parse_error = true;
+                    options.error_message =
+                        "-mt-zoom must be an integer from 1 to 20: " +
+                        zoom_str;
+                    return false;
+                }
+            }
         }
     } /* end of command line argument scanning */
 

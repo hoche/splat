@@ -57,6 +57,22 @@ else()
     message(STATUS "GDAL support disabled - libgdal not found")
 endif()
 
+# Mapterhorn terrain support needs libcurl and libwebp. splat itself only
+# shells out to the mapterhorn2sdf helper, but the -mapterhorn options are
+# only enabled when the helper can be built.
+find_package(CURL)
+find_path(WEBP_INCLUDE_DIR NAMES webp/decode.h)
+find_library(WEBP_LIBRARY NAMES webp)
+
+if(CURL_FOUND AND WEBP_INCLUDE_DIR AND WEBP_LIBRARY)
+    set(MAPTERHORN_ENABLED TRUE)
+    add_compile_definitions(HAVE_MAPTERHORN)
+    message(STATUS "Mapterhorn support enabled")
+else()
+    set(MAPTERHORN_ENABLED FALSE)
+    message(STATUS "Mapterhorn support disabled - libcurl and libwebp are required")
+endif()
+
 # Explicitly list all source files for the main executable
 # This is preferred over GLOB_RECURSE because CMake will automatically
 # detect when new files are added to the list
@@ -76,6 +92,7 @@ set(SPLAT_SOURCES
     src/kml.cpp
     src/lrp.cpp
     src/main.cpp
+    src/mapterhorn.cpp
     src/path.cpp
     src/region.cpp
     src/report.cpp
@@ -131,6 +148,32 @@ endif()
 # Installation
 install(TARGETS splat DESTINATION bin)
 
+# Helper that generates SDF files from Mapterhorn PMTiles data on demand
+if(MAPTERHORN_ENABLED)
+    add_executable(mapterhorn2sdf utils/mapterhorn2sdf.cpp)
+    target_include_directories(mapterhorn2sdf PRIVATE
+        third_party/pmtiles
+        ${WEBP_INCLUDE_DIR}
+        ${BZIP2_INCLUDE_DIRS}
+        ${ZLIB_INCLUDE_DIRS}
+    )
+    target_link_libraries(mapterhorn2sdf PRIVATE
+        CURL::libcurl
+        ${WEBP_LIBRARY}
+        ${ZLIB_LIBRARIES}
+        ${BZIP2_LIBRARIES}
+        Threads::Threads
+    )
+    install(TARGETS mapterhorn2sdf DESTINATION bin)
+endif()
+
+# Batch coverage driver (Python). Install the package next to the scripts so
+# `splat-batch` can import splat_batch after installation.
+install(PROGRAMS utils/splat-batch DESTINATION bin)
+install(DIRECTORY utils/splat_batch/
+        DESTINATION share/splat/splat_batch
+        PATTERN "__pycache__" EXCLUDE)
+
 # ==============================================================================
 # Testing Configuration
 # ==============================================================================
@@ -184,6 +227,7 @@ set(TEST_REQUIRED_SOURCES
     src/json.cpp
     src/kml.cpp
     src/lrp.cpp
+    src/mapterhorn.cpp
     # NOTE: src/main.cpp is intentionally excluded - tests use gtest_main instead
     src/path.cpp
     src/region.cpp

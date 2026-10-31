@@ -1,0 +1,29 @@
+
+		--==[ SPLAT! v2.0-alpha Path Analysis ]==--
+
+---------------------------------------------------------------------------
+
+Transmitter site: LA5MR_Hoykorset
+Site location: 60.4782 North / 349.3982 West (60° 28' 41" N / 349° 23' 53" W)
+Ground elevation: 737.00 meters AMSL
+Antenna height: 6.00 meters AGL / 743.00 meters AMSL
+Antenna height above average terrain: 269.32 meters
+Distance to LA5MR_Bislingen: 27.61 kilometers
+Azimuth to LA5MR_Bislingen: 179.45 degrees
+Depression angle to LA5MR_Bislingen: -0.2403 degrees
+
+---------------------------------------------------------------------------
+
+Receiver site: LA5MR_Bislingen
+Site location: 60.2299 North / 349.3934 West (60° 13' 47" N / 349° 23' 36" W)
+Ground elevation: 681.00 meters AMSL
+Antenna height: 6.00 meters AGL / 687.00 meters AMSL
+Antenna height above average terrain: 260.29 meters
+Distance to LA5MR_Hoykorset: 27.61 kilometers
+Azimuth to LA5MR_Hoykorset: 359.45 degrees
+Depression angle to LA5MR_Hoykorset: -0.0079 degrees
+
+---------------------------------------------------------------------------
+
+
+No obstructions to LOS path due to terrain were detected by SPLAT!

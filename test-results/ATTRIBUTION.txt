@@ -1,0 +1,5 @@
+Terrain data: Mapterhorn
+Attribution (required): https://mapterhorn.com/attribution
+
+Include this credit wherever these coverage polygons are
+redistributed, packaged, or shown in an application.

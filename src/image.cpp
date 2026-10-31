@@ -583,6 +583,9 @@ int Image::GetIndexForColorKeyImageFile(MapType maptype, Region &region, int x0,
 void Image::WriteColorKeyImageFile(const std::string &ckfile,
                                    ImageType imagetype, MapType maptype,
                                    Region &region) {
+    if (region.levels <= 0)
+        return;
+
     unsigned int height = 30 * region.levels;
     unsigned int width = 100;
 
@@ -596,7 +599,7 @@ void Image::WriteColorKeyImageFile(const std::string &ckfile,
                                                         y0);  // end pathloss
 
                 Pixel pixel;
-                if (indx > region.levels) {
+                if (indx >= region.levels) {
                     pixel = COLOR_BLACK(0);
                 } else {
                     unsigned int red = region.color[indx][0];
@@ -825,6 +828,9 @@ int Image::GetIndexForLegend(int colorwidth, MapType maptype, Region &region,
 
 void Image::WriteLegend(ImageWriter &iw, MapType maptype, Region &region,
                         unsigned int width) {
+    if (region.levels <= 0)
+        return;
+
     int colorwidth = (int) rint((float) width / (float) region.levels);
 
     for (int y0 = 0; y0 < 30; y0++) {
@@ -832,7 +838,7 @@ void Image::WriteLegend(ImageWriter &iw, MapType maptype, Region &region,
             int indx = GetIndexForLegend(colorwidth, maptype, region, x0, y0);
 
             Pixel pixel;
-            if (indx > region.levels) {
+            if (indx >= region.levels) {
                 pixel = COLOR_BLACK(0);
             } else {
                 unsigned int red = region.color[indx][0];

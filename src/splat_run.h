@@ -99,6 +99,14 @@ class SplatRun {
     bool verbose;
     bool multithread;
     std::string sdf_delimiter;
+
+    bool mapterhorn = false;
+    bool mt_offline = false;
+    int mt_zoom = -1;                /* -1 = auto (12 for HD, 10 otherwise) */
+    std::string mt_source;           /* PMTiles path or URL, empty = default */
+    std::string mt_cache;            /* generated SDF directory */
+    std::string mapterhorn2sdf_path; /* optional mapterhorn2sdf override */
+
     ImageType imagetype;
     ProjectionType projection;
 };

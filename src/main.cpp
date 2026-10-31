@@ -24,6 +24,7 @@
 #include "json.h"
 #include "kml.h"
 #include "lrp.h"
+#include "mapterhorn.h"
 #include "path.h"
 #include "region.h"
 #include "report.h"
@@ -270,6 +271,12 @@ int main(int argc, const char *argv[]) {
     if (! sr.sdf_path.empty() && (*sr.sdf_path.rbegin() != '/')) {
         sr.sdf_path += '/';
     }
+
+    /* With Mapterhorn, SDF files are generated into (and loaded from) the
+     Mapterhorn cache directory. */
+    if (sr.mapterhorn) {
+        SetupMapterhorn(sr);
+    }
     Sdf sdf(sr.sdf_path, sr);
 
     // Now print the header:
@@ -387,6 +394,10 @@ int main(int argc, const char *argv[]) {
     }
 
     /* Load the required SDF files */
+    if (sr.mapterhorn &&
+        !EnsureMapterhornPages(sr, max_lon, min_lon, max_lat, min_lat)) {
+        exit(-1);
+    }
     em_p->LoadTopoData(max_lon, min_lon, max_lat, min_lat, sdf);
 
     if (sr.area_mode || sr.topomap) {
@@ -509,6 +520,10 @@ int main(int argc, const char *argv[]) {
         }
 
         /* Load any additional SDF files, if required */
+        if (sr.mapterhorn &&
+            !EnsureMapterhornPages(sr, max_lon, min_lon, max_lat, min_lat)) {
+            exit(-1);
+        }
         em_p->LoadTopoData(max_lon, min_lon, max_lat, min_lat, sdf);
     }
 

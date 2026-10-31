@@ -875,3 +875,48 @@ TEST_F(CommandLineParserTest, ConflictingCoverageAndPathLoss) {
     EXPECT_TRUE(sr.coverage);
     EXPECT_TRUE(sr.LRmap);
 }
+
+// Test Mapterhorn options
+TEST_F(CommandLineParserTest, MapterhornOptions) {
+    std::vector<std::string> args = {"splat",       "-t",
+                                     "tx.qth",      "-mapterhorn",
+                                     "-mt-zoom",    "11",
+                                     "-mt-cache",   "/tmp/x",
+                                     "-mt-source",  "planet.pmtiles",
+                                     "-mt-offline"};
+    auto argv = MakeArgv(args);
+
+    bool result = ParseCommandLine(args.size(), argv.data(), sr, options);
+
+#ifdef HAVE_MAPTERHORN
+    EXPECT_TRUE(result);
+    EXPECT_TRUE(sr.mapterhorn);
+    EXPECT_TRUE(sr.mt_offline);
+    EXPECT_EQ(sr.mt_zoom, 11);
+    EXPECT_EQ(sr.mt_cache, "/tmp/x");
+    EXPECT_EQ(sr.mt_source, "planet.pmtiles");
+#else
+    EXPECT_FALSE(result);
+    EXPECT_TRUE(options.parse_error);
+    EXPECT_FALSE(sr.mapterhorn);
+#endif
+}
+
+// Test that Mapterhorn is off by default and an invalid zoom is rejected
+TEST_F(CommandLineParserTest, MapterhornDefaultsAndBadZoom) {
+    std::vector<std::string> args = {"splat", "-t", "tx.qth"};
+    auto argv = MakeArgv(args);
+
+    EXPECT_TRUE(ParseCommandLine(args.size(), argv.data(), sr, options));
+    EXPECT_FALSE(sr.mapterhorn);
+    EXPECT_FALSE(sr.mt_offline);
+    EXPECT_EQ(sr.mt_zoom, -1);
+
+    std::vector<std::string> bad = {"splat", "-t", "tx.qth", "-mt-zoom", "99"};
+    auto bad_argv = MakeArgv(bad);
+    CommandLineOptions bad_options;
+
+    EXPECT_FALSE(
+        ParseCommandLine(bad.size(), bad_argv.data(), sr, bad_options));
+    EXPECT_TRUE(bad_options.parse_error);
+}

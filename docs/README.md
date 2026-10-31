@@ -9,6 +9,8 @@ docs/
 ├── README.md                 # This file
 ├── architecture.md           # System architecture and component overview
 ├── data_file_formats.md      # Complete guide to all SPLAT! data file formats
+├── test_results.md           # Mapterhorn / splat-batch acceptance results
+├── la5mr_batch_results.md    # Limited LA5MR splat-batch run (11 jobs)
 ├── CMakeLists.txt           # CMake build configuration for documentation
 └── manual/                  # Manual pages in multiple languages
     ├── english/
@@ -26,6 +28,9 @@ docs/
         └── CMakeLists.txt   # Build configuration for German manual
 ```
 
+For packages, compile, and install instructions, start with the top-level
+[README.md](../README.md).
+
 ## Documentation Files
 
 ### Core Documentation
@@ -40,6 +45,16 @@ docs/
   - File structure, examples, and usage guidelines
   - Includes: QTH, LRP, SDF, AZ, EL, LCF, SCF, DCF, ANO files
   - Data flow diagrams (Mermaid format)
+
+- **[test_results.md](test_results.md)** - Acceptance and verification results
+  - Unit-test counts, Mapterhorn terrain checks, path-loss comparison
+  - splat-batch dry-run, despike, ITM error reporting notes
+  - Explicitly records what was not completed (national production batch)
+
+- **[la5mr_batch_results.md](la5mr_batch_results.md)** - Limited LA5MR batch
+  - OSM relation/18780801 (11 members), joz positions, Bagn excluded
+  - 11 run / 0 failed; ITM error 3 kept
+  - Checked-in county/KML/plot samples: [test-results/](../test-results/)
 
 ### Manual Pages
 
@@ -81,14 +96,20 @@ Specific targets are available for each language:
 
 ### For New Users
 
-1. Start with the [English manual page](manual/english/splat.md) (Markdown version)
-2. Review [data_file_formats.md](data_file_formats.md) to understand input file formats
-3. Check [architecture.md](architecture.md) for system overview
+1. Build and install from the top-level [README.md](../README.md) (packages, CMake, install targets)
+2. Start with the [English manual page](manual/english/splat.md) (Markdown version)
+3. Review [data_file_formats.md](data_file_formats.md) to understand input file formats
+4. For Mapterhorn / batch coverage, see the manual Mapterhorn section,
+   [utils/README.md](../utils/README.md), [test_results.md](test_results.md),
+   and [la5mr_batch_results.md](la5mr_batch_results.md)
 
 ### For Developers
 
 1. [architecture.md](architecture.md) - System design and component architecture
 2. [data_file_formats.md](data_file_formats.md) - File format specifications
+3. [test_results.md](test_results.md) - Recent Mapterhorn / splat-batch verification
+4. [la5mr_batch_results.md](la5mr_batch_results.md) - Limited LA5MR batch results
+5. [TESTING.md](../TESTING.md) - How to run unit tests and sanitizers
 
 ### For Users in Other Languages
 

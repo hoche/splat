@@ -20,6 +20,7 @@
 #include "splat_run.h"
 #include "utilities.h"
 #include "workqueue.h"
+#include <atomic>
 #include <bzlib.h>
 #include <cmath>
 #include <cstdlib>
@@ -914,6 +915,8 @@ void ElevationMap::PlotLRMap(const Site &source, double altitude,
 
     count = 0;
 
+    max_itm_errnum.store(0);
+
     if (sr.propagation_model == PROP_ITM)
         fprintf(stdout, "\nComputing ITM ");
     else
@@ -1118,6 +1121,37 @@ void ElevationMap::PlotLRMap(const Site &source, double altitude,
     if (fd != NULL)
         fclose(fd);
 
+    {
+        int err = max_itm_errnum.load();
+        if (sr.propagation_model == PROP_ITM)
+            fprintf(stdout, "\nLongley-Rice model error number: %d", err);
+        else
+            fprintf(stdout, "\nITWOM model error number: %d", err);
+        switch (err) {
+        case 0:
+            fprintf(stdout, " (No error)\n");
+            break;
+        case 1:
+            fprintf(stdout, "\n  Warning: Some parameters are nearly out of "
+                            "range.\n");
+            break;
+        case 2:
+            fprintf(stdout, "\n  Note: Default parameters have been "
+                            "substituted for impossible ones.\n");
+            break;
+        case 3:
+            fprintf(stdout, "\n  Warning: A combination of parameters is out "
+                            "of range.\n");
+            fprintf(stdout, "  Results are probably invalid.\n");
+            break;
+        default:
+            fprintf(stdout, "\n  Warning: Some parameters are out of range.\n");
+            fprintf(stdout, "  Results are probably invalid.\n");
+            break;
+        }
+        fflush(stdout);
+    }
+
     if (sr.verbose) {
         fprintf(stdout, "\nDone!\n");
         fprintf(
@@ -1304,6 +1338,19 @@ void ElevationMap::PlotLRPath(const Site &source, const Site &destination,
                     lrp.eps_dielect, lrp.sgm_conductivity, lrp.eno_ns_surfref,
                     lrp.frq_mhz, lrp.radio_climate, lrp.pol, lrp.conf, lrp.rel,
                     loss, strmode, errnum);
+
+            /* Track the worst ITM/ITWOM error on paths of at least 2 km.
+             * ITM returns error 4 for any profile shorter than 1 km, and
+             * samples just above that floor are still noisy; using 2 km
+             * keeps the coverage summary from being dominated by the
+             * near-field radials. distance is in feet here. */
+            if (distance * METERS_PER_FOOT >= 2000.0) {
+                int prev = max_itm_errnum.load(std::memory_order_relaxed);
+                while (errnum > prev &&
+                       ! max_itm_errnum.compare_exchange_weak(
+                           prev, errnum, std::memory_order_relaxed)) {
+                }
+            }
 
             temp.lat = path.lat[y];
             temp.lon = path.lon[y];

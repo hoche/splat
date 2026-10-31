@@ -3,6 +3,11 @@
 Utilities for use with SPLAT! software are found under the
 `utils` directory.  They include the following:
 
+For required packages, CMake compile steps, and install targets (`splat`,
+`mapterhorn2sdf` when libcurl/libwebp are present, `splat-batch`), see the
+top-level [README.md](../README.md). Verified Mapterhorn / batch acceptance
+results are in [docs/test_results.md](../docs/test_results.md).
+
 
 ## srtm2sdf
 The `srtm2sdf` utility generates SPLAT Data Files (SDFs) from STS-99
@@ -211,3 +216,118 @@ srtm files which can then be processed by srtm2sdf-hd.
 	aw3d30_2_srtmhgt.sh -s <srcdir> -d <destdir>
 
 More information on the aw3d30 can be found at https://www.eorc.jaxa.jp/ALOS/en/aw3d30/index.htm 
+
+
+## mapterhorn2sdf
+`mapterhorn2sdf` generates SPLAT Data Files (SDFs) from Mapterhorn terrain
+tiles stored in a PMTiles v3 archive, either a local file or a remote URL.
+The Mapterhorn WebP tiles are lossless Terrarium-encoded elevation. The
+output layout, file naming and value ordering mirror `srtm2sdf`, so the
+generated files can be used interchangeably with SDFs made from SRTM data.
+Existing output files are never overwritten.
+
+It is built only when libcurl and libwebp are available. SPLAT! calls it
+automatically when run with `-mapterhorn`, but it can also be used on its
+own to prefetch terrain.
+
+    mapterhorn2sdf [--hd] [--zoom N] [--source PATH|URL] [--outdir DIR] [--bz2] [--offline] [--no-despike] [--workers N] [--bbox minlat,minlon,maxlat,maxlon] <min_north> <lon_east>
+
+Options:
+
+    --hd               High definition (3600 ppd, files get an -hd suffix)
+    --zoom N           Tile zoom level (default 12 with --hd, 10 otherwise)
+    --source PATH|URL  PMTiles archive (default
+                       https://download.mapterhorn.com/planet.pmtiles)
+    --outdir DIR       Output directory (default .)
+    --bz2              Write .sdf.bz2 files
+    --offline          Refuse remote sources; for a local archive, fail and
+                       list any required tiles that are missing
+    --no-despike       Leave isolated elevation spikes untouched (default is
+                       to remove multi-cell Copernicus-style cones that are
+                       far above a surrounding ring; residual tails may remain)
+    --workers N        Parallel workers for --bbox (default 1)
+    --bbox ...         Generate every 1x1 degree page overlapping the box,
+                       with longitudes in degrees EAST (replaces the
+                       <min_north> <lon_east> arguments)
+
+`<min_north>` is the integer latitude and `<lon_east>` the integer longitude
+(degrees EAST, negative for west) of the south-west corner of one 1x1 degree
+page.
+
+### Degrees West
+
+SPLAT! longitudes are degrees West (0-360). East longitudes, such as those in
+Norway, are written as 360-lon in SDF file names, SDF headers and `.qth`
+files. For example, the page covering 10-11E and 60-61N is
+`60_61_349_350.sdf` (`60_61_349_350-hd.sdf` in HD mode), with the header
+
+    350     (max_west)
+    60      (min_north)
+    349     (min_west)
+    61      (max_north)
+
+and is generated with `mapterhorn2sdf 60 10`. A `.qth` file for a site at
+10.75E would contain the longitude 349.25.
+
+### Prefetching a region
+
+For production use, prefer a local PMTiles archive so that runs never depend
+on the remote server. A subset can be cut out of the planet archive with the
+`pmtiles` tool, or a regional extract can be downloaded.
+
+**Bbox order:** `pmtiles extract --bbox` uses **longitude, latitude**:
+`MIN_LON,MIN_LAT,MAX_LON,MAX_LAT`. `mapterhorn2sdf --bbox` uses **latitude,
+longitude**: `minlat,minlon,maxlat,maxlon` (longitudes in degrees EAST).
+The two tools use opposite axis order. Putting coordinates in the wrong order
+often yields an empty or misplaced extract with no error, so check the order
+next to each command below.
+
+Norway mainland plus roughly 150 km margin for SPLAT! coverage (does not
+include Svalbard; use a separate small extract for Svalbard repeaters):
+
+    # lon,lat: south into Sweden (~56.5N), west margin, east into Russia
+    # for Finnmark (~36E), north to ~72.5N (Svalbard is ~78N)
+    pmtiles extract planet.pmtiles norway.pmtiles --bbox=2,56.5,36,72.5
+
+    # lat,lon (degrees EAST for lon): same box as above
+    mapterhorn2sdf --hd --source norway.pmtiles --outdir /data/sdf --bz2 \
+        --workers 4 --bbox 56.5,2,72.5,36
+
+A full HD prefetch of that box is 400+ 1x1-degree pages. Uncompressed HD SDF
+for the region is tens of gigabytes; prefer `--bz2` and plan disk space. Sea
+tiles compress well.
+
+Runs with `splat -mapterhorn -mt-offline` (or `mapterhorn2sdf --offline`)
+then never use the network and fail with a list of any missing pages. This
+is suitable for air-gapped machines after the prefetch.
+
+Attribution is REQUIRED when using Mapterhorn data:
+https://mapterhorn.com/attribution
+
+
+## splat-batch
+`splat-batch` (`utils/splat-batch`, implemented in `utils/splat_batch`) is a
+batch coverage driver. It:
+
+* reads repeater lists from `.joz` (JOSM session), GeoJSON or CSV files;
+* filters out `qrt` entries, data-only modulations and entries with
+  disagreeing positions;
+* writes a `.qth`, `.lrp` and `.lcf` file for each job;
+* prefetches the needed terrain (with `--mapterhorn`);
+* runs SPLAT! on all jobs in parallel;
+* polygonizes the resulting "hear" and "talk" areas;
+* writes one GeoJSON and one FlatGeobuf file per county;
+* caches results by a hash of the job parameters, so unchanged jobs are
+  skipped on later runs.
+
+Example:
+
+    utils/splat-batch --input repeaters.joz --out-dir ./out \
+      --mapterhorn --mt-source /data/norway.pmtiles --mt-cache /data/sdf \
+      --splat-bin ./build/splat --hd --workers 4
+
+Dependencies: Python 3, numpy, shapely, and the GDAL command-line tools
+(`gdal_translate`, `gdal_polygonize`, `ogr2ogr`).
+
+See `utils/splat_batch/README.md` for the full description of inputs,
+configuration, caching and options.

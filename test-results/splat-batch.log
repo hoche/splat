@@ -1,0 +1,47 @@
+22:41:32 INFO 11 input records, 11 jobs after filtering, 0 skipped
+22:41:32 INFO 11 job(s) to run, 0 unchanged (cached)
+22:41:32 INFO terrain prefetch: 3 request(s) for 11 job(s)
+22:41:32 INFO running: /tmp/splat-build/mapterhorn2sdf --source /mnt/2e9a1e9f-2097-408c-ab9a-a01b32f11d28/.Trash-1000/files/PMT-splitter/output/europe/norway.pmtiles --outdir /tmp/sdf-batch-cache --workers 2 --bz2 --bbox 59,6,59.9999,14.9999
+22:41:32 ERROR terrain prefetch failed: /tmp/splat-build/mapterhorn2sdf exited with status 1
+22:41:38 INFO 11 input records, 11 jobs after filtering, 0 skipped
+22:41:38 INFO 11 job(s) to run, 0 unchanged (cached)
+22:41:38 INFO terrain prefetch: 3 request(s) for 11 job(s)
+22:41:38 INFO running: /tmp/splat-build/mapterhorn2sdf --source https://download.mapterhorn.com/planet.pmtiles --outdir /tmp/sdf-batch-cache --workers 2 --bz2 --bbox 59,6,59.9999,14.9999
+22:42:07 INFO running: /tmp/splat-build/mapterhorn2sdf --source https://download.mapterhorn.com/planet.pmtiles --outdir /tmp/sdf-batch-cache --workers 2 --bz2 --bbox 60,5,62.9999,14.9999
+22:43:55 INFO running: /tmp/splat-build/mapterhorn2sdf --source https://download.mapterhorn.com/planet.pmtiles --outdir /tmp/sdf-batch-cache --workers 2 --bz2 --bbox 63,6,63.9999,13.9999
+22:44:22 INFO LA5TRR_145725: /tmp/splat-build/splat -st -t site.qth -L 1.5 -R 100 -maxpages 36 -mapterhorn -mt-source https://download.mapterhorn.com/planet.pmtiles -mt-cache /tmp/sdf-batch-cache -o site -kml -ppm
+22:44:22 INFO LA5MR_1473491257_145625: /tmp/splat-build/splat -st -t site.qth -L 1.5 -R 100 -maxpages 36 -mapterhorn -mt-source https://download.mapterhorn.com/planet.pmtiles -mt-cache /tmp/sdf-batch-cache -o site -kml -ppm
+22:48:32 INFO LA2TRR_145238: /tmp/splat-build/splat -st -t site.qth -L 1.5 -R 100 -maxpages 36 -mapterhorn -mt-source https://download.mapterhorn.com/planet.pmtiles -mt-cache /tmp/sdf-batch-cache -o site -kml -ppm
+22:48:32 INFO LA5TRR_145725: done in 250 s, 2 feature(s)
+22:48:32 WARNING LA5TRR_145725: ITM model error number 3 (result kept, flagged in the report)
+22:48:34 INFO LA5MR_HOYKORSET_145625: /tmp/splat-build/splat -st -t site.qth -L 1.5 -R 100 -maxpages 36 -mapterhorn -mt-source https://download.mapterhorn.com/planet.pmtiles -mt-cache /tmp/sdf-batch-cache -o site -kml -ppm
+22:48:34 INFO LA5MR_1473491257_145625: done in 251 s, 2 feature(s)
+22:48:34 WARNING LA5MR_1473491257_145625: ITM model error number 3 (result kept, flagged in the report)
+22:52:49 INFO LA5MR_BISLINGEN_145638: /tmp/splat-build/splat -st -t site.qth -L 1.5 -R 100 -maxpages 36 -mapterhorn -mt-source https://download.mapterhorn.com/planet.pmtiles -mt-cache /tmp/sdf-batch-cache -o site -kml -ppm
+22:52:49 INFO LA5MR_HOYKORSET_145625: done in 255 s, 2 feature(s)
+22:52:49 WARNING LA5MR_HOYKORSET_145625: ITM model error number 3 (result kept, flagged in the report)
+22:53:07 INFO LA5MR_5576503609_145625: /tmp/splat-build/splat -st -t site.qth -L 1.5 -R 100 -maxpages 36 -mapterhorn -mt-source https://download.mapterhorn.com/planet.pmtiles -mt-cache /tmp/sdf-batch-cache -o site -kml -ppm
+22:53:07 INFO LA2TRR_145238: done in 274 s, 2 feature(s)
+22:53:07 WARNING LA2TRR_145238: ITM model error number 3 (result kept, flagged in the report)
+22:56:32 INFO LA5MR_12635462528_145625: /tmp/splat-build/splat -st -t site.qth -L 1.5 -R 100 -maxpages 36 -mapterhorn -mt-source https://download.mapterhorn.com/planet.pmtiles -mt-cache /tmp/sdf-batch-cache -o site -kml -ppm
+22:56:32 INFO LA5MR_BISLINGEN_145638: done in 223 s, 2 feature(s)
+22:56:32 WARNING LA5MR_BISLINGEN_145638: ITM model error number 3 (result kept, flagged in the report)
+22:57:01 INFO LA9AR_145600: /tmp/splat-build/splat -st -t site.qth -L 1.5 -R 100 -maxpages 36 -mapterhorn -mt-source https://download.mapterhorn.com/planet.pmtiles -mt-cache /tmp/sdf-batch-cache -o site -kml -ppm
+22:57:01 INFO LA5MR_5576503609_145625: done in 234 s, 2 feature(s)
+22:57:01 WARNING LA5MR_5576503609_145625: ITM model error number 3 (result kept, flagged in the report)
+23:00:31 INFO LA2KRR_434650: /tmp/splat-build/splat -st -t site.qth -L 1.5 -R 100 -maxpages 36 -mapterhorn -mt-source https://download.mapterhorn.com/planet.pmtiles -mt-cache /tmp/sdf-batch-cache -o site -kml -ppm
+23:00:31 INFO LA5MR_12635462528_145625: done in 239 s, 2 feature(s)
+23:00:31 WARNING LA5MR_12635462528_145625: ITM model error number 3 (result kept, flagged in the report)
+23:02:52 INFO LA6JRR_145662: /tmp/splat-build/splat -st -t site.qth -L 1.5 -R 100 -maxpages 36 -mapterhorn -mt-source https://download.mapterhorn.com/planet.pmtiles -mt-cache /tmp/sdf-batch-cache -o site -kml -ppm
+23:02:52 INFO LA9AR_145600: done in 352 s, 2 feature(s)
+23:02:52 WARNING LA9AR_145600: ITM model error number 3 (result kept, flagged in the report)
+23:04:41 INFO LA6NR_145775: /tmp/splat-build/splat -st -t site.qth -L 1.5 -R 100 -maxpages 36 -mapterhorn -mt-source https://download.mapterhorn.com/planet.pmtiles -mt-cache /tmp/sdf-batch-cache -o site -kml -ppm
+23:04:41 INFO LA2KRR_434650: done in 251 s, 2 feature(s)
+23:04:41 WARNING LA2KRR_434650: ITM model error number 3 (result kept, flagged in the report)
+23:07:16 INFO LA6JRR_145662: done in 264 s, 2 feature(s)
+23:07:16 WARNING LA6JRR_145662: ITM model error number 3 (result kept, flagged in the report)
+23:08:34 INFO LA6NR_145775: done in 232 s, 2 feature(s)
+23:08:34 WARNING LA6NR_145775: ITM model error number 3 (result kept, flagged in the report)
+23:08:40 INFO county Buskerud: 2 features
+23:09:00 INFO county Innlandet: 18 features
+23:09:03 INFO county Unknown: 2 features

@@ -266,6 +266,11 @@ elevation_data[ippd-1][ippd-1]
 - **USGS DEM**: Generated using `usgs2sdf` utility
 - **SRTM-3**: Generated using `srtm2sdf` utility (3 arc-second, standard mode)
 - **SRTM-1**: Generated using `srtm2sdf-hd` utility (1 arc-second, HD mode)
+- **Mapterhorn**: Generated using the `mapterhorn2sdf` utility from Mapterhorn PMTiles data, either ahead of time or on demand by running `splat` with `-mapterhorn` (standard or HD mode). The files use the same layout and naming as SRTM-derived SDFs. Attribution is required: https://mapterhorn.com/attribution
+
+**Degrees West and East Longitudes**:
+- Longitudes in SDF file names and headers are always degrees West (0-360); longitudes east of Greenwich are written as 360-lon
+- Example: the page for 10-11E, 60-61N is `60_61_349_350.sdf` (`60_61_349_350-hd.sdf` in HD mode), with header values `max_west=350`, `min_north=60`, `min_west=349`, `max_north=61`
 
 **Resolution**:
 - **Standard mode**: 3 arc-seconds ≈ 90 meters at equator
